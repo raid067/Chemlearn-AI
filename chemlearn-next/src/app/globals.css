@@ -1,0 +1,89 @@
+@import "tailwindcss";
+@plugin "@tailwindcss/typography";
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+
+  /* ChemLearn Base Colors */
+  --color-chem-bg: #fdfcff;
+  --color-chem-card: #ffffff;
+  --color-chem-text: #1e1b4b;
+  --color-chem-text-muted: #64748b;
+  --color-chem-purple: #6d28d9;
+  --color-chem-nav: #b85ee6;
+  --color-chem-border: #f1f0f7;
+
+  /* ChemLearn Topic Palettes */
+  --color-brand-purple: #6d28d9;
+  --color-brand-violet: #8b5cf6;
+  --color-chem-acids: #ef4444;
+  --color-chem-acids-bg: #fee2e2;
+  --color-chem-salts: #059669;
+  --color-chem-salts-bg: #ecfdf5;
+  --color-chem-analytical: #d97706;
+  --color-chem-analytical-bg: #fef3c7;
+  --color-chem-spm: #2563eb;
+  --color-chem-spm-bg: #eff6ff;
+  --color-chem-liquid: #8b5cf6;
+
+  /* Custom Animations */
+  --animate-fade-in-up: fade-in-up 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+  --animate-slide-in-right: slide-in-right 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
+  --animate-fade-in: fade-in 0.3s ease-out both;
+}
+
+@keyframes fade-in-up {
+  0% { opacity: 0; transform: translateY(20px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slide-in-right {
+  0% { transform: translateX(100%); }
+  100% { transform: translateX(0); }
+}
+
+@keyframes fade-in {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--color-chem-bg);
+  color: var(--color-chem-text);
+  font-family: Arial, Helvetica, sans-serif;
+  @apply antialiased;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}

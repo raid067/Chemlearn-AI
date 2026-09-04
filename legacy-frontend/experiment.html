@@ -1,0 +1,2525 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Virtual Chemistry Laboratory | ChemLearn AI</title>
+    <meta name="description" content="Safely conduct SPM Form 4 chemistry experiments virtually, including thermal decomposition, acid dilution, and gas identification tests.">
+    <link rel="canonical" href="https://chemlearn-67.web.app/experiment.html">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg-base: #fdfcff;
+            --bg-card: #ffffff;
+            --text-dark: #1e1b4b;
+            --text-muted: #64748b;
+            --accent-purple: #6d28d9;
+            --nav-active: #b85ee6;
+            --border-light: #f1f0f7;
+            
+            /* Chapter 6 Theme Variables */
+            --color-acids: #ef4444;
+            --bg-acids: #fee2e2;
+            --color-salts: #059669;
+            --bg-salts: #ecfdf5;
+            --color-analytical: #d97706;
+            --bg-analytical: #fef3c7;
+            --color-spm: #2563eb;
+            --bg-spm: #eff6ff;
+            --liquid-purple: #8b5cf6;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background-color: var(--bg-base);
+            color: var(--text-dark);
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            letter-spacing: -0.01em;
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        /* --- GLOBAL NAVIGATION BAR --- */
+        .global-navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 10%;
+            background: #ffffff;
+            border-bottom: 1px solid #f3f1f8;
+            width: 100%;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .brand-logo {
+            display: flex; align-items: center; gap: 10px; font-size: 1.35rem; font-weight: 700; color: #0f172a; text-decoration: none;
+        }
+
+        .center-nav-links { display: flex; gap: 36px; }
+        .center-nav-links a { text-decoration: none; color: #94a3b8; font-size: 0.95rem; font-weight: 500; padding: 4px 0; position: relative; transition: color 0.2s; }
+        .center-nav-links a:hover { color: var(--nav-active); }
+        .center-nav-links a.active { color: var(--nav-active); font-weight: 600; }
+        .center-nav-links a.active::after { content: ''; position: absolute; bottom: -18px; left: 0; width: 100%; height: 2.5px; background-color: var(--nav-active); border-radius: 2px; }
+
+        .right-auth-links { display: flex; align-items: center; gap: 24px; }
+        .login-btn { text-decoration: none; color: #64748b; font-weight: 600; font-size: 0.95rem; }
+        .signup-btn { background: #c084fc; color: #ffffff; padding: 8px 20px; border-radius: 18px; font-weight: 600; font-size: 0.95rem; border: none; cursor: pointer; }
+
+        /* --- HERO HEADER SECTOR --- */
+        .hero-section { text-align: center; padding: 60px 24px 30px 24px; }
+        .hero-section h1 { font-size: 2.8rem; color: #1e1b4b; font-weight: 800; margin-bottom: 12px; }
+        .hero-section p { color: #64748b; font-size: 1.1rem; font-weight: 500; max-width: 700px; margin: 0 auto 24px auto; line-height: 1.5; }
+
+        /* --- PROGRESS TRACKER --- */
+        .progress-container {
+            max-width: 600px; margin: 0 auto 20px auto; text-align: left; background: #ffffff; padding: 16px 24px;
+            border-radius: 16px; border: 2px solid #eef0f6; box-shadow: 0 4px 10px rgba(0,0,0,0.02);
+        }
+        .progress-header { display: flex; justify-content: space-between; margin-bottom: 10px; font-family: 'Inter', sans-serif; }
+        .progress-header span:first-child { font-weight: 600; font-size: 0.95rem; color: #334155; }
+        .progress-header span:last-child { font-weight: 800; font-size: 1rem; color: var(--accent-purple); }
+        .progress-bar-bg { width: 100%; background: #f1f5f9; height: 12px; border-radius: 6px; overflow: hidden; }
+        .progress-bar-fill { width: 0%; height: 100%; background: linear-gradient(90deg, #c084fc, #6d28d9); transition: width 0.6s ease; }
+
+        /* --- GAMIFICATION HUD --- */
+        .gamification-hud { max-width: 600px; margin: 0 auto 36px auto; display: flex; gap: 15px; }
+        .gamification-hud .xp-box { flex: 1; background: #ffffff; padding: 16px; border-radius: 16px; border: 2px solid #eef0f6; box-shadow: 0 4px 10px rgba(0,0,0,0.02); text-align: left; }
+        .gamification-hud .badge-box { background: #ffffff; padding: 16px; border-radius: 16px; border: 2px solid #eef0f6; display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 120px; }
+        
+        /* --- FILTER CONTROLLER PILLS --- */
+        .filter-dock { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; margin-bottom: 48px; max-width: 1100px; margin-left: auto; margin-right: auto; }
+        .pill-btn { padding: 10px 18px; border-radius: 30px; font-size: 0.85rem; font-weight: 700; cursor: pointer; border: 2px solid #e2e8f0; background: #ffffff; color: #475569; transition: all 0.2s; }
+
+        .pill-btn.active[data-target="intro"] { border-color: #c084fc; background: #6d28d9; color: #ffffff; }
+        .pill-btn.active[data-target="acids"] { border-color: var(--color-acids); background: var(--color-acids); color: #ffffff; }
+        .pill-btn.active[data-target="salts"] { border-color: var(--color-salts); background: var(--color-salts); color: #ffffff; }
+        .pill-btn.active[data-target="spm"] { border-color: var(--color-spm); background: var(--color-spm); color: #ffffff; }
+
+        /* --- GRID AND CARDS --- */
+        .grid-container { max-width: 1200px; width: 100%; margin: 0 auto 60px auto; padding: 0 24px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 30px; }
+
+        .intro-billboard { grid-column: span 3; background: radial-gradient(circle at top left, #ffffff, #faf5ff); border: 2px dashed #d8b4fe; border-radius: 24px; padding: 48px; text-align: center; }
+        .intro-billboard h2 { font-size: 1.8rem; color: #4c1d95; font-weight: 800; margin-bottom: 16px;}
+        .intro-billboard p { color: #64748b; max-width: 640px; margin: 0 auto; line-height: 1.6; }
+
+        .resource-card { background: var(--bg-card); border: 2px solid #eef0f6; border-radius: 20px; padding: 30px; display: flex; flex-direction: column; height: 100%; transition: transform 0.3s, border-color 0.3s; }
+
+        .resource-card[data-topic="acids"]:hover { border-color: var(--color-acids); transform: translateY(-6px); }
+        .resource-card[data-topic="salts"]:hover { border-color: var(--color-salts); transform: translateY(-6px); }
+        .resource-card[data-topic="spm"]:hover { border-color: var(--color-spm); transform: translateY(-6px); }
+        
+        .card-tag { font-size: 0.75rem; font-weight: 800; padding: 5px 12px; border-radius: 8px; width: fit-content; text-transform: uppercase; margin-bottom: 16px; }
+        .tag-acids { background: var(--bg-acids); color: var(--color-acids); }
+        .tag-salts { background: var(--bg-salts); color: var(--color-salts); }
+        .tag-spm { background: var(--bg-spm); color: var(--color-spm); }
+
+        .card-title { font-size: 1.3rem; font-weight: 800; margin-bottom: 10px; color: #0f172a; }
+        .card-description { font-size: 0.9rem; color: #64748b; margin-bottom: 16px; line-height: 1.5; }
+
+        /* --- ANIMATIONS & INTERFACES --- */
+        .animation-window { width: 100%; height: 110px; background: #f8fafc; border-radius: 12px; margin-bottom: 20px; display: flex; align-items: flex-end; justify-content: center; position: relative; overflow: hidden; border: 1px solid #e2e8f0; }
+
+        .flask { width: 42px; height: 55px; border: 2.5px solid #475569; border-top: none; border-radius: 0 0 16px 16px; position: relative; margin-bottom: 10px; overflow: hidden; background: rgba(255, 255, 255, 0.6); box-shadow: inset 0 0 6px rgba(0,0,0,0.05); }
+        .flask::before { content: ''; position: absolute; top: 0; left: 25%; width: 50%; height: 8px; border: 2.5px solid #475569; border-bottom: none; border-radius: 4px 4px 0 0; top: -8px; left: calc(50% - 25%); }
+        .liquid { position: absolute; bottom: 0; left: 0; width: 100%; height: 0%; background: #bae6fd; transition: height 1.5s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.6s ease; }
+
+        /* --- CSS POURING ENGINE --- */
+        .pour-stream { width: 3px; height: 0; background: #60a5fa; position: absolute; top: 0; left: 50%; transform: translateX(-50%); z-index: 2; border-radius: 2px; }
+        @keyframes streamPourDown { 0% { height: 0; top: 0; } 20% { height: 85px; top: 0; } 80% { height: 85px; top: 0; opacity: 1; } 100% { height: 0; top: 85px; opacity: 0; } }
+
+        /* --- DROPPER & LITMUS CHALLENGE ENGINE --- */
+        .dropper-tool { position: absolute; top: -30px; left: 50%; transform: translateX(-50%); width: 8px; height: 25px; background: #64748b; border-radius: 2px; display: none; z-index: 4; }
+        .dropper-drop { position: absolute; top: -5px; left: 50%; transform: translateX(-50%); width: 6px; height: 6px; background: #ec4899; border-radius: 50%; display: none; z-index: 3; }
+        @keyframes dropDown { 0% { top: -5px; opacity: 1; scale: 1; } 80% { top: 35px; opacity: 1; } 100% { top: 35px; opacity: 0; scale: 0.5; } }
+
+        .litmus-paper-strip-challenge { position: absolute; top: -60px; left: 50%; transform: translateX(-50%); width: 14px; height: 50px; background: #cbd5e1; border: 1px solid #94a3b8; border-radius: 1px; z-index: 5; }
+        @keyframes dipLitmusPaperAnimation { 0% { top: -60px; } 40% { top: 10px; } 60% { top: 10px; } 100% { top: -60px; } }
+
+        /* --- DETECTOR SCANNING RADAR --- */
+        .scanner-line { position: absolute; top: 0; left: 0; width: 100%; height: 4px; background: #2563eb; opacity: 0; z-index: 10; }
+        @keyframes scanMeters { 0% { top: 0; opacity: 1; } 50% { top: 100px; opacity: 1; } 100% { top: 0; opacity: 0; } }
+
+        /* --- BUBBLE EFFECT --- */
+        .bubble-particle { position: absolute; background: rgba(255,255,255,0.7); border-radius: 50%; animation: bubbleUp 1s ease-out infinite; bottom: 0; }
+        @keyframes bubbleUp { 0% { transform: translateY(0) scale(0.6); opacity: 0; } 50% { opacity: 0.8; } 100% { transform: translateY(-50px) scale(1.2); opacity: 0; } }
+
+        .crystals { width: 8px; height: 8px; background: #34d399; position: absolute; bottom: 2px; transform: rotate(45deg); display: none; transition: transform 0.6s ease; }
+        .litmus-paper-strip { width: 14px; height: 45px; background: #cbd5e1; border-radius: 2px; border: 1px solid #94a3b8; transition: background 0.3s ease; }
+
+        .download-box { padding: 16px; border: 2px dashed #cbd5e1; border-radius: 14px; background: #ffffff; margin-top: auto; }
+        .step-text { font-size: 0.85rem; color: #334155; margin-bottom: 14px; min-height: 48px; }
+        .action-bar { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+        .action-btns-cluster { display: flex; gap: 6px; align-items: center; }
+        .status-badge { font-size: 0.75rem; font-weight: 800; letter-spacing: 0.05em; }
+        .download-btn { background: #f1f5f9; color: #475569; font-weight: 700; padding: 8px 14px; border-radius: 10px; border: none; cursor: pointer; transition: all 0.2s; }
+        .download-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .replay-btn { background: #f1f5f9; color: #64748b; font-weight: 700; padding: 8px 12px; border-radius: 10px; border: 1px solid #e2e8f0; cursor: pointer; transition: all 0.2s; }
+        .replay-btn:hover { background: #cbd5e1; color: #0f172a; }
+
+        .resource-card[data-topic="acids"] .download-btn:hover:not(:disabled) { background: var(--color-acids); color: #ffffff; }
+        .resource-card[data-topic="salts"] .download-btn:hover:not(:disabled) { background: var(--color-salts); color: #ffffff; }
+        .resource-card[data-topic="spm"] .download-btn:hover:not(:disabled) { background: var(--color-spm); color: #ffffff; }
+    
+        .spm-input { width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; margin-bottom: 10px; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 0.85rem;}
+        .gas-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; margin-bottom: 10px; }
+        .gas-btn { background: #ffffff; border: 1px solid #cbd5e1; color: #475569; font-size: 0.75rem; font-weight: 600; padding: 6px; border-radius: 6px; cursor: pointer; transition: all 0.2s; text-align: left; }
+        .gas-btn:hover { background: #f8fafc; border-color: #94a3b8; }
+        input[type=range] { width: 100%; margin: 10px 0; accent-color: var(--accent-purple); }
+        .ph-color-bar { width: 100%; height: 40px; border-radius: 8px; background: #22c55e; transition: background 0.3s; display: flex; align-items: center; justify-content: center; color: white; font-weight: 800; }
+
+        .grade-circle { width: 65px; height: 65px; border-radius: 50%; background: #fef08a; color: #ca8a04; display: flex; align-items: center; justify-content: center; font-size: 1.6rem; font-weight: 800; margin: auto; display: none; border: 4px solid #fde047;}
+       .quiz-choice-btn { 
+    width: 100%; 
+    text-align: left; 
+    padding: 16px 16px; /* Increased padding for larger touch target */
+    background: #f8fafc; 
+    border: 1px solid #e2e8f0; 
+    border-radius: 8px; 
+    margin-bottom: 8px; 
+    font-size: 0.85rem; /* Made the answer text bigger */
+    cursor: pointer; 
+    transition: background 0.2s; 
+    font-family: 'Inter', sans-serif; 
+}
+        .quiz-choice-btn:hover { background: #f1f5f9; border-color: #cbd5e1; }
+
+        /* --- FOOTER SITE MAP --- */
+        .footer-wrapper { background-color: #ffffff; border-top: 1px solid #edf2f7; padding: 40px 10% 30px 10%; width: 100%; margin-top: auto; }
+        .footer-grid-row { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 40px; }
+        .footer-brand-side p { font-size: 0.9rem; color: #718096; margin-top: 12px; max-width: 340px; line-height: 1.5; }
+        .footer-column h4 { font-size: 0.95rem; font-weight: 700; color: #1a202c; margin-bottom: 14px; }
+        .footer-column ul { list-style: none; }
+        .footer-column ul li { margin-bottom: 8px; }
+        .footer-column ul li a { text-decoration: none; font-size: 0.9rem; color: #718096; }
+        .footer-bottom-bar { border-top: 1px solid #edf2f7; padding-top: 20px; text-align: center; color: #a0aec0; font-size: 0.85rem; }
+
+        @media (max-width: 1024px) { .grid-container { grid-template-columns: repeat(2, 1fr); } .intro-billboard { grid-column: span 2; } }
+        @media (max-width: 720px) { .grid-container { grid-template-columns: 1fr; } .intro-billboard { grid-column: span 1; } .global-navbar { flex-direction: column; gap: 14px; } .gamification-hud { flex-direction: column; gap: 10px; } }
+    /* --- EXTENSION: SIMULATOR STYLING UPGRADES --- */
+.burner-flame {
+    width: 14px; height: 20px; background: #38bdf8; border-radius: 50% 50% 20% 20%;
+    position: absolute; top: -20px; left: 50%; transform: translateX(-50%) scale(0);
+    transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    box-shadow: 0 0 8px rgba(56, 189, 248, 0.7); animation: flameWobble 0.15s infinite alternate ease-in-out;
+}
+    @keyframes flameWobble {
+    0% { transform: translateX(-50%) scale(1) skewX(-2deg); background: #38bdf8; }
+    100% { transform: translateX(-50%) scale(1.08) skewX(2deg); background: #0ea5e9; }
+}
+.powder-substance {
+    position: absolute; bottom: 2px; left: 2px; right: 2px; height: 14px;
+    border-radius: 0 0 8px 8px; transition: background-color 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+    </style>
+</head>
+<body>
+
+    <nav class="global-navbar">
+        <a href="index.html" class="brand-logo">
+            <svg width="20" height="24" viewBox="0 0 22 26" fill="none" xmlns="http://www.w3.org/2000/svg" style="display:inline-block; vertical-align:middle; margin-right:6px;">
+                <path d="M2 2H20M2 24H20M3.5 2C3.5 2 5 10.5 11 13C5 15.5 3.5 24 3.5 24M18.5 2C18.5 2 17 10.5 11 13C17 15.5 18.5 24 18.5 24" stroke="#b85ee6" stroke-width="2.8" stroke-linecap="round"/>
+            </svg>
+            ChemLearn
+        </a>
+        <div class="center-nav-links">
+            <a href="index.html">Home</a>
+           <a href="lessons.html">Lessons</a>
+           <a href="quizzes.html">Quizzes</a>
+           <a href="resources.html">Resources</a>
+           <a href="experiment.html" class="active">Experiment</a>
+           <a href="dashboard.html"> Dashboard</a>   
+        </div>
+                <div class="right-auth-links">
+            <button type="button" class="transparent-btn login-btn" id="openLoginBtn">Login</button>
+            <button type="button" class="signup-btn" id="openSignupBtn">Sign Up</button>
+        </div>
+    </nav>
+
+
+
+
+    <section class="hero-section">
+        <h1>SPM Chemistry Virtual Labs 🧑‍🔬</h1>
+        <p>Explore high-fidelity simulators for Form 4 Chapter 6 (Acids, Bases, Salts).</p>
+        
+        <div class="progress-container">
+            <div class="progress-header">
+                <span>Lab Modules Completed</span>
+                <span id="progressText">0 / 12</span>
+            </div>
+            <div class="progress-bar-bg">
+                <div class="progress-bar-fill" id="progressBar"></div>
+            </div>
+        </div>
+
+        <div class="gamification-hud">
+            <div class="xp-box">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-family: 'Inter', sans-serif;">
+                    <span style="font-weight: 700; color: #1e1b4b;">Level <span id="userLevel">1</span>: <span id="levelTitle" style="color: #6d28d9;">Novice Chemist</span></span>
+                    <span style="font-weight: 800; color: #64748b;"><span id="userXP">0</span> / <span id="xpToNext">500</span> XP</span>
+                </div>
+                <div class="progress-bar-bg" style="height: 8px; background: #e2e8f0;">
+                    <div class="progress-bar-fill" id="xpBar" style="background: linear-gradient(90deg, #f59e0b, #d97706); width: 0%;"></div>
+                </div>
+            </div>
+            <div class="badge-box">
+                <div style="font-size: 0.75rem; font-weight: 700; color: #64748b; text-transform: uppercase; margin-bottom: 4px;">Badges Earned</div>
+                <div id="badgeContainer" style="display: flex; gap: 4px; font-size: 1.5rem;">
+                    <span style="opacity: 0.2;" title="Complete a lab to earn your first badge!">🔒</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="filter-dock">
+            <button class="pill-btn active" data-target="intro" onclick="filterExperiments('intro', this)">✨ Introduction</button>
+            <button class="pill-btn" data-target="acids" onclick="filterExperiments('acids', this)">🔴 Ch 6: Acids & Bases</button>
+            <button class="pill-btn" data-target="salts" onclick="filterExperiments('salts', this)">🔮 Ch 6: Salts & Gases</button>
+            <button class="pill-btn" data-target="spm" onclick="filterExperiments('spm', this)">📝 Ch 6: SPM Checkpoint</button>
+        </div>
+    </section>
+
+    <div class="grid-container" id="experimentsGrid">
+        
+        <div class="intro-billboard" id="introHubPanel">
+            <h2>Welcome to the Consolidated Practical Lab Station!</h2>
+            <p>Filter by specific topics above to perform analytical chemistry reactions, test structural properties of materials, or challenge your examination timing.</p>
+        </div>
+        
+        <div class="resource-card" data-topic="acids" style="display: none;">
+            <div class="card-tag tag-acids">Main Feature</div>
+            <h3 class="card-title">Virtual Acid–Base Lab ⭐</h3>
+            <p class="card-description">Choose chemicals (HCl, NaOH, etc.), pour to mix, and watch pH and indicator color changes.</p>
+            <div class="animation-window">
+                <div class="pour-stream" id="pourStream1"></div>
+                <div class="flask"><div class="liquid" id="liquid1" style="height: 15%; background: #e2e8f0;"></div></div>
+            </div>
+            <div class="download-box">
+                <select id="chemSelect" class="spm-input" style="margin-bottom: 8px;">
+                    <option value="hcl">Add Strong Acid (HCl)</option>
+                    <option value="naoh">Add Strong Alkali (NaOH)</option>
+                </select>
+                <div class="step-text" id="stepText1"><strong>Current:</strong> Neutral H₂O. Select a chemical and pour.</div>
+                <div class="action-bar">
+                    <span class="status-badge" id="status1" style="color: var(--color-acids);">READY</span>
+                    <div class="action-btns-cluster">
+                        <button class="replay-btn" onclick="replaySim1()" title="Reset Experiment">🔄</button>
+                        <button class="download-btn" id="btnSim1" onclick="runSim1()">Pour 🧪</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="resource-card" data-topic="salts" style="display: none;">
+            <div class="card-tag tag-salts">Syllabus Core 🔥</div>
+            <h3 class="card-title">Thermal Decomposition Lab</h3>
+            <p class="card-description">Heat metal carbonate and nitrate salts over a Bunsen burner to study color residue profiles and gas evolution footprints.</p>
+            <div class="animation-window" style="align-items: center; justify-content: center; position: relative;">
+                <div style="position: absolute; bottom: 0; width: 34px; height: 18px; background: #64748b; border-radius: 4px 4px 0 0;">
+                    <div id="burnerFlame" class="burner-flame"></div>
+                </div>
+                <div id="heatingTube" style="width: 22px; height: 68px; border: 2px solid #475569; border-top: none; border-radius: 0 0 11px 11px; position: relative; transform: rotate(35deg) translateY(-12px); background: rgba(255,255,255,0.65); transition: all 0.5s ease;">
+                    <div id="saltPowder" class="powder-substance"></div>
+                </div>
+                <div id="gasVapor" style="position: absolute; top: 15px; left: 55%; width: 45px; height: 25px; background: transparent; border-radius: 50%; opacity: 0; transition: all 1.2s ease; filter: blur(4px);"></div>
+            </div>
+            <div class="download-box">
+                <select id="saltHeatSelect" class="spm-input" style="margin-bottom: 8px;" onchange="changeHeatSaltTarget()">
+                    <option value="CuCO3">Copper(II) Carbonate (CuCO₃)</option>
+                    <option value="ZnCO3">Zinc Carbonate (ZnCO₃)</option>
+                    <option value="PbNO3">Lead(II) Nitrate [Pb(NO₃)₂]</option>
+                </select>
+                <div class="step-text" id="stepText11"><strong>Status:</strong> Green powder loaded. Ready for thermal decomposition testing.</div>
+                <div class="action-bar">
+                    <span class="status-badge" id="status11" style="color: var(--color-salts);">READY</span>
+                    <div class="action-btns-cluster">
+                        <button class="replay-btn" onclick="resetHeatSim()" title="Cool Down & Reset">🔄</button>
+                        <button class="download-btn" id="btnHeat" onclick="triggerHeatingCycle()">Heat Salt 🔥</button>
+                        <button class="download-btn" id="btnGasTest" onclick="testDecompGas()" disabled style="font-size: 0.75rem; padding: 8px 10px;">Test Gas 💨</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="resource-card" data-topic="spm" style="display: none;">
+            <div class="card-tag tag-spm">Calculations 📝</div>
+            <h3 class="card-title">Molarity & Dilution Lab</h3>
+            <p class="card-description">Master the $M_1V_1 = M_2V_2$ formula. Accurately calculate and add stock volume without overshooting the graduation mark line.</p>
+            <div class="animation-window" style="align-items: flex-end; justify-content: center; position: relative; padding-bottom: 8px;">
+                <div style="position: relative; width: 46px; height: 75px; border: 2.5px solid #475569; border-top: none; border-radius: 0 0 22px 22px; background: rgba(255, 255, 255, 0.4); display: flex; align-items: flex-end; overflow: hidden; box-shadow: inset 0 0 6px rgba(0,0,0,0.05);">
+                    <div id="dilutionLiquid" style="width: 100%; height: 0%; background: #bae6fd; transition: height 1.2s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.5s ease;"></div>
+                    <div style="position: absolute; top: 24px; left: 0; width: 100%; height: 2.5px; background: #ef4444; z-index: 5;" title="Calibration Mark"></div>
+                </div>
+            </div>
+            <div class="download-box">
+                <div id="dilutionChallengeBox" style="font-size: 0.8rem; background: #f8fafc; padding: 10px; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 10px; line-height: 1.4; color: #334155;">
+                    </div>
+                <div style="display: flex; gap: 8px; margin-bottom: 10px; align-items: center;">
+                    <label style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); white-space: nowrap;">Required V₁ (cm³):</label>
+                    <input type="number" id="v1Input" class="spm-input" style="margin: 0; padding: 7px;" placeholder="Ex: 25">
+                </div>
+                <div class="step-text" id="stepText12">Calculate the target value using the dilution balance formula, then dilute.</div>
+                <div class="action-bar">
+                    <span class="status-badge" id="status12" style="color: var(--color-spm);">READY</span>
+                    <div class="action-btns-cluster">
+                        <button class="replay-btn" onclick="generateNewDilutionChallenge()" title="New Challenge Puzzle">🔄</button>
+                        <button class="download-btn" id="btnDilute" onclick="checkDilutionCalculation()">Dilute Solution 💧</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="resource-card" data-topic="acids" style="display: none;">
+            <div class="card-tag tag-acids">Interactive</div>
+            <h3 class="card-title">pH Scale Simulator</h3>
+            <p class="card-description">Slide to observe universal indicator color spectrums from strong acids to strong alkalis.</p>
+            <div class="animation-window" style="align-items: center; padding: 0 20px; justify-content: space-around;">
+                <div class="ph-color-bar" id="phColorBar" style="width: 60%">pH 7 (Neutral)</div>
+                <div class="flask" style="margin-bottom: 0;"><div class="liquid" id="liquid2" style="background: #22c55e; height: 50%;"></div></div>
+            </div>
+            <div class="download-box">
+                <input type="range" id="phSlider" min="0" max="14" value="7" oninput="updatePhScale(this.value)">
+                <div class="step-text" id="stepText2"><strong>Action:</strong> Move the slider to see universal indicator changes.</div>
+                <div class="action-bar">
+                    <span class="status-badge" id="status2" style="color: var(--color-acids);">READY</span>
+                    <div class="action-btns-cluster">
+                        <button class="replay-btn" onclick="replaySim2()" title="Reset Experiment">🔄</button>
+                        <button class="download-btn" id="btnSim2" onclick="completeSim2()">Mark Done ✅</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="resource-card" data-topic="acids" style="display: none;">
+            <div class="card-tag tag-acids">Game 🎮</div>
+            <h3 class="card-title">Indicator Challenge</h3>
+            <p class="card-description">Test an unknown randomized liquid with indicators and guess whether it is Acidic, Neutral, or Alkaline.</p>
+            <div class="animation-window" style="align-items: flex-end; justify-content: center; padding-bottom: 10px;">
+                <div style="position: relative; width: 44px; height: 80px; display: flex; justify-content: center; align-items: flex-end;">
+                    <div class="litmus-paper-strip-challenge" id="litmusPaper3"></div>
+                    <div class="dropper-tool" id="dropper3"></div>
+                    <div class="dropper-drop" id="drop3"></div>
+                    <div class="flask" style="border-radius: 5px; width: 34px; height: 44px; margin-bottom: 0; z-index:2;">
+                        <div class="liquid" id="liquid3" style="background: rgba(148, 163, 184, 0.15); height: 60%;"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="download-box">
+                <div style="display:flex; gap:5px; margin-bottom: 10px;">
+                    <button class="download-btn" id="litmusBtn3" style="font-size: 0.7rem; padding: 5px 8px; flex: 1;" onclick="testIndicator('litmus')">Test Litmus 🧻</button>
+                    <button class="download-btn" id="phenBtn3" style="font-size: 0.7rem; padding: 5px 8px; flex: 1;" onclick="testIndicator('phenolphthalein')">Test Phenolphthalein 💧</button>
+                </div>
+                <div class="step-text" id="stepText3"><strong>Task:</strong> Use the indicator tests above to deduce the nature of the mystery liquid.</div>
+                <div class="action-bar" style="flex-direction: column; gap: 10px; align-items: stretch;">
+                    <div style="display: flex; gap: 4px; width: 100%;" id="guessGroup3">
+                        <button class="gas-btn" style="flex: 1; text-align: center; font-weight: 700; background: #fee2e2; border-color: #fca5a5;" onclick="submitIndicatorGuess('Acidic')">Acidic 🔴</button>
+                        <button class="gas-btn" style="flex: 1; text-align: center; font-weight: 700; background: #f0fdf4; border-color: #bbf7d0;" onclick="submitIndicatorGuess('Neutral')">Neutral 🟢</button>
+                        <button class="gas-btn" style="flex: 1; text-align: center; font-weight: 700; background: #eff6ff; border-color: #bfdbfe;" onclick="submitIndicatorGuess('Alkaline')">Alkaline 🔵</button>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                        <span class="status-badge" id="status3" style="color: var(--color-acids);">TESTING</span>
+                        <button class="replay-btn" onclick="replaySim3()" title="Reset Experiment / Get New Liquid">New Liquid 🔄</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="resource-card" data-topic="acids" style="display: none;">
+            <div class="card-tag tag-acids">Syllabus Core</div>
+            <h3 class="card-title">Role of Water Lab 💧</h3>
+            <p class="card-description">Examine how acid/base properties display structural profiles only when dissolved in water vs organic solvents.</p>
+            <div class="animation-window" style="align-items: center; justify-content: center; gap: 15px;">
+                <div class="litmus-paper-strip" id="waterLitmus"></div>
+                <div class="flask" style="margin-bottom: 0;"><div class="liquid" id="liquid10" style="background: #f1f5f9; height: 50%;"></div></div>
+            </div>
+            <div class="download-box">
+                <select id="waterAcidSelect" class="spm-input" style="margin-bottom: 6px;">
+                    <option value="glacial">Glacial Ethanoic Acid</option>
+                    <option value="dryHcl">Dry Hydrogen Chloride Gas</option>
+                </select>
+                <div style="display: flex; gap: 4px; margin-bottom: 10px;">
+                    <button class="gas-btn" style="padding: 6px; text-align: center;" onclick="testWaterSim('water')">+ Add Water</button>
+                    <button class="gas-btn" style="padding: 6px; text-align: center;" onclick="testWaterSim('benzene')">+ Add Benzene</button>
+                </div>
+                <div class="step-text" id="stepText10">Dip a dry blue litmus paper into your chosen molecular medium.</div>
+                <div class="action-bar">
+                    <span class="status-badge" id="status10" style="color: var(--color-acids);">READY</span>
+                    <div class="action-btns-cluster">
+                        <button class="replay-btn" onclick="replaySim10()">🔄</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="resource-card" data-topic="acids" style="display: none;">
+            <div class="card-tag tag-acids">Skill Test</div>
+            <h3 class="card-title">Titration Challenge 🏆</h3>
+            <p class="card-description">Control the burette. Stop exactly at the endpoint (colorless to pale pink). Receive auto-feedback based on your accuracy.</p>
+            <div class="animation-window" style="flex-direction: column; align-items: center; justify-content: flex-end;">
+                <div class="pour-stream" id="pourStream6"></div>
+                <div class="flask"><div class="liquid" id="liquid6" style="background: rgba(255,255,255,0.4); height: 35%;"></div></div>
+            </div>
+            <div class="download-box">
+                <div class="step-text" id="stepText6"><strong>Volume:</strong> <span id="volDisplay">0.0</span> cm³<br>Target Endpoint is hidden!</div>
+                <div class="action-bar">
+                    <span class="status-badge" id="status6" style="color: var(--color-acids);">READY</span>
+                    <div class="action-btns-cluster">
+                        <button class="replay-btn" onclick="replaySim6()" title="Reset Experiment">🔄</button>
+                        <button class="download-btn" id="btnSim6" onclick="runSim6()">Start Drip 💧</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="resource-card" data-topic="salts" style="display: none;">
+            <div class="card-tag tag-salts">Workflow</div>
+            <h3 class="card-title">Salt Preparation Simulator</h3>
+            <p class="card-description">Perform workflows: Acid + Metal Oxide. Add CuO to HCl, filter, evaporate, form CuCl₂.</p>
+            <div class="animation-window">
+                <div class="flask" id="flask4" style="margin-bottom:0;">
+                    <div class="liquid" id="liquid4" style="background: transparent; height:0;"></div>
+                    <div class="crystals" id="crystal1" style="left: 10px;"></div>
+                    <div class="crystals" id="crystal2" style="left: 20px;"></div>
+                </div>
+            </div>
+            <div class="download-box">
+                <div class="step-text" id="stepText4"><strong>Step 1:</strong> Add excess CuO powder to hot HCl.</div>
+                <div class="action-bar">
+                    <span class="status-badge" id="status4" style="color: var(--color-salts);">STEP 1/3</span>
+                    <div class="action-btns-cluster">
+                        <button class="replay-btn" onclick="replaySim4()" title="Reset Experiment">🔄</button>
+                        <button class="download-btn" id="btnSim4" onclick="runSim4()">Add CuO ⚗️</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="resource-card" data-topic="salts" style="display: none;">
+            <div class="card-tag tag-salts">Precipitation</div>
+            <h3 class="card-title">Insoluble Salts Station 📐</h3>
+            <p class="card-description">Master Ionic Precipitation (Double Decomposition). Combine correct aqueous options to synthesize target insoluble compounds.</p>
+            <div class="animation-window" style="align-items: center; justify-content: center;">
+                <div class="flask" style="margin-bottom: 0; width: 46px; height: 60px;">
+                    <div class="liquid" id="liquid12" style="background: transparent; height: 0%;"></div>
+                </div>
+            </div>
+            <div class="download-box">
+                <label style="font-size:0.75rem; font-weight:700; color:var(--text-muted);">Target Insoluble Product:</label>
+                <select id="targetSaltProduct" class="spm-input" style="margin-bottom:8px;">
+                    <option value="PbI2">Lead(II) Iodide (Yellow PPT)</option>
+                    <option value="BaSO4">Barium Sulphate (White PPT)</option>
+                    <option value="AgCl">Silver Chloride (White PPT)</option>
+                </select>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 4px; margin-bottom: 8px;">
+                    <div>
+                        <label style="font-size:0.7rem; font-weight:700; color:var(--text-muted);">Reactant 1:</label>
+                        <select id="saltReactant1" class="spm-input" style="margin:0; font-size:0.75rem;">
+                            <option value="PbNO3">Lead(II) Nitrate (aq)</option>
+                            <option value="BaCl2">Barium Chloride (aq)</option>
+                            <option value="AgNO3">Silver Nitrate (aq)</option>
+                            <option value="PbMetal">Lead Metal (s)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label style="font-size:0.7rem; font-weight:700; color:var(--text-muted);">Reactant 2:</label>
+                        <select id="saltReactant2" class="spm-input" style="margin:0; font-size:0.75rem;">
+                            <option value="KI">Potassium Iodide (aq)</option>
+                            <option value="Na2SO4">Sodium Sulphate (aq)</option>
+                            <option value="NaCl">Sodium Chloride (aq)</option>
+                            <option value="AgI">Silver Iodide (s)</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="step-text" id="stepText12">Choose appropriate aqueous combinations to successfully synthesis clean precipitate profiles.</div>
+                <div class="action-bar">
+                    <span class="status-badge" id="status12" style="color: var(--color-salts);">READY</span>
+                    <div class="action-btns-cluster">
+                        <button class="replay-btn" onclick="replaySim12()">🔄</button>
+                        <button class="download-btn" id="btnSim12" onclick="runSim12()">Mix Solutions 🧪</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="resource-card" data-topic="salts" style="display: none;">
+            <div class="card-tag tag-salts">Analysis</div>
+            <h3 class="card-title">Gas Test Laboratory 💨</h3>
+            <p class="card-description">Perform structural identification procedures to confirm standard unknown gas chemistry footprint values.</p>
+            <div class="animation-window" style="align-items: center; justify-content: center; gap: 10px;">
+                <div id="gasTube" style="width: 26px; height: 70px; border: 2px solid #475569; border-top: none; border-radius: 0 0 10px 10px; position: relative; background: rgba(255,255,255,0.7);">
+                    <div id="gasEffervescence" style="position: absolute; bottom: 0; width: 100%; height: 0%; background: rgba(14, 165, 233, 0.2); transition: height 0.5s;"></div>
+                </div>
+                <div id="gasLitmusPaper" class="litmus-paper-strip" style="display: none; height: 35px;"></div>
+                <div id="gasSplinter" style="width: 6px; height: 50px; background: #b45309; display: none; position: relative;">
+                    <div id="gasFlame" style="position: absolute; top: -10px; left: -3px; width: 12px; height: 12px; border-radius: 50%; background: transparent;"></div>
+                </div>
+            </div>
+            <div class="download-box">
+                <select id="gasSelect" class="spm-input" style="margin-bottom: 6px;">
+                    <option value="O2">Oxygen Gas (O₂)</option>
+                    <option value="H2">Hydrogen Gas (H₂)</option>
+                    <option value="CO2">Carbon Dioxide (CO₂)</option>
+                    <option value="NH3">Ammonia Gas (NH₃)</option>
+                </select>
+                <div class="gas-grid">
+                    <button class="gas-btn" onclick="runGasTest('splinter')">🔥 Splinter Test</button>
+                    <button class="gas-btn" onclick="runGasTest('litmus')">🧻 Litmus Paper</button>
+                </div>
+                <div class="step-text" id="stepText5">Select a target gas and tool configuration to process diagnostic footprints.</div>
+                <div class="action-bar">
+                    <span class="status-badge" id="status5" style="color: var(--color-salts);">READY</span>
+                    <div class="action-btns-cluster">
+                        <button class="replay-btn" onclick="replaySim5()">🔄</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="resource-card" data-topic="salts" style="display: none;">
+            <div class="card-tag tag-salts">Qualitative Analysis</div>
+            <h3 class="card-title">Cation Confirmation Lab 🔮</h3>
+            <p class="card-description">Identify unknown metal ions by adding NaOH or NH₃ dropwise and in excess.</p>
+            <div class="animation-window" style="align-items: center; justify-content: center; flex-direction: column;">
+                <div class="pour-stream" id="pourStream9" style="width: 2px;"></div>
+                <div id="cationTube" style="width: 22px; height: 70px; border: 2.5px solid #475569; border-top: none; border-radius: 0 0 8px 8px; position: relative; background: rgba(255,255,255,0.6);">
+                    <div id="precipitateLayer" style="position: absolute; bottom: 0; width: 100%; height: 0%; background: transparent; transition: all 0.5s ease; border-radius: 0 0 6px 6px;"></div>
+                </div>
+            </div>
+            <div class="download-box">
+                <select id="cationSelect" class="spm-input" style="margin-bottom: 6px;">
+                    <option value="Cu2+">Unknown Solution: Contains Cu²⁺</option>
+                    <option value="Fe2+">Unknown Solution: Contains Fe²⁺</option>
+                    <option value="Al3+">Unknown Solution: Contains Al³⁺</option>
+                </select>
+                <div class="gas-grid">
+                    <button class="gas-btn" onclick="testCation('NaOH')">🔹 Add NaOH</button>
+                    <button class="gas-btn" onclick="testCation('NH3')">🔹 Add NH₃</button>
+                </div>
+                <button class="spm-input gas-btn" id="btnSim9" disabled style="text-align: center; font-weight: 700;" onclick="testCationExcess()">Test Reaction in Excess ⚗️</button>
+                <div class="step-text" id="stepText9">Select a candidate salt and tap a test reagent dropwise.</div>
+                <div class="action-bar">
+                    <span class="status-badge" id="status9" style="color: var(--color-salts);">READY</span>
+                    <div class="action-btns-cluster">
+                        <button class="replay-btn" onclick="replaySim9()">🔄</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="resource-card" data-topic="salts" style="display: none;">
+            <div class="card-tag tag-salts">Qualitative</div>
+            <h3 class="card-title">Anion Fingerprint Station 🔬</h3>
+            <p class="card-description">Deduce negative ions matching unique confirmation assays from standard chemistry frameworks.</p>
+            <div class="animation-window" style="align-items: center; justify-content: center;">
+                <div id="anionTube" style="width: 22px; height: 70px; border: 2.5px solid #475569; border-top: none; border-radius: 0 0 8px 8px; position: relative; background: rgba(255,255,255,0.6);">
+                    <div id="brownRingLayer" style="position: absolute; top: 40%; width: 100%; height: 6px; background: #78350f; z-index: 5; display: none;"></div>
+                    <div id="anionPrecipitate" style="position: absolute; bottom: 0; width: 100%; height: 0%; background: transparent; transition: all 0.5s ease; border-radius: 0 0 8px 8px;"></div>
+                </div>
+            </div>
+            <div class="download-box">
+                <select id="anionSelect" class="spm-input" style="margin-bottom: 6px;">
+                    <option value="NO3">Unknown Solution: Sample X (Nitrate)</option>
+                    <option value="Cl">Unknown Solution: Sample Y (Chloride)</option>
+                </select>
+                <div class="gas-grid">
+                    <button class="gas-btn" onclick="testAnion('AgNO3')">🔹 AgNO₃ + HNO₃</button>
+                    <button class="gas-btn" onclick="testAnion('BrownRing')">🔹 Brown Ring Test</button>
+                </div>
+                <div class="step-text" id="stepText11">Select an unknown sample profile and apply your test logic.</div>
+                <div class="action-bar">
+                    <span class="status-badge" id="status11" style="color: var(--color-salts);">READY</span>
+                    <div class="action-btns-cluster">
+                        <button class="replay-btn" onclick="replayAnion()">🔄</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="resource-card" data-topic="spm" style="display: none;">
+            <div class="card-tag tag-spm">AI Check</div>
+            <h3 class="card-title">SPM Mistake Detector 🤖</h3>
+            <p class="card-description">Type chemical equations. The system acts as an examiner checking for missing products or balancing errors.</p>
+            <div class="animation-window" style="align-items: center; padding: 10px;">
+                <div class="scanner-line" id="scannerRadar"></div>
+                <div id="spmFeedback" style="font-family: 'Inter'; font-size: 0.85rem; width: 100%; text-align: center; color: var(--text-muted);">
+                    Waiting for equations to balance...
+                </div>
+            </div>
+            <div class="download-box">
+                <select id="equationTopic" class="spm-input" style="margin-bottom: 6px;">
+                    <option value="neutralization">Neutralization: HCl + NaOH</option>
+                    <option value="acid_carbonate">Acid + Carbonate: HCl + CaCO₃</option>
+                </select>
+                <input type="text" id="equationInput" class="spm-input" placeholder="e.g., HCl + NaOH -> NaCl + H2O">
+                <div class="step-text" id="stepText7">Type your product predictions precisely. Omit formatting spaces if preferred.</div>
+                <div class="action-bar">
+                    <span class="status-badge" id="status7" style="color: var(--color-spm);">READY</span>
+                    <div class="action-btns-cluster">
+                        <button class="replay-btn" onclick="replaySim7()" title="Reset Experiment">🔄</button>
+                        <button class="download-btn" id="btnSim7" onclick="verifySpmEquation()">Verify Code ⚡</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="resource-card" data-topic="spm" style="display: none;">
+            <div class="card-tag tag-spm">Assessment</div>
+            <h3 class="card-title">Comprehensive Checkpoint Quiz 📝</h3>
+            <p class="card-description">Test your real-time skills against structural exam questions tracking Form 4 Chapter 6 syllabus rules.</p>
+            <div class="animation-window" style="flex-direction: column; justify-content: flex-start; padding: 16px; min-height: 220px; height: auto;">
+            <div class="grade-circle" id="gradeCircle" style="margin-top: 20px;">G</div>
+            <div id="quizQuestionBox" style="width: 100%; display: none; overflow-y: visible;"></div>
+        </div>
+            <div class="download-box">
+                <div class="step-text" id="stepText8"><strong>Status:</strong> Ready to challenge. Assessment checks core operational lab theory.</div>
+                <div class="action-bar">
+                    <span class="status-badge" id="status8" style="color: var(--color-spm);">READY</span>
+                    <div class="action-btns-cluster">
+                        <button class="replay-btn" onclick="replaySim8()">🔄</button>
+                        <button class="download-btn" id="btnSim8" onclick="runSim8()">Start Exam 📝</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="resource-card" data-topic="spm" style="display: none;">
+            <div class="card-tag" style="background: linear-gradient(135deg, #e0e7ff, #faf5ff); color: #6d28d9; border: 1px solid #c7d2fe;">AI Hub ✨</div>
+            <h3 class="card-title">Personalized Study Advisor</h3>
+            <p class="card-description">Generates adaptive learning tracks, targeted flashcard recommendations, and textbook focal points based on your real-time performance matrix.</p>
+            
+            <div class="animation-window" style="flex-direction: column; align-items: center; justify-content: center; background: radial-gradient(circle, #ffffff 0%, #f5f3ff 100%); padding: 10px;">
+                <div id="aiDashboardMetrics" style="text-align: center; width: 100%;">
+                    <div style="font-size: 0.8rem; font-weight: 700; color: #6b7280; text-transform: uppercase;">Syllabus Mastery Index</div>
+                    <div id="masteryPercentage" style="font-size: 2rem; font-weight: 800; color: #6d28d9; margin: 4px 0;">0%</div>
+                    <div id="aiStatusPill" style="display: inline-block; font-size: 0.7rem; font-weight: 700; padding: 2px 8px; border-radius: 12px; background: #fee2e2; color: #ef4444;">Diagnostic Pending</div>
+                </div>
+            </div>
+
+            <div class="download-box" style="border-style: solid; border-color: #e2e8f0; background: #fafafa;">
+                <div class="step-text" id="aiPlanOutput" style="font-size: 0.8rem; line-height: 1.6; min-height: 100px; color: #334155;">
+                    <strong>System Idle:</strong> Complete at least one experiment or attempt the Checkpoint Quiz to unlock your personalized revision track.
+                </div>
+                
+                <div class="action-bar" style="border-top: 1px solid #f1f5f9; padding-top: 10px; margin-top: 10px;">
+                    <span class="status-badge" id="aiPlannerBadge" style="color: #64748b;">READY TO ANALYZE</span>
+                    <div class="action-btns-cluster">
+                        <button class="download-btn" id="generatePlanBtn" style="background: linear-gradient(135deg, #a855f7, #6d28d9); color: white;" onclick="generatePersonalizedStudyPlan()">Compile AI Plan ⚡</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div id="xpToast" style="position: fixed; bottom: -60px; right: 20px; background: #1e293b; color: #fff; padding: 12px 24px; border-radius: 30px; font-weight: 700; font-family: 'Inter'; box-shadow: 0 10px 25px rgba(0,0,0,0.2); transition: bottom 0.4s ease; z-index: 9999; display: flex; align-items: center; gap: 8px;">
+        <span id="toastIcon">✨</span> <span id="toastText">+100 XP Earned!</span>
+    </div>
+
+    <footer class="footer-wrapper">
+        <div class="footer-grid-row">
+            <div class="footer-brand-side">
+                <a href="index.html" class="brand-logo">
+                    <svg width="20" height="24" viewBox="0 0 22 26" fill="none" xmlns="http://www.w3.org/2000/svg" style="display:inline-block; vertical-align:middle;">
+                        <path d="M2 2H20M2 24H20M3.5 2C3.5 2 5 10.5 11 13C5 15.5 3.5 24 3.5 24M18.5 2C18.5 2 17 10.5 11 13C17 15.5 18.5 24 18.5 24" stroke="#b85ee6" stroke-width="2.8" stroke-linecap="round"/>
+                    </svg>
+                    ChemLearn
+                </a>
+                <p>Empowering secondary school scholars to clear their SPM chemistry practical boards easily through dynamic visualization frameworks.</p>
+            </div>
+            <div class="footer-column">
+                <h4>Syllabus Tracks</h4>
+                <ul>
+                    <li><a href="lessons.html">Acids & Bases Profiles</a></li>
+                    <li><a href="experiments/qualitative-sim.html">Soluble Salt Workflows</a></li>
+                    <li><a href="experiments/qualitative-sim.html">Qualitative Anion Tests</a></li>
+                </ul>
+            </div>
+            <div class="footer-column">
+                <h4>Legal Info</h4>
+                <ul>
+                    <li><a href="terms-of-service.html">Terms of Service</a></li>
+                    <li><a href="privacy-policy.html">Privacy Policy</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom-bar">&copy; 2026 ChemLearn Engine. Built for KSSM Chemistry Excellence.</div>
+    </footer>
+   <script>
+   function filterExperiments(category, element) {
+
+    // Update active button
+    document.querySelectorAll('.pill-btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    element.classList.add('active');
+
+    // Show introduction
+    const intro = document.getElementById('introHubPanel');
+
+    if (category === "intro") {
+        intro.style.display = "block";
+
+        document.querySelectorAll('.resource-card').forEach(card => {
+            card.style.display = "none";
+        });
+
+        return;
+    }
+
+    intro.style.display = "none";
+
+    document.querySelectorAll('.resource-card').forEach(card => {
+        if (card.dataset.topic === category) {
+            card.style.display = "flex";
+        } else {
+            card.style.display = "none";
+        }
+    });
+}
+</script>
+  <script>
+        // --- 1. STATE MANAGEMENT (Pulls saved data from LocalStorage on load) ---
+        let userXP = parseInt(localStorage.getItem('chemLearn_userXP')) || 0;
+        let userLevel = parseInt(localStorage.getItem('chemLearn_userLevel')) || 1;
+        
+        let savedLabs = localStorage.getItem('chemLearn_completedLabs');
+        let completedLabs = savedLabs ? new Set(JSON.parse(savedLabs)) : new Set();
+        
+        let savedBadges = localStorage.getItem('chemLearn_earnedBadges');
+        let earnedBadges = savedBadges ? new Set(JSON.parse(savedBadges)) : new Set();
+
+       const totalLabs = 12;
+let activeQuizScore = 0; 
+let activeQuizIndex = 0;
+
+const xpRequirements = [0, 0, 500, 1200, 2500, 5000];
+const levelTitles = ["", "Novice Chemist", "Apprentice", "Lab Technician", "Research Scientist", "Master Alchemist"];
+
+// --- 1. LOCAL STORAGE SYNC ---
+function saveDataToLocal() {
+    localStorage.setItem('chemLearn_userXP', userXP);
+    localStorage.setItem('chemLearn_userLevel', userLevel);
+    localStorage.setItem('chemLearn_completedLabs', JSON.stringify(Array.from(completedLabs)));
+    localStorage.setItem('chemLearn_earnedBadges', JSON.stringify(Array.from(earnedBadges)));
+}
+
+// --- 2. PROGRESS TRACKER ---
+/* Removed duplicate function */
+
+// --- 3. GAMIFICATION HUD RE-RENDER ---
+function updateGamificationHUD() {
+    const levelEl = document.getElementById('userLevel');
+    const titleEl = document.getElementById('levelTitle');
+    const xpEl = document.getElementById('userXP');
+    const xpToNextEl = document.getElementById('xpToNext');
+    const xpBarEl = document.getElementById('xpBar');
+    
+    if (levelEl) levelEl.innerText = userLevel;
+    if (titleEl) titleEl.innerText = levelTitles[userLevel] || "Novice Chemist";
+    if (xpEl) xpEl.innerText = userXP;
+    
+    let nextThreshold = userLevel < xpRequirements.length ? xpRequirements[userLevel] : xpRequirements[xpRequirements.length-1];
+    if (xpToNextEl) xpToNextEl.innerText = nextThreshold;
+    
+    let prevThreshold = userLevel > 1 ? xpRequirements[userLevel-1] : 0;
+    let progressPercent = ((userXP - prevThreshold) / (nextThreshold - prevThreshold)) * 100;
+    if (xpBarEl) xpBarEl.style.width = `${Math.min(Math.max(progressPercent, 0), 100)}%`;
+}
+
+// --- 4. AWARD XP & LEVEL UP ---
+function awardXP(amount, reason, icon = '✨') {
+    userXP += amount;
+    
+    let nextThreshold = userLevel < xpRequirements.length ? xpRequirements[userLevel] : xpRequirements[xpRequirements.length-1];
+    
+    if (userLevel < xpRequirements.length - 1 && userXP >= nextThreshold) {
+        userLevel++;
+        showToast(`Level Up! You are now a ${levelTitles[userLevel]}`, '🎉');
+    } else {
+        showToast(`+${amount} XP: ${reason}`, icon);
+    }
+    
+    updateGamificationHUD();
+    checkBadges();
+    saveDataToLocal(); // <-- Core Fix: This writes your new XP directly to LocalStorage!
+}
+
+// --- 5. BADGE CHECKER ---
+function checkBadges() {
+    const badgeDiv = document.getElementById('badgeContainer');
+    if (!badgeDiv) return;
+    let newlyEarned = false;
+
+    if (completedLabs.size >= 1 && !earnedBadges.has('First Blood')) {
+        earnedBadges.add('First Blood');
+        newlyEarned = '🧪';
+    }
+    if (completedLabs.size >= 5 && !earnedBadges.has('Diligent Scholar')) {
+        earnedBadges.add('Diligent Scholar');
+        newlyEarned = '📚';
+    }
+    if (activeQuizScore >= 18 && !earnedBadges.has('Exam Ace')) {
+        earnedBadges.add('Exam Ace');
+        newlyEarned = '🏆';
+    }
+
+    if (newlyEarned) {
+        showToast(`New Badge Unlocked!`, newlyEarned);
+    }
+
+    // Safely render the badge elements without syntax loops
+    badgeDiv.innerHTML = '';
+    if (earnedBadges.size === 0) {
+        badgeDiv.innerHTML = `<span style="opacity: 0.2;" title="Complete a lab to earn your first badge!">🔒</span>`;
+    } else {
+        earnedBadges.forEach(b => {
+            let icon = b === 'First Blood' ? '🧪' : b === 'Diligent Scholar' ? '📚' : '🏆';
+            badgeDiv.innerHTML += `<span title="${b}">${icon}</span>`;
+        });
+    }
+    saveDataToLocal();
+}
+
+// --- 6. TOAST notifications ---
+/* Removed duplicate function */
+
+        // --- NEW: Forces the UI components to restore from storage data when page is refreshed ---
+        document.addEventListener("DOMContentLoaded", () => {
+            // Restore Main HUD Stats
+            updateGamificationHUD();
+            
+            // Restore Lab Module Counter & Fill Bar
+            const progressText = document.getElementById('progressText');
+            const progressBar = document.getElementById('progressBar');
+            if (progressText) progressText.innerText = `${completedLabs.size} / ${totalLabs}`;
+            if (progressBar) progressBar.style.width = `${(completedLabs.size / totalLabs) * 100}%`;
+
+            // Restore Visual Badges Container
+            const badgeContainer = document.getElementById('badgeContainer');
+            if (typeof earnedBadges !== 'undefined' && badgeContainer) {
+                badgeContainer.innerHTML = '';
+                earnedBadges.forEach(b => {
+                    let icon = b === 'First Blood' ? '🧪' : b === 'Diligent Scholar' ? '📚' : '🏆';
+                    badgeContainer.innerHTML += `<span title="${b}">${icon}</span>`;
+                });
+            }
+
+            // Mark all completed cards visually on screen
+            completedLabs.forEach(labId => {
+                const num = labId.replace('sim', '');
+                const statusBadge = document.getElementById(`status${num}`);
+                if (statusBadge) {
+                    statusBadge.innerText = 'COMPLETED';
+                }
+            });
+        });
+        /* Removed duplicate function */
+
+        document.addEventListener('DOMContentLoaded', () => {
+            updateGamificationHUD();
+
+            const progressText = document.getElementById('progressText');
+            const progressBar = document.getElementById('progressBar');
+            if (progressText) progressText.innerText = `${completedLabs.size} / ${totalLabs}`;
+            if (progressBar) progressBar.style.width = `${(completedLabs.size / totalLabs) * 100}%`;
+
+            const badgeDiv = document.getElementById('badgeContainer');
+            if (typeof earnedBadges !== 'undefined' && badgeDiv) {
+                badgeDiv.innerHTML = '';
+                earnedBadges.forEach(b => {
+                    let icon = b === 'First Blood' ? '🧪' : b === 'Diligent Scholar' ? '📚' : '🏆';
+                    badgeDiv.innerHTML += `<span title="${b}">${icon}</span>`;
+                });
+            }
+
+            completedLabs.forEach((labId) => {
+                const num = labId.replace('sim', '');
+                const statusBadge = document.getElementById(`status${num}`);
+                if (statusBadge) {
+                    statusBadge.innerText = 'COMPLETED';
+                }
+            });
+        });
+        // Global Master Quiz Pool (Expanded to 300 Questions)
+window.masterQuizPool = [
+    { q: "What is produced when an acid ionizes in water?", a: ["Hydroxide ions", "Hydrogen ions", "Oxide ions", "Metal cations"], correct: 1 },
+    { q: "Which of the following is categorized as a dibasic acid?", a: ["HCl", "HNO₃", "CH₃COOH", "H₂SO₄"], correct: 3 },
+    { q: "Which substance behaves as a weak alkali due to low partial dissociation?", a: ["NaOH", "KOH", "Ammonia solution", "Ba(OH)₂"], correct: 2 },
+    { q: "Which gas is released when reactive magnesium reacts with dilute hydrochloric acid?", a: ["Oxygen", "Carbon Dioxide", "Hydrogen", "Chlorine"], correct: 2 },
+    { q: "What is the color of phenolphthalein indicator inside a sodium hydroxide solution?", a: ["Colorless", "Pale Pink", "Bright Crimson/Pink", "Yellow"], correct: 2 },
+    { q: "Which gas turns acidified potassium dichromate(VI) paper/solution from orange to green?", a: ["O₂", "SO₂", "CO₂", "NH₃"], correct: 1 },
+    { q: "Which of the following describes all Nitrate (NO₃⁻) salts?", a: ["All are completely soluble in water", "All are insoluble", "Only Sodium nitrate is soluble", "Form blue precipitates"], correct: 0 },
+    { q: "Which salt is completely insoluble in water?", a: ["NaCl", "K₂SO₄", "BaSO₄", "NH₄Cl"], correct: 2 },
+    { q: "What color precipitate is observed when Potassium Iodide is mixed with Lead(II) Nitrate?", a: ["White", "Bright Yellow", "Dirty Green", "Royal Blue"], correct: 1 },
+    { q: "Which gas produces a distinctive 'pop' sound with a burning wooden splinter?", a: ["Hydrogen", "Oxygen", "Nitrogen Dioxide", "Ammonia"], correct: 0 },
+    { q: "Which reagent confirms Sulphate (SO₄²⁻) ions after acid preprocessing?", a: ["Silver Nitrate", "Barium Chloride", "Sodium Hydroxide", "Lime Water"], correct: 1 },
+    { q: "Which gas forms dense white fumes when combined with a glass rod dipped in concentrated ammonia?", a: ["Chlorine", "Hydrogen Chloride", "Sulphur Dioxide", "Carbon Dioxide"], correct: 1 },
+    { q: "What color profile does an Iron(III) precipitate show with Sodium Hydroxide?", a: ["Green", "Blue", "Brown", "White"], correct: 2 },
+    { q: "Which metal ion forms a white precipitate that dissolves in EXCESS sodium hydroxide solution?", a: ["Cu²⁺", "Fe²⁺", "Zn²⁺", "Ca²⁺"], correct: 2 },
+    { q: "Which gas turns wet blue litmus paper red, and then completely bleaches it white?", a: ["HCl", "Cl₂", "NO₂", "SO₂"], correct: 1 },
+    { q: "What chemical compound causes lime water to turn milky during gas testing?", a: ["Calcium oxide", "Calcium carbonate", "Calcium chloride", "Calcium hydroxide"], correct: 1 },
+    { q: "Why does glacial ethanoic acid fail to turn dry blue litmus paper red?", a: ["It is too strong", "It contains no water to form hydrogen ions", "It reacts with litmus paper fibers", "It turns paper yellow instead"], correct: 1 },
+    { q: "What is the perfect, exact volume match for a standard pale pink titration endpoint analysis?", a: ["10.0 cm³", "50.0 cm³", "25.0 cm³", "0.0 cm³"], correct: 2 },
+    { q: "Which chemical test yields a distinctive 'Brown Ring' at the solution junction?", a: ["Chloride Test", "Nitrate Test", "Sulphate Test", "Carbonate Test"], correct: 1 },
+    { q: "What color is copper(II) oxide powder used during basic salt synthesis?", a: ["Blue", "Green", "White", "Black"], correct: 3 },
+
+    // --- 280 NEW EXPANSION PACK QUESTIONS ---
+    // Sub-topic: Properties of Acids & Bases (Questions 21-60)
+    { q: "Which particle is responsible for the acidic properties of a substance?", a: ["OH⁻", "H⁺", "O²⁻", "Na⁺"], correct: 1 },
+    { q: "What is the pH value of a strong alkali solution like 1.0 mol dm⁻³ NaOH?", a: ["1", "4", "7", "14"], correct: 3 },
+    { q: "Which acid shows a low degree of dissociation in water?", a: ["Hydrochloric acid", "Ethanoic acid", "Nitric acid", "Sulphuric acid"], correct: 1 },
+    { q: "What is the basicity of phosphoric acid (H₃PO₄)?", a: ["Monobasic", "Dibasic", "Tribasic", "Tetrabasic"], correct: 2 },
+    { q: "Which solvent allows hydrogen chloride gas to ionize and show acidic properties?", a: ["Water", "Methylbenzene", "Propanone", "Benzene"], correct: 0 },
+    { q: "Why does dry ammonia gas in dry hexanes fail to change the color of dry red litmus paper?", a: ["It is an acid", "It contains no hydroxide ions due to lack of water", "It is completely ionized", "Hexanes neutralizes it"], correct: 1 },
+    { q: "Which of the following describes a strong acid?", a: ["Ionizes partially in water", "Ionizes completely in water to produce high H⁺ concentration", "Has a high pH value", "Does not conduct electricity"], correct: 1 },
+    { q: "Which oxide forms an alkaline solution when dissolved in water?", a: ["CO₂", "SO₂", "Na₂O", "NO₂"], correct: 2 },
+    { q: "What is the concentration of H⁺ ions in a solution with a pH of 3?", a: ["10⁻³ mol dm⁻³", "10³ mol dm⁻³", "3 mol dm⁻³", "0.3 mol dm⁻³"], correct: 0 },
+    { q: "Which substance is an amphoteric oxide?", a: ["CuO", "MgO", "Al₂O₃", "Na₂O"], correct: 2 },
+    { q: "What happens to the pH value of an acid when it is diluted with distilled water?", a: ["Decreases", "Increases towards 7", "Stays at 0", "Fluctuates wildly"], correct: 1 },
+    { q: "Which gas is evolved when a carbonate salt reacts with an acid?", a: ["Hydrogen", "Carbon Dioxide", "Oxygen", "Nitrogen Dioxide"], correct: 1 },
+    { q: "Which indicator changes from yellow to red/pink in an acidic medium?", a: ["Phenolphthalein", "Methyl orange", "Litmus solution", "Universal Indicator"], correct: 1 },
+    { q: "What is the color of methyl orange in a sodium hydroxide solution?", a: ["Red", "Orange", "Yellow", "Colorless"], correct: 2 },
+    { q: "Which of these alkalis is completely soluble in water?", a: ["Copper(II) hydroxide", "Iron(II) hydroxide", "Potassium hydroxide", "Aluminum hydroxide"], correct: 2 },
+    { q: "Which acid requires two moles of NaOH to fully neutralize one mole of the acid?", a: ["HCl", "HNO₃", "H₂SO₄", "CH₃COOH"], correct: 2 },
+    { q: "What is the property of a substance that reacts with both acids and bases?", a: ["Acidic", "Basic", "Amphoteric", "Neutral"], correct: 2 },
+    { q: "Which compound acts as a weak base?", a: ["NaOH", "Ca(OH)₂", "NH₃", "KOH"], correct: 2 },
+    { q: "What type of reaction occurs when hydrochloric acid reacts with potassium hydroxide?", a: ["Precipitation", "Neutralization", "Oxidation", "Displacement"], correct: 1 },
+    { q: "Which factor increases the degree of dissociation of a weak acid?", a: ["Increasing concentration", "Adding more strong acid", "Dilution with water", "Lowering the temperature"], correct: 2 },
+    { q: "What is the mathematical definition of pH?", a: ["pH = log[H⁺]", "pH = -log[H⁺]", "pH = [H⁺]", "pH = 14 - [OH⁻]"], correct: 1 },
+    { q: "Which acid is commonly found in human gastric juices?", a: ["H₂SO₄", "HNO₃", "HCl", "CH₃COOH"], correct: 2 },
+    { q: "What is the pH of a neutral solution at 25°C?", a: ["0", "5", "7", "14"], correct: 2 },
+    { q: "Which element forms an oxide that dissolves in water to turn blue litmus paper red?", a: ["Sulfur", "Magnesium", "Sodium", "Calcium"], correct: 0 },
+    { q: "Which of the following properties is NOT typical of acids?", a: ["Sour taste", "Feels slippery or soapy", "Turns blue litmus red", "Reacts with metals to produce H₂"], correct: 1 },
+    { q: "What color does Universal Indicator turn in a highly concentrated solution of sulfuric acid?", a: ["Purple", "Blue", "Green", "Red"], correct: 3 },
+    { q: "Which material can be used to treat acidic soil in farming?", a: ["Calcium hydroxide (slaked lime)", "Sulphuric acid", "Sodium chloride", "Ammonium sulfate"], correct: 0 },
+    { q: "What ionic species is formed when a water molecule accepts a proton?", a: ["Hydroxide ion", "Hydronium ion (H₃O⁺)", "Oxide ion", "Hydrogen peroxide"], correct: 1 },
+    { q: "Which alkali is commonly used to manufacture soap?", a: ["Ammonium hydroxide", "Sodium hydroxide", "Calcium hydroxide", "Magnesium hydroxide"], correct: 1 },
+    { q: "Which product is formed besides water during a standard neutralization reaction?", a: ["An element", "A gas", "A salt", "A metal"], correct: 2 },
+    { q: "What is the basicity of ethanoic acid (CH₃COOH)?", a: ["Monobasic", "Dibasic", "Tribasic", "Polybasic"], correct: 0 },
+    { q: "Which solution has the lowest concentration of H⁺ ions?", a: ["pH 2", "pH 5", "pH 7", "pH 12"], correct: 3 },
+    { q: "What is the name of the salt produced from the reaction between zinc and nitric acid?", a: ["Zinc sulfate", "Zinc chloride", "Zinc nitrate", "Zinc oxide"], correct: 2 },
+    { q: "Which statement is true about weak alkalis?", a: ["They do not dissolve in water at all", "They produce a low concentration of OH⁻ ions", "They have a pH of 14", "They turn phenolphthalein colorless"], correct: 1 },
+    { q: "Which gas is produced when ammonium chloride is heated with sodium hydroxide?", a: ["Ammonia", "Chlorine", "Hydrogen", "Nitrogen"], correct: 0 },
+    { q: "Which compound does NOT react with dilute hydrochloric acid?", a: ["Copper metal", "Zinc metal", "Magnesium oxide", "Sodium carbonate"], correct: 0 },
+    { q: "What is the color of phenolphthalein in an acidic solution?", a: ["Pink", "Red", "Colorless", "Yellow"], correct: 2 },
+    { q: "Which pair will produce a neutral salt solution?", a: ["HCl and NaOH", "CH₃COOH and NaOH", "HCl and NH₃", "HNO₃ and NH₃"], correct: 0 },
+    { q: "What happens to the concentration of OH⁻ ions when water is added to an alkali?", a: ["Increases", "Decreases", "Remains unchanged", "Doubles"], correct: 1 },
+    { q: "Which material is used in antacids to neutralize excess stomach acid?", a: ["Sodium hydroxide", "Magnesium hydroxide", "Hydrochloric acid", "Potassium nitrate"], correct: 1 },
+
+    // Sub-topic: Concentration, Molarity, Titration & Standard Solutions (Questions 61-110)
+    { q: "What is the unit of molarity?", a: ["g dm⁻³", "mol dm⁻³", "g mol⁻¹", "kg m⁻³"], correct: 1 },
+    { q: "How do you convert concentration from g dm⁻³ to mol dm⁻³?", a: ["Multiply by molar mass", "Divide by molar mass", "Multiply by volume", "Divide by 1000"], correct: 1 },
+    { q: "What is the concentration in g dm⁻³ of a 2.0 mol dm⁻³ NaOH solution? [Molar mass: NaOH = 40]", a: ["20 g dm⁻³", "40 g dm⁻³", "80 g dm⁻³", "10 g dm⁻³"], correct: 2 },
+    { q: "How many moles of solute are in 250 cm³ of a 0.5 mol dm⁻³ solution?", a: ["0.125 mol", "1.25 mol", "0.5 mol", "0.05 mol"], correct: 0 },
+    { q: "Which glassware is most suitable for preparing a precise standard solution?", a: ["Beaker", "Conical Flask", "Volumetric Flask", "Measuring Cylinder"], correct: 2 },
+    { q: "What is the process of adding solvent to a solution to lower its concentration called?", a: ["Titration", "Dilution", "Evaporation", "Neutralization"], correct: 1 },
+    { q: "Which formula is used to calculate dilution requirements?", a: ["PV = nRT", "M₁V₁ = M₂V₂", "Mass = Moles × Molar Mass", "pH = -log[H⁺]"], correct: 1 },
+    { q: "If 100 cm³ of 1.0 mol dm⁻³ HCl is diluted to 500 cm³, what is the new molarity?", a: ["0.2 mol dm⁻³", "0.5 mol dm⁻³", "2.0 mol dm⁻³", "0.1 mol dm⁻³"], correct: 0 },
+    { q: "Which apparatus is used to accurately deliver a fixed volume (e.g., 25.0 cm³) of alkali into a flask?", a: ["Burette", "Pipette", "Measuring cylinder", "Dropper"], correct: 1 },
+    { q: "Which apparatus is used to deliver a variable volume of solution during a titration?", a: ["Pipette", "Burette", "Volumetric flask", "Beaker"], correct: 1 },
+    { q: "What is the endpoint of a titration?", a: ["When the solution boils", "When the indicator permanently changes color", "When half the acid is reacted", "When the salt precipitates"], correct: 1 },
+    { q: "In a titration between a strong acid and a strong base using phenolphthalein, what is the color change at the endpoint when acid is added to base?", a: ["Pink to colorless", "Colorless to pink", "Yellow to red", "Blue to red"], correct: 0 },
+    { q: "How many moles of H⁺ ions are delivered by 50 cm³ of 0.1 mol dm⁻³ H₂SO₄?", a: ["0.005 mol", "0.010 mol", "0.020 mol", "0.100 mol"], correct: 1 },
+    { q: "What volume of 0.1 mol dm⁻³ NaOH is needed to completely neutralize 25 cm³ of 0.1 mol dm⁻³ HCl?", a: ["12.5 cm³", "25.0 cm³", "50.0 cm³", "100.0 cm³"], correct: 1 },
+    { q: "What volume of 0.1 mol dm⁻³ NaOH is needed to completely neutralize 25 cm³ of 0.1 mol dm⁻³ H₂SO₄?", a: ["12.5 cm³", "25.0 cm³", "50.0 cm³", "75.0 cm³"], correct: 2 },
+    { q: "Which indicator is best suited for a titration between a strong acid and a weak base?", a: ["Phenolphthalein", "Methyl orange", "Litmus", "Universal indicator"], correct: 1 },
+    { q: "Which indicator is best suited for a titration between a weak acid and a strong base?", a: ["Phenolphthalein", "Methyl orange", "Screened methyl orange", "No indicator works"], correct: 0 },
+    { q: "What is a standard solution?", a: ["A solution that is normal", "A solution whose concentration is accurately known", "A saturated solution", "A solution kept at room temperature"], correct: 1 },
+    { q: "Why must the conical flask NOT be rinsed with the alkali before filling it with the pipette?", a: ["It breaks the flask", "It introduces extra unmeasured moles of alkali", "It neutralizes the indicator", "It changes the temperature"], correct: 1 },
+    { q: "Why can the burette be rinsed with the solution it is going to hold?", a: ["To clean out dust", "To ensure the concentration of the solution is not diluted by residual water", "To make it transparent", "To lubricate the tap"], correct: 1 },
+    { q: "What is the molar mass of Na₂CO₃? [RAM: Na=23, C=12, O=16]", a: ["83 g mol⁻¹", "106 g mol⁻¹", "62 g mol⁻¹", "43 g mol⁻¹"], correct: 1 },
+    { q: "How many grams of solute are needed to prepare 500 cm³ of 1.0 mol dm⁻³ NaCl? [Molar mass: NaCl = 58.5]", a: ["58.5 g", "29.25 g", "117.0 g", "5.85 g"], correct: 1 },
+    { q: "What is the concentration in mol dm⁻³ of a solution containing 4.9 g of H₂SO₄ in 1 dm³? [Molar mass: H₂SO₄ = 98]", a: ["0.05 mol dm⁻³", "0.10 mol dm⁻³", "0.50 mol dm⁻³", "2.00 mol dm⁻³"], correct: 0 },
+    { q: "During dilution, what physical property of the solute remains constant?", a: ["Volume", "Molarity", "Total number of moles", "Density"], correct: 2 },
+    { q: "What is the shape of the meniscus read on a burette for clear aqueous solutions?", a: ["Upper meniscus", "Lower meniscus", "Straight flat line", "Side profile edge"], correct: 1 },
+    { q: "To what mark should the volumetric flask be filled during standard solution preparation?", a: ["To the top brim", "To the graduation/calibration mark", "Exactly halfway", "10 cm below the neck"], correct: 1 },
+    { q: "What is the final step in preparing a standard solution in a volumetric flask before use?", a: ["Boiling the solution", "Inverting and shaking the flask thoroughly to ensure homogeneity", "Filtering the mixture", "Cooling it in ice"], correct: 1 },
+    { q: "Which solution has the highest concentration of chloride ions?", a: ["1.0 mol dm⁻³ HCl", "1.0 mol dm⁻³ CaCl₂", "1.0 mol dm⁻³ AlCl₃", "1.0 mol dm⁻³ NaCl"], correct: 2 },
+    { q: "If 20 cm³ of an acid neutralizes 20 cm³ of an alkali of the same concentration, what is the mole ratio of acid to alkali?", a: ["1:1", "1:2", "2:1", "3:1"], correct: 0 },
+    { q: "What mass of KOH is required to make 250 cm³ of a 2.0 mol dm⁻³ solution? [Molar mass: KOH = 56]", a: ["28 g", "56 g", "14 g", "112 g"], correct: 0 },
+    { q: "What is the molarity of a 10.6 g dm⁻³ Na₂CO₃ solution? [Molar mass: Na₂CO₃ = 106]", a: ["0.01 mol dm⁻³", "0.10 mol dm⁻³", "1.00 mol dm⁻³", "0.50 mol dm⁻³"], correct: 1 },
+    { q: "Which acid requires the largest volume of 0.1 mol dm⁻³ NaOH for neutralization per mole of acid?", a: ["HCl", "HNO₃", "H₂SO₄", "H₃PO₄"], correct: 3 },
+    { q: "What does a white tile placed under the conical flask during titration help with?", a: ["Keeping the flask warm", "Preventing spillages from staining the desk", "Seeing the indicator color change clearly", "Leveling the flask base"], correct: 2 },
+    { q: "What is the concentration of Na⁺ ions in 0.5 mol dm⁻³ Na₂SO₄ solution?", a: ["0.25 mol dm⁻³", "0.50 mol dm⁻³", "1.00 mol dm⁻³", "2.00 mol dm⁻³"], correct: 2 },
+    { q: "If the molarity of an acid doubles, what happens to the volume required to neutralize a fixed amount of base?", a: ["It doubles", "It is halved", "It remains unchanged", "It quadruples"], correct: 1 },
+    { q: "Which of the following describes a primary standard substance?", a: ["Highly hygroscopic", "High purity and stability", "Gaseous at room temperature", "Volatile liquid"], correct: 1 },
+    { q: "What volume of water must be added to 50 cm³ of 2.0 mol dm⁻³ HCl to make it 0.5 mol dm⁻³?", a: ["150 cm³", "200 cm³", "100 cm³", "50 cm³"], correct: 0 },
+    { q: "What is the concentration in g dm⁻³ of pure water? [Density = 1 g cm⁻³]", a: ["1 g dm⁻³", "10 g dm⁻³", "100 g dm⁻³", "1000 g dm⁻³"], correct: 3 },
+    { q: "Which tool is used to safely transfer solid solutes into a volumetric flask?", a: ["Filter funnel", "Pipette", "Burette", "Spatula directly"], correct: 0 },
+    { q: "What property defines a standard titration curve's vertical region?", a: ["Rapid pH change near the equivalence point", "Constant pH stability", "Precipitation speed", "Gas evolution rate"], correct: 0 },
+
+    // Sub-topic: Salts - Solubility, Rules & Identification (Questions 111-150)
+    { q: "Which of the following salts is completely soluble in water?", a: ["PbCl₂", "AgCl", "NH₄Cl", "Hg₂Cl₂"], correct: 2 },
+    { q: "Which sulfate salt is INSOLUBLE in water?", a: ["Na₂SO₄", "PbSO₄", "CuSO₄", "MgSO₄"], correct: 1 },
+    { q: "All salts of which cation are completely soluble in water?", a: ["Ca²⁺", "K⁺", "Cu²⁺", "Ba²⁺"], correct: 1 },
+    { q: "Which chloride salt is insoluble in cold water but dissolves completely in hot water?", a: ["AgCl", "NaCl", "PbCl₂", "CuCl₂"], correct: 2 },
+    { q: "Which of the following carbonate salts is soluble in water?", a: ["CaCO₃", "CuCO₃", "Na₂CO₃", "ZnCO₃"], correct: 2 },
+    { q: "What is the definition of a salt in chemistry?", a: ["An ionic compound formed when the hydrogen ion of an acid is replaced by a metal ion or ammonium ion", "Any compound that tastes salty", "A product of metal and oxygen only", "A compound containing hydroxide ions"], correct: 0 },
+    { q: "Which group of salts are ALL soluble without exception?", a: ["Chlorides", "Sulfates", "Nitrates", "Carbonates"], correct: 2 },
+    { q: "Which salt is insoluble in water?", a: ["Calcium nitrate", "Calcium sulfate", "Calcium carbonate", "Calcium chloride"], correct: 2 },
+    { q: "Which pair of solutions will form a precipitate when mixed?", a: ["NaCl + KNO₃", "BaCl₂ + Na₂SO₄", "HCl + NaOH", "AgNO₃ + HNO₃"], correct: 1 },
+    { q: "What is the formula for the insoluble salt Lead(II) lodide?", a: ["PbI", "PbI₂", "Pb₂I", "PbI₄"], correct: 1 },
+    { q: "Which sulfate salt is also insoluble in water besides Lead(II) sulfate?", a: ["Barium sulfate", "Zinc sulfate", "Iron(II) sulfate", "Sodium sulfate"], correct: 0 },
+    { q: "Which salt is soluble?", a: ["AgCl", "PbSO₄", "CaSO₄", "MgSO₄"], correct: 3 },
+    { q: "What color is hydrated Copper(II) sulfate crystal?", a: ["White", "Blue", "Green", "Yellow"], correct: 1 },
+    { q: "What color change occurs when hydrated copper(II) sulfate is heated to anhydrous form?", a: ["Blue to white", "White to blue", "Blue to green", "Green to brown"], correct: 0 },
+    { q: "Which salt is yellow when hot and white when cold?", a: ["CuO", "ZnO", "PbO", "Fe₂O₃"], correct: 1 },
+    { q: "Which metal oxide residue is brown when hot and yellow when cold?", a: ["Zinc oxide", "Lead(II) oxide", "Copper(II) oxide", "Iron(III) oxide"], correct: 1 },
+    { q: "What is the color of Iron(II) sulfate crystals?", a: ["Blue", "Green", "Yellow", "Brown"], correct: 1 },
+    { q: "What is the color of Iron(III) chloride solution?", a: ["Pale green", "Light blue", "Brown/Yellow-brown", "Pink"], correct: 2 },
+    { q: "Which salt is white in both crystalline and anhydrous form?", a: ["Copper(II) sulfate", "Sodium chloride", "Iron(II) sulfate", "Cobalt chloride"], correct: 1 },
+    { q: "Which of the following is a potassium salt that is insoluble?", a: ["Potassium nitrate", "Potassium sulfate", "Potassium carbonate", "None, all potassium salts are soluble"], correct: 3 },
+    { q: "Which combination of ions forms a white precipitate?", a: ["Ag⁺ and Cl⁻", "Cu²⁺ and OH⁻", "Fe³⁺ and OH⁻", "Fe²⁺ and OH⁻"], correct: 0 },
+    { q: "Which carbonate salt decomposes to form a black solid residue?", a: ["Zinc carbonate", "Lead(II) carbonate", "Copper(II) carbonate", "Sodium carbonate"], correct: 2 },
+    { q: "Which chloride is insoluble?", a: ["AlCl₃", "AgCl", "MgCl₂", "NH₄Cl"], correct: 1 },
+    { q: "Which sulfate salt is partially/sparingly soluble in water?", a: ["Calcium sulfate", "Barium sulfate", "Copper sulfate", "Zinc sulfate"], correct: 0 },
+    { q: "Which test confirms the identity of Pb²⁺ ions over Ag⁺ ions using solubility?", a: ["Dissolving in excess NaOH", "Dissolving in hot water", "Adding sulfuric acid", "Flame test"], correct: 1 },
+    { q: "What is the chemical name of common table salt?", a: ["Sodium carbonate", "Sodium bicarbonate", "Sodium chloride", "Potassium chloride"], correct: 2 },
+    { q: "Which ion forms a blue solution in water?", a: ["Fe²⁺", "Fe³⁺", "Cu²⁺", "Zn²⁺"], correct: 2 },
+    { q: "Which salt is synthesized by mixing an acid directly with a reactive metal?", a: ["Soluble salt (non-SPA)", "Insoluble salt", "Sodium salt", "Potassium salt"], correct: 0 },
+    { q: "Which compound forms a pale green solution in water?", a: ["Copper(II) nitrate", "Iron(II) sulfate", "Iron(III) chloride", "Zinc sulfate"], correct: 1 },
+    { q: "What is the solubility status of Lead(II) nitrate?", a: ["Insoluble", "Soluble", "Sparingly soluble", "Soluble only in hot water"], correct: 1 },
+    { q: "Which anion forms an insoluble salt with Barium ions?", a: ["Nitrate", "Chloride", "Sulfate", "Acetate"], correct: 2 },
+    { q: "Which anion forms an insoluble salt with Silver ions?", a: ["Nitrate", "Chloride", "Sulfate", "Carbonate (soluble group)"], correct: 1 },
+    { q: "Which of these salts does NOT contain water of crystallization?", a: ["Hydrated copper(II) sulfate", "Table salt (NaCl)", "Epsom salt", "Washing soda"], correct: 1 },
+    { q: "Which term describes a salt that absorbs water from the air to form a solution?", a: ["Efflorescent", "Deliquescent", "Hygroscopic", "Anhydrous"], correct: 1 },
+    { q: "Which salt is used in X-ray imaging of the digestive tract due to its total insolubility?", a: ["Lead sulfate", "Barium sulfate", "Barium chloride", "Calcium carbonate"], correct: 1 },
+    { q: "What color is the precipitate of Silver Chloride?", a: ["White", "Cream", "Yellow", "Black"], correct: 0 },
+    { q: "What color is the precipitate of Silver Bromide?", a: ["White", "Cream/Pale Yellow", "Bright Yellow", "Green"], correct: 1 },
+    { q: "What color is the precipitate of Silver lodide?", a: ["White", "Cream", "Bright Yellow", "Red"], correct: 2 },
+    { q: "Which method is used to separate an insoluble salt precipitate from a liquid mixture?", a: ["Distillation", "Crystallization", "Filtration", "Chromatography"], correct: 2 },
+    { q: "Which compound is completely insoluble in water?", a: ["Magnesium carbonate", "Magnesium sulfate", "Magnesium chloride", "Magnesium nitrate"], correct: 0 },
+
+    // Sub-topic: Salt Preparation Methods & Crystallization (Questions 151-190)
+    { q: "Which method is most appropriate to prepare Sodium Chloride salt?", a: ["Acid + Reactive Metal", "Acid + Alkali Titration", "Precipitation / Double Decomposition", "Acid + Excess Insoluble Metal Oxide"], correct: 1 },
+    { q: "Which method is used to prepare Copper(II) sulfate salt?", a: ["Titration using indicator", "Reacting sulfuric acid with excess copper(II) oxide powder", "Precipitation method", "Mixing copper metal with dilute sulfuric acid"], correct: 1 },
+    { q: "What is the primary method used to prepare any INSOLUBLE salt?", a: ["Acid + Base", "Titration", "Precipitation / Double Decomposition", "Direct combination of elements"], correct: 2 },
+    { q: "Why is an EXCESS of copper(II) oxide added when preparing copper(II) sulfate?", a: ["To speed up the reaction", "To ensure all the acid is completely reacted and neutralized", "To color the crystals blue", "To act as a catalyst"], correct: 1 },
+    { q: "How is the excess unreacted copper(II) oxide powder removed from the solution during salt preparation?", a: ["By evaporation", "By crystallization", "By filtration", "By distillation"], correct: 2 },
+    { q: "During soluble salt preparation, why is the filtrate NOT evaporated to complete dryness?", a: ["To prevent the salt crystals from decomposing or losing water of crystallization", "To save energy", "To keep it liquid", "To avoid melting the beaker"], correct: 0 },
+    { q: "What is a saturated solution?", a: ["A solution that cannot dissolve any more solute at a given temperature", "A very dilute solution", "A solution that has been boiled", "A solution containing bubbles"], correct: 0 },
+    { q: "How are the obtained salt crystals dried after filtration?", a: ["Heating strongly over a Bunsen burner", "Pressing them between sheets of filter paper", "Leaving them in water", "Baking them in an industrial oven"], correct: 1 },
+    { q: "To prepare Lead(II) sulfate, which two solutions should be mixed together?", a: ["Lead metal and sulfuric acid", "Lead(II) nitrate and sodium sulfate", "Lead(II) oxide and copper sulfate", "Lead(II) carbonate and water"], correct: 1 },
+    { q: "Why cannot copper metal react with dilute sulfuric acid to produce copper(II) sulfate?", a: ["Copper is too reactive", "Copper is less reactive than hydrogen in the electrochemical series", "Copper forms a protective oxide layer immediately", "Sulfur blocks the reaction"], correct: 1 },
+    { q: "Which acid and base pair should be selected to prepare Ammonium nitrate salt?", a: ["HCl and Ammonia solution", "HNO₃ and Ammonia solution", "H₂SO₄ and Ammonia solution", "HNO₃ and Sodium hydroxide"], correct: 1 },
+    { q: "What type of reaction is a precipitation method?", a: ["Redox reaction", "Double decomposition reaction", "Displacement reaction", "Neutralization reaction"], correct: 1 },
+    { q: "What are the spectators ions when Silver nitrate mixes with Sodium chloride?", a: ["Ag⁺ and Cl⁻", "Na⁺ and NO₃⁻", "Ag⁺ and Na⁺", "Cl⁻ and NO₃⁻"], correct: 1 },
+    { q: "What is the correct sequence of steps to prepare pure crystals of Zinc sulfate from Zinc oxide?", a: ["Reaction -> Filtration -> Evaporation to saturation -> Cooling -> Filtration -> Drying", "Reaction -> Evaporation to dryness -> Washing -> Drying", "Titration -> Evaporation -> Cooling -> Drying", "Precipitation -> Filtration -> Washing -> Drying"], correct: 0 },
+    { q: "Why is distilled water used to wash the collected crystals on the filter paper?", a: ["To dissolve the crystals", "To remove soluble impurities clinging to the surface of the crystals", "To cool them down", "To trigger crystallization"], correct: 1 },
+    { q: "Why is a tiny amount of cold distilled water used for washing crystals instead of hot water?", a: ["Cold water looks cleaner", "To minimize the amount of salt crystals dissolving back into the water", "To keep the crystals solid", "Hot water breaks the filter paper"], correct: 1 },
+    { q: "Which pair of reactants can safely prepare Zinc chloride?", a: ["Zinc metal and hydrochloric acid", "Zinc metal and chlorine gas directly", "Zinc oxide and sodium chloride", "Zinc nitrate and hydrochloric acid"], correct: 0 },
+    { q: "Which salt CANNOT be prepared by reacting a metal oxide with an acid?", a: ["Copper(II) sulfate", "Magnesium nitrate", "Sodium sulfate (due to explosive/SPA nature)", "Zinc chloride"], correct: 2 },
+    { q: "What is the net ionic equation for the precipitation of Barium sulfate?", a: ["Ba²⁺ + SO₄²⁻ → BaSO₄", "Ba + SO₄ → BaSO₄", "BaCl₂ + H₂SO₄ → BaSO₄ + 2HCl", "Na₂SO₄ + Ba²⁺ → BaSO₄ + 2Na⁺"], correct: 0 },
+    { q: "What visual indicator shows that a solution has reached its crystallization point during heating?", a: ["It turns dark green", "Crystals begin to form on a glass rod dipped into the solution", "The liquid starts bumping violently", "Gas bubbles stop evolving"], correct: 1 },
+    { q: "Which salt must be prepared via titration because both reactants and products are highly soluble?", a: ["Potassium sulfate", "Lead sulfate", "Calcium carbonate", "Copper sulfate"], correct: 0 },
+    { q: "Why can't Calcium carbonate be prepared by reacting Calcium oxide solid with Carbon dioxide gas practically in a school lab?", a: ["It is too dangerous", "Precipitation from two aqueous solutions is far faster and easier", "It yields an explosion", "Calcium oxide does not exist"], correct: 1 },
+    { q: "Which acid is chosen to prepare a chloride salt?", a: ["Sulfuric acid", "Hydrochloric acid", "Nitric acid", "Ethanoic acid"], correct: 1 },
+    { q: "Which acid is chosen to prepare a nitrate salt?", a: ["Hydrochloric acid", "Sulfuric acid", "Nitric acid", "Phosphoric acid"], correct: 2 },
+    { q: "What happens if you react Calcium metal directly with sulfuric acid to make Calcium sulfate?", a: ["Explosion occurs safely", "The reaction stops quickly because the insoluble Calcium sulfate layer coats the metal surface", "Pure crystals form immediately", "Hydrogen gas is trapped"], correct: 1 },
+    { q: "Which salt is synthesized using the ionic precipitation method?", a: ["Silver chloride", "Sodium nitrate", "Ammonium sulfate", "Potassium chloride"], correct: 0 },
+    { q: "What do we call the liquid that passes through the filter paper during filtration?", a: ["Residue", "Filtrate", "Solute", "Solvent"], correct: 1 },
+    { q: "What do we call the solid material left behind on the filter paper after filtration?", a: ["Filtrate", "Residue", "Precipitate exclusively", "Crystal"], correct: 1 },
+    { q: "Which equipment holds the filter paper during a filtration setup?", a: ["Conical flask", "Filter funnel", "Burette", "Beaker"], correct: 1 },
+    { q: "Why is the saturated salt solution allowed to cool down slowly for crystal growth?", a: ["To make them change color", "Slow cooling allows larger, more perfect crystal lattices to form", "Fast cooling causes evaporation", "To prevent the glass from shattering"], correct: 1 },
+    { q: "Which property determines the order of crystal formation during multi-salt cooling?", a: ["Molar mass", "Solubility index at specific temperatures", "Density", "Melting point"], correct: 1 },
+    { q: "Which pair of reagents is ideal for synthesizing Lead(II) chloride?", a: ["Lead nitrate solution + Sodium chloride solution", "Lead metal + Hydrochloric acid", "Lead oxide + Sodium chloride", "Lead carbonate + Chlorine gas"], correct: 0 },
+    { q: "What type of salt is Potassium acetate?", a: ["Organic soluble salt", "Insoluble salt", "Inorganic basic salt", "Gaseous salt"], correct: 0 },
+    { q: "Which salt is prepared by reacting Magnesium carbonate with Nitric acid?", a: ["Magnesium sulfate", "Magnesium nitrate", "Magnesium chloride", "Magnesium carbonate"], correct: 1 },
+    { q: "What is the color of Magnesium sulfate crystals?", a: ["White/Colorless", "Blue", "Green", "Pink"], correct: 0 },
+    { q: "What happens to the rate of crystal formation if the solution is cooled down rapidly in ice?", a: ["No crystals form", "Many tiny, small crystals form rapidly", "Massive large crystals form", "The salt decomposes"], correct: 1 },
+    { q: "Which salt solution turns yellow-brown upon exposure to air oxidation?", a: ["Iron(II) sulfate", "Copper(II) sulfate", "Zinc sulfate", "Sodium chloride"], correct: 0 },
+    { q: "What raw material is the source of Calcium carbonate in nature?", a: ["Limestone", "Hematite", "Bauxite", "Galena"], correct: 0 },
+    { q: "Which equation represents a valid neutralization method to make a salt?", a: ["NaOH + HCl → NaCl + H₂O", "Zn + HCl → ZnCl₂ + H₂", "Ag⁺ + Cl⁻ → AgCl", "CaCO₃ → CaO + CO₂"], correct: 0 },
+    { q: "Why are SPA (Sodium, Potassium, Ammonium) salts always synthesized via titration?", a: ["Because they are highly toxic", "Because all reactants and products are fully soluble in water, making excess solid separation impossible", "Because they react with filter paper", "Because they require indicators to crystallize"], correct: 1 },
+
+    // Sub-topic: Action of Heat on Salts & Gas Identification (Questions 191-230)
+    { q: "Which gas is released when a metal carbonate salt is heated strongly?", a: ["Oxygen", "Hydrogen", "Carbon Dioxide", "Nitrogen Dioxide"], correct: 2 },
+    { q: "Which carbonate salt does NOT decompose when heated strongly by a laboratory Bunsen burner?", a: ["CuCO₃", "ZnCO₃", "Na₂CO₃", "CaCO₃"], correct: 2 },
+    { q: "What two gases are released when a typical transition metal nitrate salt is heated?", a: ["O₂ and CO₂", "NO₂ and O₂", "NH₃ and NO₂", "H₂ and O₂"], correct: 1 },
+    { q: "What is the color of Nitrogen Dioxide (NO₂) gas?", a: ["Colorless", "Greenish-yellow", "Brown", "Blue"], correct: 2 },
+    { q: "Which gas relights a glowing wooden splinter?", a: ["Hydrogen", "Oxygen", "Carbon dioxide", "Ammonia"], correct: 1 },
+    { q: "What happens when Zinc carbonate is heated strongly?", a: ["Forms a black residue + CO₂", "Forms a residue that is yellow when hot, white when cold + CO₂", "Forms a residue that is brown when hot, yellow when cold + CO₂", "No reaction"], correct: 1 },
+    { q: "What is observed when Copper(II) carbonate is heated?", a: ["Green powder turns into a black solid and releases a gas that turns limewater milky", "White powder turns yellow", "Blue powder turns white", "No change"], correct: 0 },
+    { q: "Which nitrate salt decomposes to release ONLY oxygen gas instead of nitrogen dioxide + oxygen?", a: ["KNO₃", "Cu(NO₃)₂", "Zn(NO₃)₂", "Pb(NO₃)₂"], correct: 0 },
+    { q: "What is the residue left behind when Lead(II) nitrate is heated strongly?", a: ["Zinc oxide", "Lead(II) oxide", "Copper oxide", "Iron oxide"], correct: 1 },
+    { q: "Which gas turns wet red litmus paper blue?", a: ["Chlorine", "Ammonia", "Hydrogen chloride", "Sulfur dioxide"], correct: 1 },
+    { q: "What is observed when Ammonium chloride is heated in a test tube?", a: ["Sublimation and dissociation into NH₃ and HCl gases which reform white solid at the cool neck", "Melts into a green liquid", "Explodes into sparks", "Releases oxygen gas"], correct: 0 },
+    { q: "Which gas has a sharp, pungent choking smell and bleaches wet litmus paper after turning it red?", a: ["CO₂", "Cl₂", "O₂", "N₂"], correct: 1 },
+    { q: "What chemical change occurs to the oxidation state of iron when Iron(II) sulfate is roasted strongly?", a: ["Iron(II) is oxidized to Iron(III) in Fe₂O₃", "Iron(II) is reduced to iron metal", "Stays as Iron(II)", "Changes to gaseous iron"], correct: 0 },
+    { q: "Which gas turns acidified potassium manganate(VII) solution from purple to colorless?", a: ["CO₂", "SO₂", "O₂", "NH₃"], correct: 1 },
+    { q: "What is the chemical formula of the brown gas produced during the thermal decomposition of Lead(II) nitrate?", a: ["NO", "N₂O", "NO₂", "N₂O₅"], correct: 2 },
+    { q: "Which of the following carbonates decomposes at the lowest temperature?", a: ["Na₂CO₃", "CaCO₃", "CuCO₃", "K₂CO₃"], correct: 2 },
+    { q: "What happens to limewater when Carbon dioxide gas is bubbled into it for a prolonged, excess duration?", a: ["Turns milky and stays milky", "Turns milky first, then becomes clear/colorless again due to soluble calcium hydrogencarbonate formation", "Turns blue", "Converts to solid marble blocks"], correct: 1 },
+    { q: "Which salt decomposes to give a red-brown solid when hot, turning yellow-brown when cold?", a: ["Zinc nitrate", "Iron(III) nitrate", "Copper nitrate", "Lead nitrate"], correct: 1 },
+    { q: "Which gas forms a white precipitate with silver nitrate solution?", a: ["Hydrogen chloride gas (in solution as Cl⁻)", "Oxygen", "Carbon dioxide", "Nitrogen"], correct: 0 },
+    { q: "Why do sodium and potassium carbonates resist thermal decomposition at lab temperatures?", a: ["They have low melting points", "The electrostatic forces in their crystal lattices are exceptionally stable due to high electropositivity of the cations", "They contain water", "They are organic"], correct: 1 },
+    { q: "Which gas turns a drop of potassium iodide solution brown?", a: ["Chlorine gas (via displacement)", "Hydrogen gas", "Carbon dioxide", "Ammonia"], correct: 0 },
+    { q: "What is the balance coefficient of NO₂ when 2 moles of Pb(NO₃)₂ decompose?", a: ["2", "4", "1", "6"], correct: 1 },
+    { q: "Which gas is evolved when active metals react with dilute acids?", a: ["Oxygen", "Chlorine", "Hydrogen", "Nitrogen"], correct: 2 },
+    { q: "Which gas smells of rotten eggs?", a: ["Sulfur dioxide", "Hydrogen sulfide (H₂S)", "Ammonia", "Chlorine"], correct: 1 },
+    { q: "What color change is seen during the heating of an anhydrous cobalt chloride card to test for water?", a: ["Blue to Pink", "Pink to Blue", "White to Blue", "Yellow to Green"], correct: 0 },
+    { q: "What gas is produced when hydrogen peroxide is treated with manganese(IV) oxide catalyst?", a: ["Hydrogen", "Oxygen", "Chlorine", "Water vapor only"], correct: 1 },
+    { q: "Which thermal decomposition product of Calcium carbonate is used in cement manufacturing?", a: ["Calcium metal", "Calcium oxide (Quicklime)", "Calcium hydroxide", "Calcium carbide"], correct: 1 },
+    { q: "What is the behavior of Nitrogen gas towards a burning splinter?", a: ["Extinguishes it without a pop sound", "Relights it", "Explodes", "Burns with a blue flame"], correct: 0 },
+    { q: "Which gas is completely odorless, colorless, neutral to litmus, and puts out a flame?", a: ["Carbon dioxide (acidic)", "Nitrogen", "Ammonia", "Chlorine"], correct: 1 },
+    { q: "Which metal nitrate does NOT produce a metal oxide upon heating?", a: ["Silver nitrate (decomposes to silver metal directly)", "Zinc nitrate", "Copper nitrate", "Magnesium nitrate"], correct: 0 },
+    { q: "What color is Copper(II) oxide residue?", a: ["Green", "Blue", "Black", "White"], correct: 2 },
+    { q: "What is the formula of the gas that turns acidified potassium dichromate(VI) from orange to green?", a: ["CO₂", "SO₂", "NO₂", "O₂"], correct: 1 },
+    { q: "Which salt decomposes to give off three different gases/vapors including sulfur dioxide and sulfur trioxide?", a: ["Iron(II) sulfate crystals", "Copper nitrate", "Sodium carbonate", "Ammonium nitrate"], correct: 0 },
+    { q: "What is the correct chemical name for the white precipitate that turns limewater milky?", a: ["Calcium oxide", "Calcium hydroxide", "Calcium carbonate", "Calcium hydrogencarbonate"], correct: 2 },
+    { q: "What is the action of heat on Sodium hydrogencarbonate (baking soda)?", a: ["Decomposes to form Sodium carbonate, water vapor, and Carbon dioxide", "Melts without decomposing", "Releases chlorine gas", "Turns into sodium metal"], correct: 0 },
+    { q: "Which gas is highly soluble in water and forms a highly acidic solution?", a: ["Hydrogen chloride (HCl)", "Oxygen", "Hydrogen", "Methane"], correct: 0 },
+    { q: "Which gas is lighter than air and easily collected by upward delivery / downward displacement of air?", a: ["Carbon dioxide", "Ammonia", "Chlorine", "Oxygen"], correct: 1 },
+    { q: "What happens when Ammonium nitrate is heated gently?", a: ["Decomposes into nitrous oxide (N₂O) gas and water vapor", "Explodes instantly into black soot", "Forms ammonia and nitric acid only", "Forms nitrogen dioxide"], correct: 0 },
+    { q: "Which gas can be dried using concentrated sulfuric acid?", a: ["Ammonia gas (reacts with it)", "Carbon dioxide", "Sodium vapor", "None"], correct: 1 },
+    { q: "Which drying agent is used specifically for ammonia gas?", a: ["Concentrated sulfuric acid", "Anhydrous calcium chloride", "Calcium oxide (Quicklime)", "Phosphorus(V) oxide"], correct: 2 },
+
+    // Sub-topic: Qualitative Analysis - Anions & Cations Tests (Questions 231-300)
+    { q: "Which reagent is used to confirm the presence of Carbonate (CO₃²⁻) ions?", a: ["Barium chloride", "Silver nitrate", "Dilute hydrochloric acid followed by passing gas into limewater", "Brown ring test reagents"], correct: 2 },
+    { q: "Which ion forms a white precipitate with silver nitrate solution that is insoluble in dilute nitric acid?", a: ["Sulfate", "Chloride", "Nitrate", "Carbonate"], correct: 1 },
+    { q: "Why is dilute nitric acid added before adding silver nitrate during the chloride test?", a: ["To speed up the reaction", "To destroy any carbonate ions that might form a false-positive silver carbonate precipitate", "To color the solution", "To act as a catalyst"], correct: 1 },
+    { q: "Which reagent is used to confirm the presence of Chloride (Cl⁻) ions?", a: ["Barium chloride solution", "Silver nitrate solution", "Iron(II) sulfate solution", "Sodium hydroxide"], correct: 1 },
+    { q: "What is the color of the precipitate formed when Barium chloride is added to a solution containing sulfate ions?", a: ["Yellow", "Green", "White", "Blue"], correct: 2 },
+    { q: "Why must dilute hydrochloric acid or nitric acid be added before adding Barium chloride for a sulfate ion test?", a: ["To dissolve the sulfate ions", "To eliminate carbonate or sulfite ions which could also form a white barium precipitate", "To neutralize the water", "To change the oxidation state"], correct: 1 },
+    { q: "What are the exact chemicals added sequentially to perform the 'Brown Ring' test for Nitrate ions?", a: ["Dilute H₂SO₄, then FeSO₄ solution, followed by carefully dripping concentrated H₂SO₄ down the side of the test tube", "HCl, then BaCl₂ solution", "HNO₃, then AgNO₃ solution", "NaOH and Devarda's alloy"], correct: 0 },
+    { q: "The brown ring formed in the nitrate test is due to the formation of which complex chemical compound?", a: ["[Fe(H₂O)₅(NO)]²⁺", "Fe₂O₃", "Fe(NO₃)₃", "NO₂"], correct: 0 },
+    { q: "What color precipitate does Copper(II) ion (Cu²⁺) form with a few drops of Sodium Hydroxide?", a: ["Green", "Blue", "White", "Brown"], correct: 1 },
+    { q: "What happens to the blue Copper(II) hydroxide precipitate when EXCESS sodium hydroxide is added?", a: ["It dissolves to form a deep blue solution", "It remains insoluble", "It turns green", "It dissolves to form a colorless solution"], correct: 1 },
+    { q: "What happens to the blue Copper(II) precipitate when EXCESS Ammonia solution (NH₃) is added?", a: ["It remains insoluble", "It dissolves completely to form a magnificent deep blue / royal blue solution", "It turns white", "It disappears into gas"], correct: 1 },
+    { q: "Which cation forms a green precipitate with sodium hydroxide that turns brown at the surface over time?", a: ["Cu²⁺", "Fe²⁺", "Fe³⁺", "Cr³⁺"], correct: 1 },
+    { q: "Which cation forms a reddish-brown precipitate with sodium hydroxide that is completely insoluble in excess?", a: ["Fe²⁺", "Fe³⁺", "Al³⁺", "Zn²⁺"], correct: 1 },
+    { q: "Which three metal ions form white precipitates with a few drops of Sodium Hydroxide?", a: ["Cu²⁺, Fe²⁺, Fe³⁺", "Al³⁺, Zn²⁺, Pb²⁺ (also Ca²⁺, Mg²⁺)", "Na⁺, K⁺, NH₄⁺", "Ag⁺, Hg⁺, Au⁺"], correct: 1 },
+    { q: "Which cation forms a white precipitate with sodium hydroxide that does NOT dissolve in excess sodium hydroxide?", a: ["Al³⁺", "Zn²⁺", "Pb²⁺", "Ca²⁺ (and Mg²⁺)"], correct: 3 },
+    { q: "Which white precipitate dissolves in BOTH excess Sodium Hydroxide and excess Ammonia solution?", a: ["Al³⁺", "Zn²⁺", "Pb²⁺", "Ca²⁺"], correct: 1 },
+    { q: "Which white precipitate dissolves in excess Sodium Hydroxide but remains INSOLUBLE in excess Ammonia solution?", a: ["Zn²⁺", "Al³⁺ and Pb²⁺", "Ca²⁺", "Mg²⁺"], correct: 1 },
+    { q: "Which reagent is used to differentiate between Al³⁺ and Pb²⁺ ions in solution?", a: ["Sodium Hydroxide", "Ammonia solution", "Potassium Iodide solution (gives yellow ppt with Pb²⁺)", "Sodium chloride"], correct: 2 },
+    { q: "Which cation does NOT form any precipitate with any amount of Sodium Hydroxide or Ammonia solution?", a: ["Ca²⁺", "Mg²⁺", "NH₄⁺ (releases ammonia gas upon heating instead)", "Fe²⁺"], correct: 2 },
+    { q: "How can you test for the Ammonium (NH₄⁺) ion?", a: ["Add sodium hydroxide solution, heat gently, and test the pungent gas evolved with wet red litmus paper", "Add silver nitrate", "Perform the brown ring test", "Add barium chloride"], correct: 0 },
+    { q: "What is the confirmatory reagent for Iron(II) ions that yields a dark blue precipitate?", a: ["Potassium hexacyanoferrate(III) solution", "Potassium hexacyanoferrate(II) solution", "Potassium thiocyanate solution", "Sodium hydroxide"], correct: 0 },
+    { q: "Which reagent confirms Iron(III) ions by yielding a spectacular blood-red coloration?", a: ["Potassium hexacyanoferrate(III)", "Potassium thiocyanate (KSCN) solution", "Potassium iodide", "Silver nitrate"], correct: 1 },
+    { q: "What happens when Potassium hexacyanoferrate(II) is added to a solution containing Iron(III) ions?", a: ["Blood red solution forms", "Prussian blue / dark blue precipitate forms", "Green solution forms", "White precipitate forms"], correct: 1 },
+    { q: "What is observed when Potassium lodide is added to a solution containing Pb²⁺ ions and heated then cooled?", a: ["Bright yellow precipitate that dissolves in hot water to form a colorless solution, then recrystallizes as golden shiny crystals upon cooling", "A permanent black solid", "No change at all", "Effervescence of iodine gas"], correct: 0 },
+    { q: "Which cation forms a white precipitate with a few drops of aqueous ammonia that dissolves in excess to give a colorless solution?", a: ["Pb²⁺", "Al³⁺", "Zn²⁺", "Cu²⁺"], correct: 2 },
+    { q: "Which ion is present if a salt solution forms a white precipitate with dilute sulfuric acid?", a: ["Na⁺", "Ba²⁺ (or Pb²⁺ / Ca²⁺)", "K⁺", "NH₄⁺"], correct: 1 },
+    { q: "What color is the precipitate of Lead(II) chromate(VI)?", a: ["White", "Bright Yellow", "Red", "Green"], correct: 1 },
+    { q: "Which gas turns Nessler's reagent from colorless to a brown precipitate?", a: ["Ammonia", "Carbon dioxide", "Oxygen", "Hydrogen chloride"], correct: 0 },
+    { q: "Which of these cations forms a white precipitate with excess aqueous ammonia?", a: ["Zn²⁺", "Al³⁺", "Cu²⁺", "Na⁺"], correct: 1 },
+    { q: "What type of analysis is used to identify the composition of ions present in an unknown salt sample?", a: ["Quantitative analysis", "Qualitative analysis", "Volumetric analysis", "Thermal combustion analysis"], correct: 1 },
+    { q: "Which ion matches this profile: White precipitate with NaOH soluble in excess; white precipitate with NH₃ insoluble in excess; forms a bright yellow precipitate with KI?", a: ["Al³⁺", "Pb²⁺", "Zn²⁺", "Mg²⁺"], correct: 1 },
+    { q: "Which ion matches this profile: White precipitate with NaOH soluble in excess; white precipitate with NH₃ insoluble in excess; forms NO precipitate with KI?", a: ["Pb²⁺", "Zn²⁺", "Al³⁺", "Ca²⁺"], correct: 2 },
+    { q: "Which ion forms a white precipitate with a few drops of NaOH but NO precipitate with a few drops of aqueous ammonia?", a: ["Mg²⁺", "Ca²⁺", "Al³⁺", "Zn²⁺"], correct: 1 },
+    { q: "What color is the precipitate formed by Iron(III) ions with aqueous ammonia?", a: ["Green", "Rusty Reddish-Brown", "Blue", "White"], correct: 1 },
+    { q: "What color is the precipitate formed by Iron(II) ions with aqueous ammonia?", a: ["Dull Green", "Reddish-Brown", "White", "Royal Blue"], correct: 0 },
+    { q: "Which statement is true regarding the test for chloride ions?", a: ["The precipitate dissolves in excess dilute nitric acid", "The precipitate is silver chloride which is white", "Barium nitrate is used instead of silver nitrate", "A brown gas is evolved"], correct: 1 },
+    { q: "Which acid should NOT be used to acidify barium chloride when testing for sulfate ions?", a: ["Hydrochloric acid", "Nitric acid", "Sulfuric acid (introduces sulfate ions creating a false positive)", "All can be used"], correct: 2 },
+    { q: "Which chemical test uses Devarda's alloy (Al, Cu, Zn) and NaOH to reduce an anion into ammonia gas?", a: ["Chloride test", "Nitrate test alternative", "Sulfate test", "Carbonate test"], correct: 1 },
+    { q: "What color is the flame test for Sodium ions?", a: ["Lilac", "Brick Red", "Golden Yellow", "Apple Green"], correct: 2 },
+    { q: "What color is the flame test for Potassium ions?", a: ["Lilac", "Yellow", "Crimson Red", "Blue"], correct: 0 },
+    { q: "What color is the flame test for Calcium ions?", a: ["Lilac", "Brick-Red", "Green", "Yellow"], correct: 1 },
+    { q: "What color is the flame test for Copper(II) ions?", a: ["Lilac", "Yellow", "Bluish-Green", "White"], correct: 2 },
+    { q: "Which element can be identified by a crimson red flame color?", a: ["Lithium", "Sodium", "Potassium", "Barium"], correct: 0 },
+    { q: "Which solution can be used to distinguish between Zinc sulfate and Zinc chloride?", a: ["Sodium hydroxide", "Silver nitrate (gives white ppt with chloride)", "Barium chloride", "Ammonia"], correct: 1 },
+    { q: "What clean wire material is used to perform a flame test in a laboratory?", a: ["Copper wire", "Platinum or Nichrome wire", "Iron wire", "Aluminum strip"], correct: 1 },
+    { q: "Why is the wire dipped in concentrated hydrochloric acid before a flame test?", a: ["To make it shine", "To convert impurities into volatile chlorides that clean off easily in the flame", "To cool it", "To coat it with acid"], correct: 1 },
+    { q: "Which precipitate dissolves in dilute nitric acid with effervescence?", a: ["Barium sulfate", "Silver chloride", "Calcium carbonate", "Lead sulfate"], correct: 2 },
+    { q: "What color is Lead(II) iodide precipitate?", a: ["White", "Yellow", "Orange", "Red"], correct: 1 },
+    { q: "Which oxide is amphoteric and dissolves in both sodium hydroxide and nitric acid?", a: ["MgO", "CuO", "ZnO", "Na₂O"], correct: 2 },
+    { q: "What compound forms when excess Carbon dioxide gas reacts with Calcium carbonate suspension?", a: ["Calcium oxide", "Calcium hydroxide", "Calcium hydrogencarbonate", "Calcium carbide"], correct: 2 }
+];
+
+// Session-specific array containing the 20 randomized questions for the current attempt
+let activeQuizQuestions = [];
+
+        /* Removed duplicate function */
+
+        // Core Filter Navigation Logic
+        /* Removed duplicate function */
+
+        // Global Progress Updates Tracker
+        /* Removed duplicate function */
+
+        // --- 1. VIRTUAL ACID-BASE LAB LOGIC ---
+        function runSim1() {
+            const val = document.getElementById('chemSelect').value;
+            const stream = document.getElementById('pourStream1');
+            const liquid = document.getElementById('liquid1');
+            const txt = document.getElementById('stepText1');
+            const stat = document.getElementById('status1');
+            
+            stat.innerText = "POURING...";
+            
+            stream.style.animation = 'none';
+            stream.offsetHeight; 
+            stream.style.animation = 'streamPourDown 1.5s ease';
+            
+            setTimeout(() => {
+                liquid.style.height = '60%';
+                if (val === 'hcl') {
+                    liquid.style.backgroundColor = '#ef4444';
+                    txt.innerHTML = "<strong>Result:</strong> pH dropped to 1. Indicator turned Red.<br>Equation: HCl &rarr; H⁺ + Cl⁻";
+                } else {
+                    liquid.style.backgroundColor = '#8b5cf6';
+                    txt.innerHTML = "<strong>Result:</strong> pH spiked to 13. Indicator turned Purple.<br>Equation: NaOH &rarr; Na⁺ + OH⁻";
+                }
+                stat.innerText = "COMPLETED";
+                if(!completedLabs.has('sim1')) awardXP(50, "Acid-Base Lab Completed", "🧪");
+                updateProgress('sim1');
+            }, 1400);
+        }
+
+        function replaySim1() {
+            document.getElementById('liquid1').style.height = '15%';
+            document.getElementById('liquid1').style.backgroundColor = '#e2e8f0';
+            document.getElementById('stepText1').innerHTML = "<strong>Current:</strong> Neutral H₂O. Select a chemical and pour.";
+            document.getElementById('status1').innerText = "READY";
+            document.getElementById('pourStream1').style.animation = 'none';
+        }
+
+        // --- 2. pH SCALE SIMULATOR LOGIC ---
+        function updatePhScale(val) {
+            const bar = document.getElementById('phColorBar');
+            const liquid = document.getElementById('liquid2');
+            const txt = document.getElementById('stepText2');
+            let color = '#22c55e', type = 'Neutral';
+
+            if (val < 3) { color = '#ef4444'; type = 'Strong Acid'; }
+            else if (val < 7) { color = '#eab308'; type = 'Weak Acid'; }
+            else if (val == 7) { color = '#22c55e'; type = 'Neutral'; }
+            else if (val < 12) { color = '#3b82f6'; type = 'Weak Alkali'; }
+            else { color = '#8b5cf6'; type = 'Strong Alkali'; }
+
+            bar.style.backgroundColor = color;
+            bar.innerText = `pH ${val} (${type})`;
+            liquid.style.backgroundColor = color;
+            liquid.style.height = `${30 + (val * 4)}%`;
+            txt.innerHTML = `<strong>Current:</strong> pH ${val} matches standard universal indicators for a <strong>${type}</strong>.`;
+        }
+
+        function completeSim2() {
+            document.getElementById('status2').innerText = "COMPLETED";
+            if(!completedLabs.has('sim2')) awardXP(50, "pH Scale Mastered", "🌈");
+            updateProgress('sim2');
+        }
+
+        function replaySim2() {
+            document.getElementById('phSlider').value = 7;
+            updatePhScale(7);
+            document.getElementById('status2').innerText = "READY";
+        }
+
+        // --- 3. INDICATOR CHALLENGE LOGIC ---
+        indicatorTested = false;
+
+        const samplePool3 = ['Acidic', 'Alkaline', 'Neutral'];
+        function pickNewMysteryLiquid() {
+            mysteryLiquidType = samplePool3[Math.floor(Math.random() * samplePool3.length)];
+            indicatorTested = false;
+        }
+        pickNewMysteryLiquid();
+
+        function testIndicator(type) {
+            indicatorTested = true;
+            const txt = document.getElementById('stepText3');
+            const liquid = document.getElementById('liquid3');
+            
+            if (type === 'litmus') {
+                const paper = document.getElementById('litmusPaper3');
+                
+                paper.style.animation = 'none';
+                paper.offsetHeight;
+                paper.style.animation = 'dipLitmusPaperAnimation 1.2s ease forwards';
+                
+                setTimeout(() => {
+                    if (mysteryLiquidType === 'Acidic') { paper.style.background = '#ef4444'; txt.innerHTML = "<strong>Observation:</strong> Blue litmus strip turned <strong>Red</strong>."; }
+                    else if (mysteryLiquidType === 'Alkaline') { paper.style.background = '#2563eb'; txt.innerHTML = "<strong>Observation:</strong> Red litmus strip turned <strong>Blue</strong>."; }
+                    else { paper.style.background = '#cbd5e1'; txt.innerHTML = "<strong>Observation:</strong> Litmus color remained <strong>Unchanged</strong>."; }
+                }, 600);
+            } else {
+                const drop = document.getElementById('drop3');
+                
+                drop.style.animation = 'none';
+                drop.offsetHeight;
+                
+                drop.style.display = 'block';
+                drop.style.animation = 'dropDown 0.8s forwards';
+                setTimeout(() => {
+                    drop.style.display = 'none';
+                    if (mysteryLiquidType === 'Alkaline') { liquid.style.backgroundColor = 'rgba(236, 72, 153, 0.5)'; txt.innerHTML = "<strong>Observation:</strong> Phenolphthalein turned the solution deep <strong>Pink</strong>!"; }
+                    else { liquid.style.backgroundColor = 'rgba(255,255,255,0.4)'; txt.innerHTML = "<strong>Observation:</strong> Phenolphthalein remained completely <strong>Colorless</strong>."; }
+                }, 750);
+            }
+        }
+
+        function submitIndicatorGuess(guess) {
+            const txt = document.getElementById('stepText3');
+            const stat = document.getElementById('status3');
+            if (!indicatorTested) { txt.innerHTML = "⚠️ <strong>Error:</strong> Please run an active indicator test workflow before submitting a guess!"; return; }
+            
+            if (guess === mysteryLiquidType) {
+                txt.innerHTML = `🎉 <strong>Correct!</strong> The environment is verified as <strong>${mysteryLiquidType}</strong>.`;
+                stat.innerText = "COMPLETED"; 
+                if(!completedLabs.has('sim3')) awardXP(80, "Indicator Challenge Solved", "🕵️");
+                updateProgress('sim3');
+            } else {
+                txt.innerHTML = `❌ <strong>Incorrect!</strong> You evaluated it as ${guess}, but the formulation was <strong>${mysteryLiquidType}</strong>.`;
+                stat.innerText = "FAILED";
+            }
+        }
+
+        function replaySim3() {
+            pickNewMysteryLiquid();
+            document.getElementById('liquid3').style.backgroundColor = 'rgba(148, 163, 184, 0.15)'; 
+            document.getElementById('stepText3').innerHTML = "<strong>Task:</strong> Use indicator tests above to deduce the nature of the mystery liquid.";
+            document.getElementById('status3').innerText = "TESTING";
+            document.getElementById('litmusPaper3').style.background = '#cbd5e1';
+            document.getElementById('litmusPaper3').style.animation = 'none';
+        }
+
+        // --- 4. ROLE OF WATER LOGIC ---
+        function testWaterSim(solvent) {
+            const acid = document.getElementById('waterAcidSelect').value;
+            const litmus = document.getElementById('waterLitmus');
+            const txt = document.getElementById('stepText10');
+            const stat = document.getElementById('status10');
+            
+            if (solvent === 'water') {
+                litmus.style.backgroundColor = '#ef4444';
+                txt.innerHTML = `🌟 <strong>Observation:</strong> Litmus paper turns <strong>Red</strong>! Water allows ${acid === 'glacial' ? 'Ethanoic Acid' : 'HCl gas'} to ionize and produce mobile H⁺ ions.`;
+                stat.innerText = "COMPLETED"; 
+                if(!completedLabs.has('sim10')) awardXP(60, "Water Mechanics Understood", "💧");
+                updateProgress('sim10');
+            } else {
+                litmus.style.backgroundColor = '#cbd5e1';
+                txt.innerHTML = `❌ <strong>Observation:</strong> Litmus remains <strong>Blue</strong>. In benzene, molecules remain in their neutral molecular structure without ionizing.`;
+                stat.innerText = "FAILED";
+            }
+        }
+
+        function replaySim10() {
+            document.getElementById('waterLitmus').style.backgroundColor = '#cbd5e1';
+            document.getElementById('stepText10').innerText = "Dip a dry blue litmus paper into your chosen molecular medium.";
+            document.getElementById('status10').innerText = "READY";
+        }
+
+        // --- 5. TITRATION CHALLENGE LOGIC WITH ADAPTIVE FEEDBACK & SCORING ---
+      
+       // --- 5. TITRATION CHALLENGE LOGIC WITH ADAPTIVE FEEDBACK & SCORING ---
+        // Global variables for the dynamic titration simulator
+        let targetEndpoint = 25.0; // Will be overwritten on load
+        let titrating = false;
+        let titrationInterval;
+        let titrationVol = 0.0;
+
+        // NEW: Function to randomize the challenge using MaVa = MbVb (1:1 mole ratio for HCl and NaOH)
+        function generateNewTitrationChallenge() {
+            const alkaliVols = [20.0, 25.0, 50.0]; // Standard pipette volumes in cm³
+            const molarities = [0.1, 0.25, 0.5, 1.0];
+            
+            // Randomize flask (base) and burette (acid) values
+            const vBase = alkaliVols[Math.floor(Math.random() * alkaliVols.length)];
+            const mBase = molarities[Math.floor(Math.random() * molarities.length)];
+            const mAcid = molarities[Math.floor(Math.random() * molarities.length)];
+            
+            // Calculate expected endpoint volume of acid (Va) using MaVa = MbVb
+            targetEndpoint = (mBase * vBase) / mAcid;
+            
+            const txt = document.getElementById('stepText6');
+            txt.innerHTML = `<strong>Challenge:</strong> The flask contains ${vBase} cm³ of ${mBase} mol/dm³ NaOH. You are titrating with ${mAcid} mol/dm³ HCl.<br><strong>Volume:</strong> <span id="volDisplay">0.0</span> cm³`;
+        }
+
+        // UPDATED: Main simulation runner
+        function runSim6() {
+            const btn = document.getElementById('btnSim6');
+            const txt = document.getElementById('stepText6');
+            const stat = document.getElementById('status6');
+            const stream = document.getElementById('pourStream6');
+            const liquid = document.getElementById('liquid6');
+
+            if (!titrating) {
+                titrating = true;
+                btn.style.display = 'inline-block';
+                btn.innerText = "Stop Drip 🛑";
+                stat.innerText = "TITRATING...";
+                
+                stream.style.animation = 'none';
+                stream.offsetHeight; 
+                stream.style.animation = 'streamPourDown 0.7s infinite linear'; 
+                
+                titrationInterval = setInterval(() => {
+                    titrationVol += 0.15;
+                    document.getElementById('volDisplay').innerText = titrationVol.toFixed(1);
+                    
+                    // Dynamic color shift based on the calculated target
+                    if (titrationVol >= targetEndpoint - 0.15 && titrationVol <= targetEndpoint + 0.15) { 
+                        liquid.style.backgroundColor = 'rgba(236, 72, 153, 0.3)'; // Pale pink
+                    } else if (titrationVol > targetEndpoint + 0.15) { 
+                        liquid.style.backgroundColor = 'rgba(219, 39, 119, 0.8)'; // Dark pink (overshot)
+                    }
+                }, 100);
+            } else {
+                titrating = false;
+                clearInterval(titrationInterval);
+                stream.style.animation = 'none';
+                btn.style.display = 'none';
+                
+                // Evaluate student's accuracy against the dynamic endpoint
+                let difference = Math.abs(targetEndpoint - titrationVol);
+                
+                if (difference <= 0.15) {
+                    txt.innerHTML = `<strong>Success (100/100)!</strong> Stopped at ${titrationVol.toFixed(1)} cm³. Perfect pale pink neutral endpoint for the target of ${targetEndpoint.toFixed(1)} cm³!`;
+                    stat.innerText = "COMPLETED"; 
+                    if(typeof completedLabs !== 'undefined' && !completedLabs.has('sim6')) awardXP(150, "Perfect Titration", "🎯");
+                    if(typeof updateProgress === 'function') updateProgress('sim6');
+                } else if (difference <= 1.0) {
+                    txt.innerHTML = `<strong>Score: 50/100.</strong> Stopped at ${titrationVol.toFixed(1)} cm³. <em>Auto-Feedback:</em> Calculated target was ${targetEndpoint.toFixed(1)} cm³. You missed by a few drops. Calculate carefully!`;
+                    stat.innerText = "FAILED";
+                } else {
+                    let mistakeType = titrationVol > targetEndpoint ? "overshot" : "undershot";
+                    txt.innerHTML = `<strong>Score: 0/100.</strong> Stopped at ${titrationVol.toFixed(1)} cm³. <em>Auto-Feedback:</em> You heavily ${mistakeType} the calculated ${targetEndpoint.toFixed(1)} cm³ target.`;
+                    stat.innerText = "FAILED";
+                }
+            }
+        }
+
+        // UPDATED: Reset function to roll a new set of numbers every time
+        function replaySim6() {
+            titrating = false; clearInterval(titrationInterval); titrationVol = 0.0;
+            
+            document.getElementById('volDisplay').innerText = "0.0";
+            document.getElementById('liquid6').style.backgroundColor = 'rgba(255,255,255,0.4)';
+            document.getElementById('pourStream6').style.animation = 'none';
+            document.getElementById('status6').innerText = "READY";
+            
+            const btn = document.getElementById('btnSim6');
+            btn.style.display = 'inline-block'; btn.innerText = "Start Drip 💧";
+            
+            // Generate new random variables upon reset
+            generateNewTitrationChallenge(); 
+        }
+
+        // Ensure the first challenge is generated when the DOM loads
+        document.addEventListener('DOMContentLoaded', () => {
+            generateNewTitrationChallenge();
+        });
+
+        // --- 6. SALT PREPARATION LOGIC ---
+
+        // --- 6. SALT PREPARATION LOGIC ---
+        // Use window-scoped variable to avoid redeclaration errors in modules or other scripts
+        if (typeof window.saltStep === 'undefined') window.saltStep = 1;
+        function runSim4() {
+            const txt = document.getElementById('stepText4');
+            const stat = document.getElementById('status4');
+            const btn = document.getElementById('btnSim4');
+            const liquid = document.getElementById('liquid4');
+
+            if (window.saltStep === 1) {
+                liquid.style.height = '45%'; liquid.style.backgroundColor = '#0284c7';
+                txt.innerHTML = "<strong>Step 2:</strong> Filter excess black copper(II) oxide powder using filter paper and funnel.";
+                stat.innerText = "STEP 2/3"; btn.innerText = "Filter Mixture 🧪"; saltStep = 2;
+            } else if (saltStep === 2) {
+                txt.innerHTML = "<strong>Step 3:</strong> Evaporate the filtrate blue solution to saturation point, then let cool.";
+                stat.innerText = "STEP 3/3"; btn.innerText = "Evaporate & Cool ⚗️"; saltStep = 3;
+            } else if (window.saltStep === 3) {
+                document.getElementById('crystal1').style.display = 'block';
+                document.getElementById('crystal2').style.display = 'block';
+                txt.innerHTML = "<strong>Result:</strong> Beautiful blue rhombic <strong>Copper(II) Chloride (CuCl₂)</strong> crystals formed successfully!";
+                stat.innerText = "COMPLETED"; btn.style.display = 'none';
+                if(!completedLabs.has('sim4')) awardXP(80, "Crystals Formed", "💎");
+                updateProgress('sim4');
+            }
+        }
+
+        function replaySim4() {
+            window.saltStep = 1;
+            document.getElementById('liquid4').style.height = '0%';
+            document.getElementById('liquid4').style.backgroundColor = 'transparent'; 
+            document.getElementById('crystal1').style.display = 'none';
+            document.getElementById('crystal2').style.display = 'none';
+            document.getElementById('stepText4').innerHTML = "<strong>Step 1:</strong> Add excess CuO powder to hot HCl.";
+            document.getElementById('status4').innerText = "STEP 1/3";
+            const btn = document.getElementById('btnSim4');
+            btn.style.display = 'inline-block'; btn.innerText = "Add CuO ⚗️";
+        }
+
+        // --- 7. INSOLUBLE SALTS SIMULATOR LOGIC ---
+        function runSim12() {
+            const target = document.getElementById('targetSaltProduct').value;
+            const r1 = document.getElementById('saltReactant1').value;
+            const r2 = document.getElementById('saltReactant2').value;
+            const txt = document.getElementById('stepText12');
+            const stat = document.getElementById('status12');
+            const liq = document.getElementById('liquid12');
+
+            liq.style.height = '60%';
+            if (target === 'PbI2') {
+                if (r1 === 'PbNO3' && r2 === 'KI') {
+                    liq.style.backgroundColor = '#fbbf24';
+                    txt.innerHTML = "<strong>Success!</strong> Two aqueous solutions formed an instant brilliant **Yellow Precipitate** of Lead(II) Iodide (PbI₂).<br><code>Pb²⁺(aq) + 2I⁻(aq) → PbI₂(s)</code>";
+                    stat.innerText = "COMPLETED"; 
+                    if(!completedLabs.has('sim12')) awardXP(100, "Precipitation Pro", "📐");
+                    updateProgress('sim12');
+                } else { displaySaltError(txt, stat, "Lead(II) Iodide", "Lead(II) Nitrate", "Potassium Iodide"); }
+            } else if (target === 'BaSO4') {
+                if (r1 === 'BaCl2' && r2 === 'Na2SO4') {
+                    liq.style.backgroundColor = '#f8fafc'; liq.style.borderTop = '2px solid #cbd5e1';
+                    txt.innerHTML = "<strong>Success!</strong> Standard double decomposition yielded a thick **White Precipitate** of Barium Sulphate (BaSO₄).";
+                    stat.innerText = "COMPLETED"; 
+                    if(!completedLabs.has('sim12')) awardXP(100, "Precipitation Pro", "📐");
+                    updateProgress('sim12');
+                } else { displaySaltError(txt, stat, "Barium Sulphate", "Barium Chloride", "Sodium Sulphate"); }
+            } else if (target === 'AgCl') {
+                if (r1 === 'AgNO3' && r2 === 'NaCl') {
+                    liq.style.backgroundColor = '#f1f5f9'; liq.style.borderTop = '2px solid #cbd5e1';
+                    txt.innerHTML = "<strong>Success!</strong> Clean ionic bond exchange created a classic **White Precipitate** of Silver Chloride (AgCl).";
+                    stat.innerText = "COMPLETED"; 
+                    if(!completedLabs.has('sim12')) awardXP(100, "Precipitation Pro", "📐");
+                    updateProgress('sim12');
+                } else { displaySaltError(txt, stat, "Silver Chloride", "Silver Nitrate", "Sodium Chloride"); }
+            }
+        }
+
+        function displaySaltError(txtElem, statElem, saltName, idealR1, idealR2) {
+            document.getElementById('liquid12').style.backgroundColor = '#cbd5e1';
+            txtElem.innerHTML = `❌ <strong>SPM Precipitation Error:</strong> Failed to synthesize ${saltName}. Remember: Double decomposition **MUST utilize TWO aqueous soluble starting salts**. Solid metals or insoluble reactants remain inactive. Switch Reactant 1 to <strong>${idealR1}</strong> and Reactant 2 to <strong>${idealR2}</strong>.`;
+            statElem.innerText = "FAILED";
+        }
+
+        function replaySim12() {
+            document.getElementById('liquid12').style.height = '0%';
+            document.getElementById('liquid12').style.backgroundColor = 'transparent';
+            document.getElementById('liquid12').style.borderTop = 'none';
+            document.getElementById('stepText12').innerText = "Choose appropriate aqueous combinations to successfully synthesis clean precipitate profiles.";
+            document.getElementById('status12').innerText = "READY";
+        }
+
+        // --- 8. GAS TEST LABORATORY LOGIC ---
+        /* Removed duplicate function */
+
+        /* Removed duplicate function */
+
+        // --- 9. CATION CONFIRMATION LOGIC ---
+        if (typeof selectedReagent === 'undefined') selectedReagent = '';
+        function testCation(reagent) {
+            selectedReagent = reagent;
+            const cation = document.getElementById('cationSelect').value;
+            const stream = document.getElementById('pourStream9');
+            const layer = document.getElementById('precipitateLayer');
+            const txt = document.getElementById('stepText9');
+            
+            stream.style.animation = 'none';
+            stream.offsetHeight;
+            stream.style.animation = 'streamPourDown 0.6s forwards';
+            
+            setTimeout(() => {
+                layer.style.height = '30%';
+                document.getElementById('btnSim9').removeAttribute('disabled');
+                if (cation === 'Cu2+') {
+                    layer.style.backgroundColor = '#60a5fa';
+                    txt.innerHTML = `<strong>Observation:</strong> Light blue precipitate formed dropwise with dilute ${reagent}.`;
+                } else if (cation === 'Fe2+') {
+                    layer.style.backgroundColor = '#16a34a';
+                    txt.innerHTML = `<strong>Observation:</strong> Dirty green precipitate formed dropwise with dilute ${reagent}.`;
+                } else if (cation === 'Al3+') {
+                    layer.style.backgroundColor = '#f1f5f9'; layer.style.border = '1px solid #cbd5e1';
+                    txt.innerHTML = `<strong>Observation:</strong> White precipitate formed dropwise with dilute ${reagent}.`;
+                }
+            }, 600);
+        }
+
+        /* Removed duplicate function */
+
+        /* Removed duplicate function */
+
+        // --- 10. ANION FINGERPRINT LOGIC ---
+        function testAnion(type) {
+            const target = document.getElementById('anionSelect').value;
+            const ring = document.getElementById('brownRingLayer');
+            const ppt = document.getElementById('anionPrecipitate');
+            const txt = document.getElementById('stepText11');
+            const stat = document.getElementById('status11');
+
+            ring.style.display = 'none'; ppt.style.height = '0%';
+            stat.innerText = "REACTING...";
+
+            setTimeout(() => {
+                if (type === 'BrownRing' && target === 'NO3') {
+                    ring.style.display = 'block'; txt.innerHTML = "<strong>Observation:</strong> A distinctive, narrow **brown ring** forms at the interface layer. Nitrate (NO₃⁻) confirmed.";
+                    stat.innerText = "COMPLETED"; 
+                    if(!completedLabs.has('sim11')) awardXP(100, "Brown Ring Formed", "🔬");
+                    updateProgress('sim11');
+                } else if (type === 'AgNO3' && target === 'Cl') {
+                    ppt.style.height = '40%'; ppt.style.backgroundColor = '#ffffff'; ppt.style.borderTop = '1px solid #cbd5e1';
+                    txt.innerHTML = "<strong>Observation:</strong> White precipitate forms instantly. Chloride (Cl⁻) confirmed.";
+                    stat.innerText = "COMPLETED"; 
+                    if(!completedLabs.has('sim11')) awardXP(100, "Anion Identified", "🔬");
+                    updateProgress('sim11');
+                } else {
+                    txt.innerHTML = "<strong>Negative Result:</strong> Clear solution. No analytical change occurred.";
+                    stat.innerText = "FAILED";
+                }
+            }, 600);
+        }
+
+        function replayAnion() {
+            document.getElementById('brownRingLayer').style.display = 'none';
+            document.getElementById('anionPrecipitate').style.height = '0%';
+            document.getElementById('anionPrecipitate').style.backgroundColor = 'transparent';
+            document.getElementById('anionPrecipitate').style.borderTop = 'none';
+            document.getElementById('stepText11').innerText = "Select an unknown sample profile and apply your test logic.";
+            document.getElementById('status11').innerText = "READY";
+        }
+
+        // --- 11. SPM MISTAKE DETECTOR LOGIC ---
+        const detectorDatabase = {
+            "neutralization": {
+                perfect: "hcl+naoh->nacl+h2o",
+                mistakes: { "hcl+naoh->nacl": "❌ Missing Product! Neutralization reactions must produce both salt AND water (H₂O)." }
+            },
+            "acid_carbonate": {
+                perfect: "2hcl+caco3->cacl2+co2+h2o",
+                mistakes: { "hcl+caco3->cacl2+co2+h2o": "❌ Balancing Error! Check your Chlorine and Hydrogen counts on the left side." }
+            }
+        };
+
+        function verifySpmEquation() {
+            const topic = document.getElementById('equationTopic').value;
+            const rawInput = document.getElementById('equationInput').value.toLowerCase().replace(/\s+/g, '');
+            const feedback = document.getElementById('spmFeedback');
+            const radar = document.getElementById('scannerRadar');
+            const stat = document.getElementById('status7');
+
+            radar.style.animation = 'none';
+            radar.offsetHeight;
+            radar.style.animation = 'scanMeters 1s ease 2';
+            
+            feedback.innerText = "Analyzing structural balancing matrix...";
+
+            setTimeout(() => {
+                const targetTrack = detectorDatabase[topic];
+                if (rawInput === targetTrack.perfect) {
+                    feedback.innerHTML = "💚 <strong>Equation Verified:</strong> 100% correct balancing and stoichiometry match according to KSSM marking schemes!";
+                    stat.innerText = "COMPLETED"; 
+                    if(!completedLabs.has('sim7')) awardXP(150, "Perfect Balancing", "⚖️");
+                    updateProgress('sim7');
+                } else if (targetTrack.mistakes[rawInput]) {
+                    feedback.innerHTML = targetTrack.mistakes[rawInput]; stat.innerText = "FAILED";
+                } else {
+                    feedback.innerHTML = "❌ <strong>Syntax/Balancing Error:</strong> Equation unbalanced or formula misspelled. Review reactants and products.";
+                    stat.innerText = "FAILED";
+                }
+            }, 1800);
+        }
+
+        function replaySim7() {
+            document.getElementById('equationInput').value = '';
+            document.getElementById('spmFeedback').innerHTML = "Waiting for equations to balance...";
+            document.getElementById('status7').innerText = "READY";
+            document.getElementById('scannerRadar').style.animation = 'none';
+        }
+
+// --- 12. CHECKPOINT QUIZ ASSESSMENT LOGIC (WITH SCORING/XP) ---
+        
+        // Helper Function: Pure Fisher-Yates Shuffle implementation
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+
+        // Main entry point for starting/generating the examination
+        function runSim8() {
+            document.getElementById('btnSim8').style.display = 'none';
+            document.getElementById('gradeCircle').style.display = 'none';
+            const box = document.getElementById('quizQuestionBox');
+            box.style.display = 'block';
+            
+            activeQuizIndex = 0; 
+            activeQuizScore = 0;
+            
+            // 1. Clone the master pool to protect the raw array data configuration
+            let pooledQueue = [...window.masterQuizPool];
+            
+            // 2. Shuffle the entire master pool
+            shuffleArray(pooledQueue);
+            
+            // 3. Extract exactly 20 randomized questions out of the pool
+            let pickedQuestions = pooledQueue.slice(0, 20);
+            
+            // 4. Safely randomize answer option positions per question without ruining key maps
+            activeQuizQuestions = pickedQuestions.map(item => {
+                // Map the options to transient tracking objects linking texts to original correctness
+                let optionsMeta = item.a.map((ansText, idx) => {
+                    return { text: ansText, isCorrect: idx === item.correct };
+                });
+                
+                // Shuffle the individual options meta container
+                shuffleArray(optionsMeta);
+                
+                // Extract strings out and recalculate the index matching the correct answer
+                let structuralAnswers = optionsMeta.map(o => o.text);
+                let newlyCalculatedCorrectIndex = optionsMeta.findIndex(o => o.isCorrect);
+                
+                return {
+                    q: item.q,
+                    a: structuralAnswers,
+                    correct: newlyCalculatedCorrectIndex
+                };
+            });
+
+            renderNextQuizQuestion();
+        }
+
+        function renderNextQuizQuestion() {
+            const box = document.getElementById('quizQuestionBox');
+            if (activeQuizIndex >= activeQuizQuestions.length) {
+                concludeQuizAssessment(); 
+                return;
+            }
+            const currentItem = activeQuizQuestions[activeQuizIndex];
+            document.getElementById('stepText8').innerHTML = `<strong>Answering Question ${activeQuizIndex + 1} of ${activeQuizQuestions.length}</strong>`;
+            
+           let htmlString = `<p style="font-weight:700; margin-bottom:14px; font-size:1.15rem; line-height: 1.4; color: #0f172a;">${currentItem.q}</p>`;
+            currentItem.a.forEach((ans, idx) => {
+                htmlString += `<button class="quiz-choice-btn" onclick="submitQuizAnswer(${idx})">${idx + 1}. ${ans}</button>`;
+            });
+            box.innerHTML = htmlString;
+        }
+
+        function submitQuizAnswer(chosenIdx) {
+            if (chosenIdx === activeQuizQuestions[activeQuizIndex].correct) { 
+                activeQuizScore++; 
+            }
+            activeQuizIndex++;
+            renderNextQuizQuestion();
+        }
+
+        function concludeQuizAssessment() {
+            document.getElementById('quizQuestionBox').style.display = 'none';
+            const circle = document.getElementById('gradeCircle');
+            const txt = document.getElementById('stepText8');
+            let finalGrade = "G", remark = "Review Form 4 Chapter 6 core operational guides.";
+            
+            if (activeQuizScore >= 16) { finalGrade = "A+"; remark = "Excellent calibration performance across all topic areas."; }
+            else if (activeQuizScore >= 12) { finalGrade = "B"; remark = "Solid foundational chemistry comprehension values."; }
+            else if (activeQuizScore >= 7) { finalGrade = "E"; remark = "Passing margin secured. Strengthen qualitative details."; }
+
+            circle.style.display = 'flex'; 
+            circle.innerText = finalGrade;
+            
+            if (!completedLabs.has('sim8')) {
+                const scorePercentage = activeQuizScore / activeQuizQuestions.length;
+                const earnedQuizXP = Math.round(scorePercentage * 500); 
+                awardXP(earnedQuizXP, "Checkpoint Exam Graded", "📝");
+                
+                txt.innerHTML = `<strong>Result: Completed.</strong> Grade: <strong>${finalGrade}</strong> (${activeQuizScore}/${activeQuizQuestions.length} correct).<br>XP Awarded: <strong>+${earnedQuizXP}</strong><br>${remark}`;
+            } else {
+                txt.innerHTML = `<strong>Result: Reviewed.</strong> Grade: <strong>${finalGrade}</strong> (${activeQuizScore}/${activeQuizQuestions.length} correct). XP Already Claimed.<br>${remark}`;
+            }
+
+            document.getElementById('status8').innerText = "COMPLETED";
+            updateProgress('sim8');
+        }
+
+        function replaySim8() {
+            activeQuizIndex = 0; 
+            activeQuizScore = 0;
+            activeQuizQuestions = [];
+            document.getElementById('gradeCircle').style.display = 'none';
+            document.getElementById('quizQuestionBox').style.display = 'none';
+            document.getElementById('stepText8').innerHTML = "<strong>Status:</strong> Ready to challenge. Assessment checks core operational lab theory.";
+            document.getElementById('status8').innerText = "READY";
+            document.getElementById('btnSim8').style.display = 'inline-block';
+        }
+        // --- 13. AI STUDY PLANNER CORE METRIC ENGINE ---
+        function generatePersonalizedStudyPlan() {
+            const outputBox = document.getElementById('aiPlanOutput');
+            const percentageText = document.getElementById('masteryPercentage');
+            const statusPill = document.getElementById('aiStatusPill');
+            const badge = document.getElementById('aiPlannerBadge');
+
+            const completedCount = completedLabs.size;
+            const completionPercentage = Math.round((completedCount / totalLabs) * 100);
+
+            percentageText.innerText = `${completionPercentage}%`;
+            
+            if (completionPercentage >= 80) {
+                statusPill.style.background = '#ecfdf5'; statusPill.style.color = '#059669'; statusPill.innerText = 'Highly Competent';
+            } else if (completionPercentage >= 40) {
+                statusPill.style.background = '#fef3c7'; statusPill.style.color = '#d97706'; statusPill.innerText = 'Progressing';
+            } else {
+                statusPill.style.background = '#fee2e2'; statusPill.style.color = '#ef4444'; statusPill.innerText = 'Critical Attention';
+            }
+
+            badge.innerText = "GENERATING...";
+            outputBox.innerHTML = "<em>Analyzing weak profiles and compiling remediation guides...</em>";
+
+            setTimeout(() => {
+                let planHtml = `<h4 style="color:#1e1b4b; font-weight:700; margin-bottom:8px; font-size:0.9rem;">🎯 Custom Revision Strategy Matrix</h4>`;
+                let items = [];
+
+                const acidLabs = ['sim1', 'sim2', 'sim3', 'sim10'];
+                const missingAcids = acidLabs.filter(x => !completedLabs.has(x));
+                if (missingAcids.length > 0) {
+                    items.push(`<strong>Form 4 Chapter 6.1 (Acids/Bases):</strong> Knowledge gaps found in acid ionization profiles. Ensure you understand that hydrogen properties *only* express themselves in the presence of water.`);
+                }
+
+                if (!completedLabs.has('sim12')) {
+                    items.push(`<strong>Form 4 Chapter 6.9 (Salts Prep):</strong> Insoluble precipitation simulation missing. Remember: Double decomposition synthesis always requires *TWO aqueous soluble starting salts*.`);
+                }
+
+                if (completedLabs.has('sim8')) {
+                    if (activeQuizScore < 7) {
+                        items.push(`<strong>Checkpoint Diagnosis:</strong> Quiz Grade is critical (${activeQuizScore}/${quizBank.length}). Focus heavily on basic qualitative tests for identifying ions.`);
+                    } else if (activeQuizScore < 16) {
+                        items.push(`<strong>Checkpoint Diagnosis:</strong> Good foundation, but lacking complete precision. Double-check gas verification procedures (e.g., Chlorine bleaching vs HCl white fumes).`);
+                    } else {
+                        items.push(`<strong>Checkpoint Diagnosis:</strong> Master status secured! Challenge yourself further by creating zero-error balanced formulas inside the *SPM Mistake Detector*.`);
+                    }
+                } else {
+                    items.push(`⚠️ <strong>Missing Core Metric:</strong> You have not completed the Checkpoint Quiz yet. Complete it to unlock hyper-targeted algorithmic recommendations.`);
+                }
+
+                if (items.length === 0 || (completedLabs.has('sim8') && activeQuizScore >= 16 && completionPercentage === 100)) {
+                    planHtml += `<p style="color:#059669; font-weight:600;">✨ Absolute Mastery Achieved! Your customized track consists of high-tier structural application practice papers. Maintain this level for your final exams!</p>`;
+                } else {
+                    planHtml += `<ul style="padding-left: 14px; margin-bottom: 10px;">`;
+                    items.forEach(item => { planHtml += `<li style="margin-bottom: 6px;">${item}</li>`; });
+                    planHtml += `</ul>`;
+                }
+
+                planHtml += `
+                    <div style="margin-top:12px; padding:8px; background:#f1f5f9; border-radius:8px; font-size:0.75rem;">
+                        <strong>💡 Active Recall Focus:</strong> Drill flashcards regarding <code>Solubility Rules (All Nitrates = Soluble)</code> & <code>Cation Precipitate Colors</code>.
+                    </div>
+                `;
+
+                outputBox.innerHTML = planHtml;
+                badge.innerText = "COMPLETED";
+            }, 900);
+        }
+        // --- 3. THE MISSING UI HYDRATION ON BOOT ---
+document.addEventListener("DOMContentLoaded", () => {
+    // 1. Refresh HUD Text & Bars using the saved numbers
+    updateGamificationHUD();
+    
+    const progressText = document.getElementById('progressText');
+    const progressBar = document.getElementById('progressBar');
+    if (progressText) progressText.innerText = `${completedLabs.size} / ${totalLabs}`;
+    if (progressBar) progressBar.style.width = `${(completedLabs.size / totalLabs) * 100}%`;
+
+    // 2. Re-render the earned badges array into the container
+    const badgeDiv = document.getElementById('badgeContainer');
+    if (typeof earnedBadges !== 'undefined' && badgeDiv) {
+        badgeDiv.innerHTML = '';
+        earnedBadges.forEach(b => {
+            let icon = b === 'First Blood' ? '🧪' : b === 'Diligent Scholar' ? '📚' : '🏆';
+            badgeDiv.innerHTML += `<span title="${b}">${icon}</span>`;
+        });
+    }
+
+    // 3. Mark all previously completed lab cards visually as "COMPLETED"
+    completedLabs.forEach(labId => {
+        // Extracts the number from strings like 'sim1', 'sim2' to target your status elements ('status1', 'status2')
+        const num = labId.replace('sim', '');
+        const statusBadge = document.getElementById(`status${num}`);
+        if (statusBadge) {
+            statusBadge.innerText = "COMPLETED";
+            statusBadge.style.background = "#d1fae5"; // Optional styling: Soft green background
+            statusBadge.style.color = "#065f46";
+        }
+    });
+});
+    // --- SIMULATOR CONFIGURATIONS & COMPATIBILITY HOOK ---
+    let currentSalt = 'CuCO3';
+    let targetV2, targetM2, stockM1, correctV1;
+
+    /* Removed duplicate function */
+
+    /* Removed duplicate function */
+
+    /* Removed duplicate function */
+
+    /* Removed duplicate function */
+
+    /* Removed duplicate function */
+
+    /* Removed duplicate function */
+
+    /* Removed duplicate function */
+
+    /* Removed duplicate function */
+
+    // --- FIXED GAS TEST BLOCK ---
+    function runGasTest(tool) {
+        const gas = document.getElementById('gasSelect').value;
+        const eff = document.getElementById('gasEffervescence');
+        const lit = document.getElementById('gasLitmusPaper');
+        const spl = document.getElementById('gasSplinter');
+        const flm = document.getElementById('gasFlame');
+        const txt = document.getElementById('stepText5');
+        const stat = document.getElementById('status5');
+
+        eff.style.height = '0%';
+        eff.offsetHeight;
+        eff.style.height = '80%';
+
+        lit.style.display = 'none';
+        spl.style.display = 'none';
+        stat.innerText = "TESTING...";
+
+        setTimeout(() => {
+            if (tool === 'splinter') {
+                spl.style.display = 'block';
+                if (gas === 'O2') {
+                    flm.style.background = '#ef4444';
+                    flm.style.boxShadow = '0 0 10px #f59e0b';
+                    txt.innerHTML = "<strong>Observation:</strong> The glowing wooden splinter <strong>rekindles into a bright flame</strong>!<br><strong>Inference:</strong> Oxygen gas (O₂) confirmed.";
+                    stat.innerText = "COMPLETED";
+                    if (!completedLabs.has('sim5')) awardXP(60, "Gas Confirmed", "💨");
+                    updateProgress('sim5');
+                } else if (gas === 'H2') {
+                    flm.style.background = 'transparent';
+                    flm.style.boxShadow = 'none';
+                    txt.innerHTML = "<strong>Observation:</strong> A burning wooden splinter produces a distinct <strong>'Pop' sound</strong> and extinguishes.<br><strong>Inference:</strong> Hydrogen gas (H₂) confirmed.";
+                    stat.innerText = "COMPLETED";
+                    if (!completedLabs.has('sim5')) awardXP(60, "Gas Confirmed", "💨");
+                    updateProgress('sim5');
+                } else {
+                    flm.style.background = 'transparent';
+                    flm.style.boxShadow = 'none';
+                    txt.innerHTML = "<strong>Observation:</strong> No reaction. The splinter went out slowly without a pop or relighting.";
+                    stat.innerText = "FAILED";
+                }
+            } else {
+                lit.style.display = 'block';
+                if (gas === 'NH3') {
+                    lit.style.background = '#2563eb';
+                    txt.innerHTML = "<strong>Observation:</strong> Moist red litmus paper turns sharply <strong>Blue</strong>!<br><strong>Inference:</strong> Alkaline Ammonia gas (NH₃) confirmed.";
+                    stat.innerText = "COMPLETED";
+                    if (!completedLabs.has('sim5')) awardXP(60, "Gas Confirmed", "💨");
+                    updateProgress('sim5');
+                } else if (gas === 'CO2') {
+                    lit.style.background = '#cbd5e1';
+                    txt.innerHTML = "<strong>Observation:</strong> Litmus remains unchanged. <em>Tip: Use lime water to show milkiness for Carbon Dioxide verification instead!</em>";
+                    stat.innerText = "FAILED";
+                } else {
+                    lit.style.background = '#cbd5e1';
+                    txt.innerHTML = "<strong>Observation:</strong> Neutral or mismatched atmospheric verification path.";
+                    stat.innerText = "FAILED";
+                }
+            }
+        }, 800);
+    }
+
+    function testDilutePrecipitate() {
+        const reagent = selectedReagent;
+        const layer = document.getElementById('precipitateLayer');
+        const txt = document.getElementById('stepText9');
+
+        setTimeout(() => {
+            if (reagent) {
+                layer.style.height = '15%';
+                layer.style.backgroundColor = '#f1f5f9';
+                layer.style.border = '1px solid #cbd5e1';
+                txt.innerHTML = `<strong>Observation:</strong> White precipitate formed dropwise with dilute ${reagent}.`;
+            }
+        }, 600);
+    }
+
+    function testCationExcess() {
+        const cation = document.getElementById('cationSelect').value;
+        const layer = document.getElementById('precipitateLayer');
+        const txt = document.getElementById('stepText9');
+        const stat = document.getElementById('status9');
+
+        if (selectedReagent === 'NaOH') {
+            if (cation === 'Al3+') {
+                layer.style.height = '0%';
+                txt.innerHTML = "<strong>Observation in Excess:</strong> White precipitate <strong>dissolves</strong> to form a colorless solution.";
+            } else {
+                txt.innerHTML = "<strong>Observation in Excess:</strong> The precipitate remains insoluble in excess NaOH.";
+            }
+        } else { // NH3 in excess
+            if (cation === 'Cu2+') {
+                layer.style.backgroundColor = '#1e3a8a';
+                txt.innerHTML = "<strong>Observation in Excess:</strong> Light blue precipitate dissolves to form a deep blue complex.";
+            } else {
+                txt.innerHTML = "<strong>Observation in Excess:</strong> The precipitate remains insoluble in excess NH₃.";
+            }
+        }
+
+        stat.innerText = "COMPLETED";
+        if (!completedLabs.has('sim9')) awardXP(80, "Cation Identified", "🔮");
+        updateProgress('sim9');
+    }
+
+    function replaySim9() {
+        document.getElementById('precipitateLayer').style.height = '0%';
+        document.getElementById('precipitateLayer').style.backgroundColor = 'transparent';
+        document.getElementById('precipitateLayer').style.border = 'none';
+        document.getElementById('pourStream9').style.animation = 'none';
+        document.getElementById('stepText9').innerText = "Select a candidate salt and tap a test reagent dropwise.";
+        document.getElementById('status9').innerText = "READY";
+        document.getElementById('btnSim9').setAttribute('disabled', 'true');
+    }
+
+    // Ensure remaining initialization runs even if file was truncated earlier
+    if (typeof resetHeatSim === 'function') resetHeatSim();
+    if (typeof generateNewDilutionChallenge === 'function') generateNewDilutionChallenge();
+    updateGamificationHUD();
+// --- 1. GLOBAL STATE & DOM DECLARATIONS ---
+// Ensure these variables are declared in the global scope so all functions can access them
+
+// Safely grab DOM elements (adjust IDs if they differ in your HTML)
+var badgeDiv = (typeof document !== 'undefined' && document.getElementById('badgeDiv')) ? document.getElementById('badgeDiv') : null;
+
+// Fallback initializations to prevent ReferenceErrors if these are declared elsewhere
+if (typeof completedLabs === 'undefined') {
+    window.completedLabs = new Set();
+}
+if (typeof earnedBadges === 'undefined') {
+    window.earnedBadges = [];
+}
+
+// --- 2. SIMULATION LOGIC ---
+
+function replaySim5() {
+    document.getElementById('gasEffervescence').style.height = '0%';
+    document.getElementById('gasLitmusPaper').style.display = 'none';
+    document.getElementById('gasSplinter').style.display = 'none';
+    document.getElementById('stepText5').innerText = "Select a target gas and tool configuration to process diagnostic footprints.";
+    document.getElementById('status5').innerText = "READY";
+}
+
+
+
+// --- 3. INITIALIZATION RUN ---
+// We wrap the setup logic inside a DOMContentLoaded event to ensure the page is fully loaded first
+document.addEventListener('DOMContentLoaded', () => {
+    // Check if initialization functions exist before calling them
+    if (typeof resetHeatSim === 'function') resetHeatSim();
+    if (typeof generateNewDilutionChallenge === 'function') generateNewDilutionChallenge();
+    
+    // Mark previously completed states
+    if (typeof completedLabs !== 'undefined') {
+        completedLabs.forEach(labId => {
+            const num = labId.replace('sim', '');
+            const statusBadge = document.getElementById(`status${num}`);
+            if (statusBadge) {
+                statusBadge.innerText = "COMPLETED";
+                statusBadge.style.background = "#d1fae5";
+                statusBadge.style.color = "#065f46";
+            }
+        });
+    }
+});
+   
+    // 3. Sync initial visual templates for custom modules
+    resetHeatSim();
+    generateNewDilutionChallenge();
+    
+    // 4. Mark previously completed states
+    if (typeof completedLabs !== 'undefined') {
+        completedLabs.forEach(labId => {
+            const num = labId.replace('sim', '');
+            const statusBadge = document.getElementById(`status${num}`);
+            if (statusBadge) {
+                statusBadge.innerText = "COMPLETED";
+                statusBadge.style.background = "#d1fae5";
+                statusBadge.style.color = "#065f46";
+            }
+        });
+    }
+{}
+
+// --- CORE FRAMEWORK SYSTEM HOOK ---
+function executeGlobalLabCompletion(labId) {
+    if (typeof completedLabs !== 'undefined' && !completedLabs.has(labId)) {
+        if (typeof userXP !== 'undefined') {
+            awardXP(150, "Lab Completed", "🧪");
+        }
+
+        updateProgress(labId);
+
+        const progressText = document.getElementById('progressText');
+        const progressBar = document.getElementById('progressBar');
+        if (progressText) progressText.innerText = `${completedLabs.size} / ${totalLabs}`;
+        if (progressBar) progressBar.style.width = `${(completedLabs.size / totalLabs) * 100}%`;
+    }
+}
+
+// --- FEATURE A LOGIC: THERMAL DECOMPOSITION SIMULATOR ---
+function changeHeatSaltTarget() {
+    currentSalt = document.getElementById('saltHeatSelect').value;
+    resetHeatSim();
+}
+
+function resetHeatSim() {
+    const burnerFlame = document.getElementById('burnerFlame');
+    const btnHeat = document.getElementById('btnHeat');
+    const btnGasTest = document.getElementById('btnGasTest');
+    const gasVapor = document.getElementById('gasVapor');
+    const powder = document.getElementById('saltPowder');
+    const stepText = document.getElementById('stepText11');
+
+    if (burnerFlame) burnerFlame.style.transform = 'translateX(-50%) scale(0)';
+    if (btnHeat) {
+        btnHeat.disabled = false;
+        btnHeat.innerText = "Heat Salt 🔥";
+        btnHeat.onclick = triggerHeatingCycle;
+    }
+    if (btnGasTest) btnGasTest.disabled = true;
+
+    if (gasVapor) {
+        gasVapor.style.opacity = '0';
+        gasVapor.style.background = 'transparent';
+    }
+
+    if (powder && stepText) {
+        if (currentSalt === 'CuCO3') {
+            powder.style.background = '#34d399';
+            powder.style.border = 'none';
+            stepText.innerHTML = "<strong>Status:</strong> Cold green powder loaded. Ready for thermal test sequences.";
+        } else if (currentSalt === 'ZnCO3') {
+            powder.style.background = '#ffffff';
+            powder.style.border = '1px solid #cbd5e1';
+            stepText.innerHTML = "<strong>Status:</strong> Cold white salt powder loaded. Ready to trace transition thresholds.";
+        } else if (currentSalt === 'PbNO3') {
+            powder.style.background = '#f8fafc';
+            powder.style.border = '1px solid #cbd5e1';
+            stepText.innerHTML = "<strong>Status:</strong> White crystalline Lead(II) Nitrate loaded. Caution: high gas evolution expected.";
+        }
+    }
+}
+
+function triggerHeatingCycle() {
+    const burnerFlame = document.getElementById('burnerFlame');
+    const btnHeat = document.getElementById('btnHeat');
+    const btnGasTest = document.getElementById('btnGasTest');
+    const powder = document.getElementById('saltPowder');
+    const stepText = document.getElementById('stepText11');
+    const gasVapor = document.getElementById('gasVapor');
+
+    if (burnerFlame) burnerFlame.style.transform = 'translateX(-50%) scale(1)';
+    if (btnHeat) btnHeat.disabled = true;
+
+    if (stepText) stepText.innerHTML = "<strong>Heating Active...</strong> Energetic breakdown initializing. Watch powder colors.";
+
+    setTimeout(() => {
+        if (btnGasTest) btnGasTest.disabled = false;
+
+        if (powder && stepText) {
+            if (currentSalt === 'CuCO3') {
+                powder.style.background = '#1e293b';
+                stepText.innerHTML = "<strong>Observation:</strong> Carbonate salt broke down completely into a black residue powder! Colorless gas escaping.";
+            } else if (currentSalt === 'ZnCO3') {
+                powder.style.background = '#eab308';
+                stepText.innerHTML = "<strong>Observation:</strong> Residue changed to bright yellow while hot! Colorless gas evolved completely.";
+            } else if (currentSalt === 'PbNO3') {
+                powder.style.background = '#7c2d12';
+                if (gasVapor) {
+                    gasVapor.style.background = 'rgba(180, 83, 9, 0.45)';
+                    gasVapor.style.opacity = '1';
+                }
+                stepText.innerHTML = "<strong>Observation:</strong> Crackling sounds heard! Core residue turned dark brown, and a brown choking gas is visible!";
+            }
+        }
+
+        if (btnHeat) {
+            btnHeat.innerText = "Let Cool ❄️";
+            btnHeat.disabled = false;
+            btnHeat.onclick = triggerCoolingCycle;
+        }
+    }, 2500);
+}
+
+function triggerCoolingCycle() {
+    const burnerFlame = document.getElementById('burnerFlame');
+    const btnHeat = document.getElementById('btnHeat');
+    const powder = document.getElementById('saltPowder');
+    const stepText = document.getElementById('stepText11');
+
+    if (burnerFlame) burnerFlame.style.transform = 'translateX(-50%) scale(0)';
+    if (btnHeat) btnHeat.disabled = true;
+
+    if (stepText) stepText.innerHTML = "<strong>Cooling Sequence...</strong> Monitoring ambient thermal stabilization values.";
+
+    setTimeout(() => {
+        if (powder && stepText) {
+            if (currentSalt === 'CuCO3') {
+                powder.style.background = '#1e293b';
+                stepText.innerHTML = "<strong>Final:</strong> Copper(II) Oxide residue retains its dark black matrix upon structural cooling.";
+            } else if (currentSalt === 'ZnCO3') {
+                powder.style.background = '#ffffff';
+                stepText.innerHTML = "<strong>Final:</strong> Zinc Oxide residue reverted back cleanly from yellow to brilliant white!";
+            } else if (currentSalt === 'PbNO3') {
+                powder.style.background = '#eab308';
+                stepText.innerHTML = "<strong>Final:</strong> Lead(II) Oxide residue shifted from dark brown down to an opaque yellow footprint layout.";
+            }
+        }
+
+        executeGlobalLabCompletion('sim11');
+
+        if (btnHeat) {
+            btnHeat.innerText = "Heat Salt 🔥";
+            btnHeat.disabled = false;
+            btnHeat.onclick = triggerHeatingCycle;
+        }
+    }, 2000);
+}
+
+function testDecompGas() {
+    const stepText = document.getElementById('stepText11');
+    if (!stepText) return;
+
+    if (currentSalt === 'CuCO3' || currentSalt === 'ZnCO3') {
+        stepText.innerHTML = "<strong>Gas Result:</strong> Passed through delivery tube into lime water. The lime water turns <strong>milky / cloudy</strong>! Confirms Carbon Dioxide (CO₂).";
+    } else if (currentSalt === 'PbNO3') {
+        stepText.innerHTML = "<strong>Gas Result:</strong> Damp blue litmus paper turns <strong>red</strong> (Acidic Nitrogen Dioxide gas). Inserting a glowing wooden splinter causes it to <strong>relight</strong> (confirms Oxygen gas).";
+    }
+}
+
+// --- FEATURE B LOGIC: DILUTION CALCULATOR SIMULATOR ---
+/* Removed duplicate function */
+
+/* Removed duplicate function */
+// --- FEATURE B LOGIC: DILUTION CALCULATOR SIMULATOR ---
+function generateNewDilutionChallenge() {
+    const challenges = [
+        { v2: 100, m2: 0.5, m1: 2.0, v1: 25 },
+        { v2: 250, m2: 0.2, m1: 1.0, v1: 50 },
+        { v2: 200, m2: 0.3, m1: 1.5, v1: 40 },
+        { v2: 500, m2: 0.1, m1: 0.5, v1: 100 }
+    ];
+
+    const randomChallenge = challenges[Math.floor(Math.random() * challenges.length)];
+    targetV2 = randomChallenge.v2;
+    targetM2 = randomChallenge.m2;
+    stockM1 = randomChallenge.m1;
+    correctV1 = randomChallenge.v1;
+
+    const challengeBox = document.getElementById('dilutionChallengeBox');
+    if (challengeBox) {
+        challengeBox.innerHTML = `<strong>Challenge:</strong> Prepare ${targetV2} cm³ of ${targetM2} mol/dm³ solution using a standard stock bottle concentration of ${stockM1} mol/dm³.`;
+    }
+
+    const liquid = document.getElementById('dilutionLiquid');
+    if (liquid) {
+        liquid.style.height = '0%';
+        liquid.style.background = '#bae6fd';
+    }
+
+    const v1Input = document.getElementById('v1Input');
+    if (v1Input) {
+        v1Input.value = '';
+        v1Input.disabled = false;
+    }
+
+    const btnDilute = document.getElementById('btnDilute');
+    if (btnDilute) btnDilute.disabled = false;
+
+    const stepText = document.getElementById('stepText12');
+    if (stepText) stepText.innerText = "Calculate target V₁ value using the balance equation, then dilute.";
+
+    const status = document.getElementById('status12');
+    if (status) {
+        status.innerText = "READY";
+        status.style.background = "transparent";
+        status.style.color = "var(--color-spm)";
+    }
+}
+
+function checkDilutionCalculation() {
+    const userVal = parseFloat(document.getElementById('v1Input').value);
+    const stepText = document.getElementById('stepText12');
+    const liquid = document.getElementById('dilutionLiquid');
+
+    if (isNaN(userVal)) {
+        if (stepText) stepText.innerHTML = "<span style='color: #ef4444;'>⚠️ Input field void. Please input a calculated numerical solution value.</span>";
+        return;
+    }
+
+    const v1Input = document.getElementById('v1Input');
+    const btnDilute = document.getElementById('btnDilute');
+    if (v1Input) v1Input.disabled = true;
+    if (btnDilute) btnDilute.disabled = true;
+
+    if (Math.abs(userVal - correctV1) < 0.1) {
+        if (liquid) {
+            liquid.style.height = '68%';
+            liquid.style.background = '#38bdf8';
+        }
+        if (stepText) {
+            stepText.innerHTML = `<strong>Correct Action!</strong> Formula balanced (${stockM1}M × ${correctV1}cm³ = ${targetM2}M × ${targetV2}cm³). Meniscus hits calibration mark perfectly!`;
+        }
+        executeGlobalLabCompletion('sim12');
+    } else {
+        if (userVal > correctV1) {
+            if (liquid) {
+                liquid.style.height = '96%';
+                liquid.style.background = '#f87171';
+            }
+            if (stepText) {
+                stepText.innerHTML = `<span style='color:var(--color-acids);'><strong>Failed Experiment:</strong> You added too much stock solution and overshot the graduation line! Target was ${correctV1} cm³. Click 🔄 to clean up and reset.</span>`;
+            }
+        } else {
+            if (liquid) {
+                liquid.style.height = '32%';
+                liquid.style.background = '#fbbf24';
+            }
+            if (stepText) {
+                stepText.innerHTML = `<span style='color:var(--color-analytical);'><strong>Incorrect Concentration:</strong> Liquid volume rests far below calibration requirements! Correct calculation target was ${correctV1} cm³. Click 🔄 to run again.</span>`;
+            }
+        }
+    }
+}
+
+        // --- NEW: Forces the UI components to restore from storage data when page is refreshed ---
+        document.addEventListener("DOMContentLoaded", () => {
+            // Restore Main HUD Stats
+            updateGamificationHUD();
+            
+            // Restore Lab Module Counter & Fill Bar
+            const progressText = document.getElementById('progressText');
+            const progressBar = document.getElementById('progressBar');
+            if (progressText) progressText.innerText = `${completedLabs.size} / ${totalLabs}`;
+            if (progressBar) progressBar.style.width = `${(completedLabs.size / totalLabs) * 100}%`;
+
+            // Restore Visual Badges Container
+            const badgeDiv = document.getElementById('badgeContainer');
+            if (typeof earnedBadges !== 'undefined' && badgeDiv) {
+                badgeDiv.innerHTML = '';
+                earnedBadges.forEach(b => {
+                    let icon = b === 'First Blood' ? '🧪' : b === 'Diligent Scholar' ? '📚' : '🏆';
+                    badgeDiv.innerHTML += `<span title="${b}">${icon}</span>`;
+                });
+            }
+
+            // Mark all previously completed lab cards visually as "COMPLETED"
+            completedLabs.forEach(labId => {
+                // Extracts the number from strings like 'sim1', 'sim2' to target your status elements ('status1', 'status2')
+                const num = labId.replace('sim', '');
+                const statusBadge = document.getElementById(`status${num}`);
+                if (statusBadge) {
+                    statusBadge.innerText = "COMPLETED";
+                    statusBadge.style.background = "#d1fae5"; // Optional styling: Soft green background
+                    statusBadge.style.color = "#065f46";
+                }
+            });
+        });
+        /* Removed duplicate function */
+
+        document.addEventListener('DOMContentLoaded', () => {
+            updateGamificationHUD();
+
+            const progressText = document.getElementById('progressText');
+            const progressBar = document.getElementById('progressBar');
+            if (progressText) progressText.innerText = `${completedLabs.size} / ${totalLabs}`;
+            if (progressBar) progressBar.style.width = `${(completedLabs.size / totalLabs) * 100}%`;
+
+            const badgeDiv = document.getElementById('badgeContainer');
+            if (typeof earnedBadges !== 'undefined' && badgeDiv) {
+                badgeDiv.innerHTML = '';
+                earnedBadges.forEach(b => {
+                    let icon = b === 'First Blood' ? '🧪' : b === 'Diligent Scholar' ? '📚' : '🏆';
+                    badgeDiv.innerHTML += `<span title="${b}">${icon}</span>`;
+                });
+            }
+
+            completedLabs.forEach((labId) => {
+                const num = labId.replace('sim', '');
+                const statusBadge = document.getElementById(`status${num}`);
+                if (statusBadge) {
+                    statusBadge.innerText = 'COMPLETED';
+                }
+            });
+        });
+        // Custom 20-Question KSSM Form 4 Chapter 6 Bank Matrix
+        const quizBank = [
+            { q: "What is produced when an acid ionizes in water?", a: ["Hydroxide ions", "Hydrogen ions", "Oxide ions", "Metal cations"], correct: 1 },
+            { q: "Which of the following is categorized as a dibasic acid?", a: ["HCl", "HNO₃", "CH₃COOH", "H₂SO₄"], correct: 3 },
+            { q: "Which substance behaves as a weak alkali due to low partial dissociation?", a: ["NaOH", "KOH", "Ammonia solution", "Ba(OH)₂"], correct: 2 },
+            { q: "Which gas is released when reactive magnesium reacts with dilute hydrochloric acid?", a: ["Oxygen", "Carbon Dioxide", "Hydrogen", "Chlorine"], correct: 2 },
+            { q: "What is the color of phenolphthalein indicator inside a sodium hydroxide solution?", a: ["Colorless", "Pale Pink", "Bright Crimson/Pink", "Yellow"], correct: 2 },
+            { q: "Which gas turns acidified potassium dichromate(VI) paper/solution from orange to green?", a: ["O₂", "SO₂", "CO₂", "NH₃"], correct: 1 },
+            { q: "Which of the following describes all Nitrate (NO₃⁻) salts?", a: ["All are completely soluble in water", "All are insoluble", "Only Sodium nitrate is soluble", "Form blue precipitates"], correct: 0 },
+            { q: "Which salt is completely insoluble in water?", a: ["NaCl", "K₂SO₄", "BaSO₄", "NH₄Cl"], correct: 2 },
+            { q: "What color precipitate is observed when Potassium Iodide is mixed with Lead(II) Nitrate?", a: ["White", "Bright Yellow", "Dirty Green", "Royal Blue"], correct: 1 },
+            { q: "Which gas produces a distinctive 'pop' sound with a burning wooden splinter?", a: ["Hydrogen", "Oxygen", "Nitrogen Dioxide", "Ammonia"], correct: 0 },
+            { q: "Which reagent confirms Sulphate (SO₄²⁻) ions after acid preprocessing?", a: ["Silver Nitrate", "Barium Chloride", "Sodium Hydroxide", "Lime Water"], correct: 1 },
+            { q: "Which gas forms dense white fumes when combined with a glass rod dipped in concentrated ammonia?", a: ["Chlorine", "Hydrogen Chloride", "Sulphur Dioxide", "Carbon Dioxide"], correct: 1 },
+            { q: "What color profile does an Iron(III) precipitate show with Sodium Hydroxide?", a: ["Green", "Blue", "Brown", "White"], correct: 2 },
+            { q: "Which metal ion forms a white precipitate that dissolves in EXCESS sodium hydroxide solution?", a: ["Cu²⁺", "Fe²⁺", "Zn²⁺", "Ca²⁺"], correct: 2 },
+            { q: "Which gas turns wet blue litmus paper red, and then completely bleaches it white?", a: ["HCl", "Cl₂", "NO₂", "SO₂"], correct: 1 },
+            { q: "What chemical compound causes lime water to turn milky during gas testing?", a: ["Calcium oxide", "Calcium carbonate", "Calcium chloride", "Calcium hydroxide"], correct: 1 },
+            { q: "Why does glacial ethanoic acid fail to turn dry blue litmus paper red?", a: ["It is too strong", "It contains no water to form hydrogen ions", "It reacts with litmus paper fibers", "It turns paper yellow instead"], correct: 1 },
+            { q: "What is the perfect, exact volume match for a standard pale pink titration endpoint analysis?", a: ["10.0 cm³", "50.0 cm³", "25.0 cm³", "0.0 cm³"], correct: 2 },
+            { q: "Which chemical test yields a distinctive 'Brown Ring' at the solution junction?", a: ["Chloride Test", "Nitrate Test", "Sulphate Test", "Carbonate Test"], correct: 1 },
+            { q: "What color is copper(II) oxide powder used during basic salt synthesis?", a: ["Blue", "Green", "White", "Black"], correct: 3 }
+        ];
+
+        function showToast(message, icon) {
+            const toast = document.getElementById('xpToast');
+            document.getElementById('toastText').innerText = message;
+            document.getElementById('toastIcon').innerText = icon;
+            toast.style.bottom = '20px';
+            setTimeout(() => { toast.style.bottom = '-60px'; }, 3000);
+        }
+
+        // Core Filter Navigation Logic
+        function filterExperiments(topic, btn) {
+            document.querySelectorAll('.pill-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            
+            const introHub = document.getElementById('introHubPanel');
+            if (topic === 'intro') {
+                if(introHub) introHub.style.display = 'block';
+                document.querySelectorAll('.resource-card').forEach(c => c.style.display = 'none');
+            } else {
+                if(introHub) introHub.style.display = 'none';
+                document.querySelectorAll('.resource-card').forEach(c => {
+                    if (c.getAttribute('data-topic') === topic) {
+                        c.style.display = 'flex';
+                    } else {
+                        c.style.display = 'none';
+                    }
+                });
+            }
+        }
+
+        // Global Progress Updates Tracker
+        function updateProgress(labId) {
+            if(!completedLabs.has(labId)) {
+                completedLabs.add(labId);
+                document.getElementById('progressText').innerText = `${completedLabs.size} / ${totalLabs}`;
+                document.getElementById('progressBar').style.width = `${(completedLabs.size / totalLabs) * 100}%`;
+            }
+        }
+    </script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const loginBtn = document.getElementById('openLoginBtn');
+            const signupBtn = document.getElementById('openSignupBtn');
+            if (loginBtn && !loginBtn.onclick) {
+                loginBtn.addEventListener('click', () => {
+                    window.location.href = 'index.html#login';
+                });
+            }
+            if (signupBtn && !signupBtn.onclick) {
+                signupBtn.addEventListener('click', () => {
+                    window.location.href = 'index.html#signup';
+                });
+            }
+        });
+    </script>
+</body>
+</html>

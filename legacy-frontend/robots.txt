@@ -1,0 +1,24 @@
+# robots.txt for ChemLearn AI
+# Production Search Engine Indexing Directives
+
+User-agent: *
+Allow: /
+Allow: /lessons.html
+Allow: /quizzes.html
+Allow: /resources.html
+Allow: /experiments.html
+Allow: /experiments/
+Allow: /privacy-policy.html
+Allow: /terms-of-service.html
+Allow: /thank-you.html
+
+# Disallow administrative, internal, and private script routes
+Disallow: /admin.html
+Disallow: /admin
+Disallow: /scripts/
+Disallow: /scratch/
+Disallow: /_next/
+Disallow: /api/
+
+# Sitemap Location
+Sitemap: https://chemlearn-67.web.app/sitemap.xml

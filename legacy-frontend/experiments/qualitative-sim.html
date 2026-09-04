@@ -1,0 +1,1204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Qualitative Salt Analysis Simulator (Chapter 6) | ChemLearn AI</title>
+    <meta name="description" content="Identify unknown cations and anions with dropwise & excess reagents, observation checklists, and balanced ionic equations.">
+    <link rel="canonical" href="https://chemlearn-67.web.app/experiments/qualitative-sim.html">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --accent-purple: #6d28d9;
+            --accent-purple-light: #8b5cf6;
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-main: #1e293b;
+            --text-light: #64748b;
+            --border-color: #e2e8f0;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            
+            --liquid-color: rgba(255, 255, 255, 0);
+            --precipitate-color: transparent;
+            --gas-color: transparent;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            background-color: var(--accent-purple);
+            color: white;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        header h1 {
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        .container {
+            display: grid;
+            grid-template-columns: 350px 1fr;
+            gap: 2rem;
+            padding: 2rem;
+            flex-grow: 1;
+            max-width: 1400px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            padding: 1.5rem;
+            border: 1px solid var(--border-color);
+        }
+
+        .card-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: var(--accent-purple);
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 0.5rem;
+        }
+
+        /* SVG Test Tube */
+        .simulation-area {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .test-tube-container {
+            position: relative;
+            width: 150px;
+            height: 400px;
+            margin-top: 1rem;
+        }
+
+        #testTubeSvg {
+            width: 100%;
+            height: 100%;
+            filter: drop-shadow(0 10px 8px rgb(0 0 0 / 0.04));
+        }
+
+        .liquid {
+            transition: fill 1s ease-in-out, height 0.5s ease-in-out, y 0.5s ease-in-out;
+            fill: var(--liquid-color);
+        }
+
+        .precipitate {
+            transition: fill 1s ease-in-out, height 0.5s ease-in-out, y 0.5s ease-in-out, opacity 0.5s ease;
+            fill: var(--precipitate-color);
+            opacity: 0;
+        }
+
+        /* Particles */
+        .particle {
+            fill: var(--gas-color);
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        /* Reagent Panel */
+        .reagents-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .controls-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .toggle-container {
+            display: flex;
+            background: var(--border-color);
+            border-radius: 8px;
+            padding: 0.25rem;
+        }
+
+        .toggle-btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            background: transparent;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            color: var(--text-light);
+            transition: all 0.2s;
+        }
+
+        .toggle-btn.active {
+            background: white;
+            color: var(--accent-purple);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .reagent-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 1rem;
+        }
+
+        .reagent-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 1rem;
+            background: #f1f5f9;
+            border: 2px solid transparent;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: var(--text-main);
+            font-weight: 500;
+        }
+
+        .reagent-btn:hover {
+            border-color: var(--accent-purple-light);
+            background: #e2e8f0;
+        }
+        
+        .reagent-btn:focus-visible {
+            outline: 2px solid var(--accent-purple);
+            outline-offset: 2px;
+        }
+
+        .reagent-btn i {
+            font-size: 1.5rem;
+            color: var(--accent-purple);
+        }
+
+        /* Log / Breadcrumbs */
+        .log-panel {
+            margin-top: 1.5rem;
+            background: #f8fafc;
+            border-radius: 8px;
+            padding: 1rem;
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid var(--border-color);
+        }
+
+        .log-entry {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.5rem;
+            padding-bottom: 0.5rem;
+            margin-bottom: 0.5rem;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 0.9rem;
+        }
+        
+        .log-entry:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        .log-entry .badge {
+            background: var(--accent-purple);
+            color: white;
+            padding: 0.1rem 0.4rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            white-space: nowrap;
+        }
+
+        /* Deduction Panel */
+        .deduction-panel {
+            grid-column: 1 / -1;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        label {
+            font-weight: 600;
+            color: var(--text-main);
+        }
+
+        select, input {
+            padding: 0.75rem;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 1rem;
+            color: var(--text-main);
+            background-color: white;
+            transition: border-color 0.2s;
+        }
+
+        select:focus, input:focus {
+            outline: none;
+            border-color: var(--accent-purple);
+            box-shadow: 0 0 0 3px rgba(109, 40, 217, 0.1);
+        }
+
+        .btn-primary {
+            background-color: var(--accent-purple);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 0.75rem 1.5rem;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--accent-purple-light);
+        }
+
+        .btn-primary:disabled {
+            background-color: var(--text-light);
+            cursor: not-allowed;
+        }
+
+        .btn-secondary {
+            background-color: white;
+            color: var(--accent-purple);
+            border: 1px solid var(--accent-purple);
+            border-radius: 8px;
+            padding: 0.5rem 1rem;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-secondary:hover {
+            background-color: #f3f4f6;
+        }
+
+        /* Result display */
+        .result-display {
+            display: none;
+            margin-top: 1rem;
+            padding: 1rem;
+            border-radius: 8px;
+            font-weight: 500;
+        }
+        
+        .result-display.success {
+            display: block;
+            background-color: #d1fae5;
+            color: #065f46;
+            border: 1px solid #34d399;
+        }
+
+        .result-display.error {
+            display: block;
+            background-color: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #f87171;
+        }
+
+        .mark-breakdown {
+            margin-top: 0.5rem;
+            font-size: 0.9rem;
+            background: rgba(255,255,255,0.5);
+            padding: 0.5rem;
+            border-radius: 4px;
+        }
+
+        .observation-text {
+            text-align: center;
+            min-height: 48px;
+            margin-top: 1rem;
+            font-weight: 500;
+            color: var(--accent-purple);
+        }
+
+        @media (max-width: 900px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* ── SPM Observation Checklist Table ─────────────────────── */
+        .obs-table-section {
+            margin-top: 1.5rem;
+        }
+        .obs-table-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 0.75rem;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .obs-table-header h3 {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--text-main);
+        }
+        .print-btn {
+            padding: 6px 14px;
+            background: var(--accent-purple);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 0.8rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .print-btn:hover { opacity: 0.9; }
+        .obs-table-wrap {
+            overflow-x: auto;
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+        }
+        .obs-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.82rem;
+            min-width: 560px;
+        }
+        .obs-table thead th {
+            background: var(--accent-purple);
+            color: white;
+            padding: 10px 12px;
+            text-align: left;
+            font-weight: 700;
+            font-size: 0.78rem;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            white-space: nowrap;
+        }
+        .obs-table thead th:first-child { border-radius: 10px 0 0 0; }
+        .obs-table thead th:last-child  { border-radius: 0 10px 0 0; }
+        .obs-table tbody tr:nth-child(even) { background: #f8fafc; }
+        .obs-table tbody tr:hover { background: #ede9fe33; }
+        .obs-table tbody td {
+            padding: 9px 12px;
+            border-bottom: 1px solid var(--border-color);
+            vertical-align: top;
+            line-height: 1.5;
+        }
+        .obs-table tbody tr:last-child td { border-bottom: none; }
+        .obs-table .step-num {
+            font-weight: 800;
+            color: var(--accent-purple);
+            text-align: center;
+        }
+        .obs-table .reagent-cell { font-weight: 600; white-space: nowrap; }
+        .obs-table .mode-pill {
+            display: inline-block;
+            padding: 1px 7px;
+            border-radius: 999px;
+            font-size: 0.72rem;
+            font-weight: 700;
+            margin-left: 4px;
+        }
+        .pill-dropwise { background: #dbeafe; color: #1d4ed8; }
+        .pill-excess   { background: #fce7f3; color: #9d174d; }
+        .obs-table .inference-cell { color: #334155; font-style: italic; font-size: 0.8rem; }
+        .obs-empty-row td {
+            padding: 20px;
+            text-align: center;
+            color: var(--text-light);
+            font-style: italic;
+        }
+        @media print {
+            header, .mode-toggle, .reagent-grid, #logPanel, #deductionPanel, .print-btn { display: none !important; }
+            .container { display: block !important; }
+            .obs-table-section { display: block !important; }
+            body { background: white; }
+        }
+
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1><i class="fas fa-flask"></i> Chapter 6: Salt Analysis Simulator</h1>
+        <div>
+            <button id="newSaltBtn" class="btn-secondary" aria-label="Generate new unknown salt">
+                <i class="fas fa-random"></i> New Unknown Salt
+            </button>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- Left Panel: Simulation Area -->
+        <div class="card simulation-area">
+            <div class="card-title">Test Tube View</div>
+            <div class="test-tube-container" aria-label="Test tube showing chemical reactions">
+                <svg id="testTubeSvg" viewBox="0 0 100 250" xmlns="http://www.w3.org/2000/svg">
+                    <!-- Base empty test tube shadow -->
+                    <path d="M30,20 L30,200 A20,20 0 0,0 70,200 L70,20" fill="none" stroke="#e2e8f0" stroke-width="8" stroke-linecap="round"/>
+                    
+                    <!-- Liquid layer (animates height and color) -->
+                    <!-- Start empty (height 0) at the bottom (y=220) -->
+                    <path class="liquid" id="liquidPath" d="M34,200 L34,200 A16,16 0 0,0 66,200 L66,200 Z" />
+                    
+                    <!-- Precipitate layer -->
+                    <path class="precipitate" id="precipitatePath" d="M34,200 L34,200 A16,16 0 0,0 66,200 L66,200 Z" />
+                    
+                    <!-- Gas Particles (managed via JS) -->
+                    <g id="gasParticlesGroup"></g>
+                    
+                    <!-- Precipitate particles (falling effect) -->
+                    <g id="pptParticlesGroup"></g>
+
+                    <!-- Test tube glass overlay -->
+                    <path d="M30,20 L30,200 A20,20 0 0,0 70,200 L70,20" fill="none" stroke="rgba(255,255,255,0.6)" stroke-width="6" stroke-linecap="round"/>
+                    <path d="M30,20 L30,200 A20,20 0 0,0 70,200 L70,20" fill="none" stroke="#cbd5e1" stroke-width="2" stroke-linecap="round"/>
+                    <!-- Rim -->
+                    <ellipse cx="50" cy="20" rx="22" ry="4" fill="none" stroke="#cbd5e1" stroke-width="2"/>
+                </svg>
+            </div>
+            
+            <div class="observation-text" id="observationText" aria-live="polite">
+                Select a reagent to begin testing.
+            </div>
+            
+            <button id="resetTubeBtn" class="btn-secondary" style="margin-top: 1rem;">
+                <i class="fas fa-trash-can"></i> Wash & Empty Tube
+            </button>
+        </div>
+
+        <!-- Right Panel: Reagents -->
+        <div class="card reagents-panel">
+            <div class="controls-header">
+                <div class="card-title" style="margin: 0; border: none; padding: 0;">Reagents Shelf</div>
+                <div class="toggle-container" role="radiogroup" aria-label="Reagent addition mode">
+                    <button class="toggle-btn active" data-mode="dropwise" role="radio" aria-checked="true">Dropwise</button>
+                    <button class="toggle-btn" data-mode="excess" role="radio" aria-checked="false">Excess</button>
+                </div>
+            </div>
+
+            <div class="reagent-grid" id="reagentGrid">
+                <!-- Buttons injected by JS -->
+            </div>
+
+            <div class="log-panel" id="logPanel" aria-live="polite" aria-label="Experiment Log">
+                <div style="color: var(--text-light); text-align: center; font-style: italic;">No tests performed yet.</div>
+            </div>
+        </div>
+
+        <!-- Bottom Panel: Deduction -->
+        <div class="card deduction-panel">
+            <div style="grid-column: 1 / -1;" class="card-title">Analysis & Conclusion</div>
+            
+            <div class="form-group">
+                <label for="cationSelect">Identified Cation</label>
+                <select id="cationSelect" aria-label="Select identified cation">
+                    <option value="">-- Select Cation --</option>
+                    <option value="Cu2+">Copper(II), Cu²⁺</option>
+                    <option value="Fe2+">Iron(II), Fe²⁺</option>
+                    <option value="Fe3+">Iron(III), Fe³⁺</option>
+                    <option value="Mg2+">Magnesium, Mg²⁺</option>
+                    <option value="Al3+">Aluminium, Al³⁺</option>
+                    <option value="Zn2+">Zinc, Zn²⁺</option>
+                    <option value="Pb2+">Lead(II), Pb²⁺</option>
+                    <option value="NH4+">Ammonium, NH₄⁺</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="anionSelect">Identified Anion</label>
+                <select id="anionSelect" aria-label="Select identified anion">
+                    <option value="">-- Select Anion --</option>
+                    <option value="CO32-">Carbonate, CO₃²⁻</option>
+                    <option value="Cl-">Chloride, Cl⁻</option>
+                    <option value="SO42-">Sulphate, SO₄²⁻</option>
+                    <option value="NO3-">Nitrate, NO₃⁻</option>
+                </select>
+            </div>
+
+            <div class="form-group" style="grid-column: 1 / -1;">
+                <label for="equationInput">Balanced Ionic Equation (for primary precipitation or gas release)</label>
+                <input type="text" id="equationInput" placeholder="e.g. Cu2+ + 2OH- -> Cu(OH)2" aria-label="Balanced ionic equation">
+                <small style="color: var(--text-light);">Use simple text (e.g. Cu2+ + 2OH- -> Cu(OH)2). Spaces matter.</small>
+            </div>
+
+            <div style="grid-column: 1 / -1;">
+                <button id="submitBtn" class="btn-primary" aria-label="Submit findings">
+                    <i class="fas fa-check-circle"></i> Submit Analysis
+                </button>
+                
+                <div id="resultDisplay" class="result-display" aria-live="assertive">
+                    <!-- Results injected here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Utilities
+        function escapeHtml(unsafe) {
+            return (unsafe || '').toString()
+                 .replace(/&/g, "&amp;")
+                 .replace(/</g, "&lt;")
+                 .replace(/>/g, "&gt;")
+                 .replace(/"/g, "&quot;")
+                 .replace(/'/g, "&#039;");
+        }
+
+        // --- CHEMICAL DATA MATRIX ---
+        const CATIONS = ["Cu2+", "Fe2+", "Fe3+", "Mg2+", "Al3+", "Zn2+", "Pb2+", "NH4+"];
+        const ANIONS = ["CO32-", "Cl-", "SO42-", "NO3-"];
+        
+        // Allowed combinations for generation
+        const SALT_COMBINATIONS = [
+            { cation: "Cu2+", anion: "SO42-", name: "Copper(II) sulphate", solidColor: "#3b82f6", solutionColor: "rgba(59, 130, 246, 0.4)" },
+            { cation: "Fe2+", anion: "Cl-", name: "Iron(II) chloride", solidColor: "#a3e635", solutionColor: "rgba(163, 230, 53, 0.4)" },
+            { cation: "Pb2+", anion: "NO3-", name: "Lead(II) nitrate", solidColor: "#ffffff", solutionColor: "rgba(255, 255, 255, 0.1)" },
+            { cation: "Al3+", anion: "Cl-", name: "Aluminium chloride", solidColor: "#ffffff", solutionColor: "rgba(255, 255, 255, 0.1)" },
+            { cation: "Zn2+", anion: "CO32-", name: "Zinc carbonate", solidColor: "#ffffff", solutionColor: "rgba(255, 255, 255, 0.1)" },
+            { cation: "Mg2+", anion: "SO42-", name: "Magnesium sulphate", solidColor: "#ffffff", solutionColor: "rgba(255, 255, 255, 0.1)" },
+            { cation: "Fe3+", anion: "Cl-", name: "Iron(III) chloride", solidColor: "#b45309", solutionColor: "rgba(180, 83, 9, 0.4)" },
+            { cation: "NH4+", anion: "Cl-", name: "Ammonium chloride", solidColor: "#ffffff", solutionColor: "rgba(255, 255, 255, 0.1)" }
+        ];
+
+        const REAGENTS = [
+            { id: "NaOH", name: "NaOH(aq)", icon: "flask" },
+            { id: "NH3", name: "NH₃(aq)", icon: "flask" },
+            { id: "HNO3", name: "Dil. HNO₃", icon: "vial" },
+            { id: "AgNO3", name: "AgNO₃(aq)", icon: "vial" },
+            { id: "BaCl2", name: "BaCl₂(aq)", icon: "vial" },
+            { id: "KI", name: "KI(aq)", icon: "vial" },
+            { id: "BrownRing", name: "FeSO₄ + H₂SO₄", icon: "ring" },
+            { id: "Limewater", name: "Ca(OH)₂ (Limewater)", icon: "glass-water" }
+        ];
+
+        // Reaction Matrix
+        const REACTION_MATRIX = {
+            "NaOH": {
+                "Cu2+": {
+                    dropwise: { obs: "Blue precipitate formed", color: "rgba(59, 130, 246, 0.4)", pptColor: "#2563eb", pptAmount: 0.3 },
+                    excess: { obs: "Blue precipitate insoluble in excess", color: "rgba(59, 130, 246, 0.4)", pptColor: "#2563eb", pptAmount: 0.3 }
+                },
+                "Fe2+": {
+                    dropwise: { obs: "Green precipitate formed", color: "rgba(163, 230, 53, 0.4)", pptColor: "#16a34a", pptAmount: 0.3 },
+                    excess: { obs: "Green precipitate insoluble in excess", color: "rgba(163, 230, 53, 0.4)", pptColor: "#16a34a", pptAmount: 0.3 }
+                },
+                "Fe3+": {
+                    dropwise: { obs: "Brown/reddish-brown precipitate formed", color: "rgba(180, 83, 9, 0.4)", pptColor: "#92400e", pptAmount: 0.3 },
+                    excess: { obs: "Brown precipitate insoluble in excess", color: "rgba(180, 83, 9, 0.4)", pptColor: "#92400e", pptAmount: 0.3 }
+                },
+                "Mg2+": {
+                    dropwise: { obs: "White precipitate formed", color: "rgba(255, 255, 255, 0.1)", pptColor: "#f1f5f9", pptAmount: 0.3 },
+                    excess: { obs: "White precipitate insoluble in excess", color: "rgba(255, 255, 255, 0.1)", pptColor: "#f1f5f9", pptAmount: 0.3 }
+                },
+                "Al3+": {
+                    dropwise: { obs: "White precipitate formed", color: "rgba(255, 255, 255, 0.1)", pptColor: "#f1f5f9", pptAmount: 0.3 },
+                    excess: { obs: "White precipitate dissolves to form colourless solution", color: "rgba(255, 255, 255, 0.1)", pptColor: "transparent", pptAmount: 0 }
+                },
+                "Zn2+": {
+                    dropwise: { obs: "White precipitate formed", color: "rgba(255, 255, 255, 0.1)", pptColor: "#f1f5f9", pptAmount: 0.3 },
+                    excess: { obs: "White precipitate dissolves to form colourless solution", color: "rgba(255, 255, 255, 0.1)", pptColor: "transparent", pptAmount: 0 }
+                },
+                "Pb2+": {
+                    dropwise: { obs: "White precipitate formed", color: "rgba(255, 255, 255, 0.1)", pptColor: "#f1f5f9", pptAmount: 0.3 },
+                    excess: { obs: "White precipitate dissolves to form colourless solution", color: "rgba(255, 255, 255, 0.1)", pptColor: "transparent", pptAmount: 0 }
+                },
+                "NH4+": {
+                    dropwise: { obs: "No apparent precipitate. (NH3 gas released on heating)", color: "rgba(255, 255, 255, 0.1)", pptColor: "transparent", pptAmount: 0, gas: true, gasColor: "rgba(255,255,255,0.5)" },
+                    excess: { obs: "No apparent precipitate.", color: "rgba(255, 255, 255, 0.1)", pptColor: "transparent", pptAmount: 0 }
+                }
+            },
+            "NH3": {
+                "Cu2+": {
+                    dropwise: { obs: "Blue precipitate formed", color: "rgba(59, 130, 246, 0.4)", pptColor: "#2563eb", pptAmount: 0.3 },
+                    excess: { obs: "Precipitate dissolves. Deep blue solution formed", color: "rgba(29, 78, 216, 0.8)", pptColor: "transparent", pptAmount: 0 }
+                },
+                "Fe2+": {
+                    dropwise: { obs: "Green precipitate formed", color: "rgba(163, 230, 53, 0.4)", pptColor: "#16a34a", pptAmount: 0.3 },
+                    excess: { obs: "Green precipitate insoluble in excess", color: "rgba(163, 230, 53, 0.4)", pptColor: "#16a34a", pptAmount: 0.3 }
+                },
+                "Fe3+": {
+                    dropwise: { obs: "Brown/reddish-brown precipitate formed", color: "rgba(180, 83, 9, 0.4)", pptColor: "#92400e", pptAmount: 0.3 },
+                    excess: { obs: "Brown precipitate insoluble in excess", color: "rgba(180, 83, 9, 0.4)", pptColor: "#92400e", pptAmount: 0.3 }
+                },
+                "Mg2+": {
+                    dropwise: { obs: "White precipitate formed", color: "rgba(255, 255, 255, 0.1)", pptColor: "#f1f5f9", pptAmount: 0.3 },
+                    excess: { obs: "White precipitate insoluble in excess", color: "rgba(255, 255, 255, 0.1)", pptColor: "#f1f5f9", pptAmount: 0.3 }
+                },
+                "Al3+": {
+                    dropwise: { obs: "White precipitate formed", color: "rgba(255, 255, 255, 0.1)", pptColor: "#f1f5f9", pptAmount: 0.3 },
+                    excess: { obs: "White precipitate insoluble in excess", color: "rgba(255, 255, 255, 0.1)", pptColor: "#f1f5f9", pptAmount: 0.3 }
+                },
+                "Zn2+": {
+                    dropwise: { obs: "White precipitate formed", color: "rgba(255, 255, 255, 0.1)", pptColor: "#f1f5f9", pptAmount: 0.3 },
+                    excess: { obs: "White precipitate dissolves to form colourless solution", color: "rgba(255, 255, 255, 0.1)", pptColor: "transparent", pptAmount: 0 }
+                },
+                "Pb2+": {
+                    dropwise: { obs: "White precipitate formed", color: "rgba(255, 255, 255, 0.1)", pptColor: "#f1f5f9", pptAmount: 0.3 },
+                    excess: { obs: "White precipitate insoluble in excess", color: "rgba(255, 255, 255, 0.1)", pptColor: "#f1f5f9", pptAmount: 0.3 }
+                },
+                "NH4+": {
+                    dropwise: { obs: "No change.", color: "rgba(255, 255, 255, 0.1)", pptColor: "transparent", pptAmount: 0 },
+                    excess: { obs: "No change.", color: "rgba(255, 255, 255, 0.1)", pptColor: "transparent", pptAmount: 0 }
+                }
+            },
+            "HNO3": { // Tests for Carbonate
+                "CO32-": { obs: "Effervescence occurs. Colourless gas turns limewater milky.", gas: true, gasColor: "rgba(255,255,255,0.7)" },
+                "default": { obs: "No observable reaction.", gas: false }
+            },
+            "AgNO3": { // Tests for Chloride (assuming HNO3 added)
+                "Cl-": { obs: "White precipitate formed (AgCl)", pptColor: "#f8fafc", pptAmount: 0.2 },
+                "default": { obs: "No observable reaction." }
+            },
+            "BaCl2": { // Tests for Sulphate (assuming HCl added)
+                "SO42-": { obs: "White precipitate formed (BaSO4)", pptColor: "#f8fafc", pptAmount: 0.2 },
+                "default": { obs: "No observable reaction." }
+            },
+            "KI": { // Discriminates Pb2+ from Al3+
+                "Pb2+": { obs: "Yellow precipitate formed (PbI2)", pptColor: "#eab308", pptAmount: 0.2 },
+                "Al3+": { obs: "No observable reaction." },
+                "default": { obs: "No observable reaction." }
+            },
+            "BrownRing": { // Tests for Nitrate
+                "NO3-": { obs: "Brown ring formed at the interface", pptColor: "#78350f", pptAmount: 0.1 }, // We'll visualize this as a thin brown ppt layer
+                "default": { obs: "No brown ring formed." }
+            },
+            "Limewater": {
+                "CO32-": { obs: "Limewater turns milky (from CO2 gas)", pptColor: "#f1f5f9", pptAmount: 0.2 }, // Technically requires gas pass through, but simulated here directly
+                "default": { obs: "No observable change." }
+            }
+        };
+
+        // Expected equations for checking
+        const EXPECTED_EQUATIONS = {
+            "Cu2+": "Cu2+ + 2OH- -> Cu(OH)2",
+            "Fe2+": "Fe2+ + 2OH- -> Fe(OH)2",
+            "Fe3+": "Fe3+ + 3OH- -> Fe(OH)3",
+            "Mg2+": "Mg2+ + 2OH- -> Mg(OH)2",
+            "Al3+": "Al3+ + 3OH- -> Al(OH)3",
+            "Zn2+": "Zn2+ + 2OH- -> Zn(OH)2",
+            "Pb2+": "Pb2+ + 2OH- -> Pb(OH)2",
+            "NH4+": "NH4+ + OH- -> NH3 + H2O",
+            "CO32-": "2H+ + CO32- -> CO2 + H2O",
+            "Cl-": "Ag+ + Cl- -> AgCl",
+            "SO42-": "Ba2+ + SO42- -> BaSO4"
+        };
+
+
+
+        // Inference lookup: infer the ion identity from reagent result
+        const INFERENCE_MAP = {
+            'NaOH': {
+                dropwise: {
+                    'Cu2+': 'Cu²⁺ ions present — blue ppt Cu(OH)₂ formed',
+                    'Fe2+': 'Fe²⁺ ions present — green ppt Fe(OH)₂ formed',
+                    'Fe3+': 'Fe³⁺ ions present — brown ppt Fe(OH)₃ formed',
+                    'Mg2+': 'Mg²⁺ ions present — white ppt Mg(OH)₂ formed',
+                    'Al3+': 'Possible Al³⁺, Zn²⁺ or Pb²⁺ — white ppt formed; test excess',
+                    'Zn2+': 'Possible Al³⁺, Zn²⁺ or Pb²⁺ — white ppt formed; test excess',
+                    'Pb2+': 'Possible Al³⁺, Zn²⁺ or Pb²⁺ — white ppt formed; test excess',
+                    'NH4+': 'No ppt — NH₄⁺ or Mg²⁺ ions possible; heat to test for NH₃'
+                },
+                excess: {
+                    'Cu2+': 'Cu²⁺ confirmed — blue ppt insoluble in excess NaOH',
+                    'Fe2+': 'Fe²⁺ confirmed — green ppt insoluble in excess NaOH',
+                    'Fe3+': 'Fe³⁺ confirmed — brown ppt insoluble in excess NaOH',
+                    'Mg2+': 'Mg²⁺ confirmed — white ppt insoluble in excess NaOH',
+                    'Al3+': 'Al³⁺ confirmed — ppt dissolved → amphoteric Al(OH)₄⁻ formed',
+                    'Zn2+': 'Zn²⁺ confirmed — ppt dissolved → amphoteric Zn(OH)₄²⁻ formed',
+                    'Pb2+': 'Pb²⁺ confirmed — ppt dissolved → Pb(OH)₄²⁻ formed',
+                    'NH4+': 'NH₄⁺ — pungent gas turns moist red litmus blue (NH₃ gas)'
+                }
+            },
+            'NH3': {
+                dropwise: {
+                    'Cu2+': 'Cu²⁺ ions present — blue ppt Cu(OH)₂ formed',
+                    'Zn2+': 'Possible Zn²⁺ — white ppt formed; test with excess NH₃',
+                    'Al3+': 'Al³⁺ — white ppt insoluble in excess NH₃',
+                    'Pb2+': 'Pb²⁺ — white ppt insoluble in excess NH₃',
+                    'Fe2+': 'Fe²⁺ — green ppt insoluble in excess NH₃',
+                    'Fe3+': 'Fe³⁺ — brown ppt insoluble in excess NH₃',
+                    'Mg2+': 'Mg²⁺ — white ppt insoluble in excess NH₃',
+                    'NH4+': 'No ppt — NH₄⁺ does not react with NH₃'
+                },
+                excess: {
+                    'Cu2+': 'Cu²⁺ confirmed — deep blue complex [Cu(NH₃)₄]²⁺ formed',
+                    'Zn2+': 'Zn²⁺ confirmed — colourless complex [Zn(NH₃)₄]²⁺ formed',
+                    'Al3+': 'Al³⁺ confirmed — white ppt insoluble in excess NH₃',
+                    'Pb2+': 'Pb²⁺ confirmed — white ppt insoluble in excess NH₃',
+                    'Fe2+': 'Fe²⁺ confirmed — green ppt insoluble in excess NH₃',
+                    'Fe3+': 'Fe³⁺ confirmed — brown ppt insoluble in excess NH₃',
+                    'Mg2+': 'Mg²⁺ confirmed — white ppt insoluble in excess NH₃',
+                    'NH4+': 'NH₄⁺ — no reaction with excess NH₃'
+                }
+            },
+            'HNO3': {
+                'CO32-': 'CO₃²⁻ ions present — effervescence confirms CO₂ gas',
+                'default': 'No CO₃²⁻ ions detected'
+            },
+            'AgNO3': {
+                'Cl-': 'Cl⁻ ions confirmed — white ppt AgCl (insoluble in dilute HNO₃)',
+                'default': 'No Cl⁻ ions detected'
+            },
+            'BaCl2': {
+                'SO42-': 'SO₄²⁻ ions confirmed — white ppt BaSO₄ (insoluble in HCl)',
+                'default': 'No SO₄²⁻ ions detected'
+            },
+            'KI': {
+                'Pb2+': 'Pb²⁺ confirmed — yellow PbI₂ ppt (dissolves hot, golden spangles on cooling)',
+                'Al3+': 'No reaction with KI — confirms NOT Pb²⁺',
+                'default': 'No reaction with KI'
+            },
+            'BrownRing': {
+                'NO3-': 'NO₃⁻ ions confirmed — brown ring = [Fe(NO)(H₂O)₅]²⁺ complex',
+                'default': 'No NO₃⁻ ions detected'
+            },
+            'Limewater': {
+                'CO32-': 'CO₂ gas confirmed — CaCO₃ white ppt turns limewater milky',
+                'default': 'No CO₂ detected; no carbonate ions'
+            }
+        };
+
+        function getInference(reagentId, mode, cation, anion) {
+            const rm = INFERENCE_MAP[reagentId];
+            if (!rm) return '—';
+            if (rm.dropwise || rm.excess) {
+                // Cation-type reagent
+                const byMode = rm[mode] || rm['excess'];
+                return byMode[cation] || byMode['default'] || '—';
+            } else {
+                // Anion-type reagent
+                return rm[anion] || rm[cation] || rm['default'] || '—';
+            }
+        }
+
+        function printTable() {
+            window.print();
+        }
+
+        // --- STATE ---
+        let state = {
+            currentSalt: null,
+            mode: 'dropwise', // 'dropwise' or 'excess'
+            testsApplied: [],
+            tubeLevel: 0, // 0 to 1
+            hasPrecipitate: false,
+            status: 'idle' // idle, testing, submitted
+        };
+
+        // --- DOM ELEMENTS ---
+        const UI = {
+            liquidPath: document.getElementById('liquidPath'),
+            precipitatePath: document.getElementById('precipitatePath'),
+            gasParticlesGroup: document.getElementById('gasParticlesGroup'),
+            pptParticlesGroup: document.getElementById('pptParticlesGroup'),
+            obsText: document.getElementById('observationText'),
+            reagentGrid: document.getElementById('reagentGrid'),
+            modeToggles: document.querySelectorAll('.toggle-btn'),
+            logPanel: document.getElementById('logPanel'),
+            resetBtn: document.getElementById('resetTubeBtn'),
+            newSaltBtn: document.getElementById('newSaltBtn'),
+            submitBtn: document.getElementById('submitBtn'),
+            cationSelect: document.getElementById('cationSelect'),
+            anionSelect: document.getElementById('anionSelect'),
+            equationInput: document.getElementById('equationInput'),
+            resultDisplay: document.getElementById('resultDisplay')
+        };
+
+        // --- INITIALIZATION ---
+        function init() {
+            renderReagents();
+            bindEvents();
+            generateNewSalt();
+        }
+
+        function renderReagents() {
+            UI.reagentGrid.innerHTML = '';
+            REAGENTS.forEach(r => {
+                const btn = document.createElement('button');
+                btn.className = 'reagent-btn';
+                btn.dataset.reagent = r.id;
+                btn.innerHTML = `<i class="fas fa-${escapeHtml(r.icon)}"></i><span>${escapeHtml(r.name)}</span>`;
+                btn.addEventListener('click', () => applyReagent(r.id));
+                UI.reagentGrid.appendChild(btn);
+            });
+        }
+
+        function bindEvents() {
+            UI.modeToggles.forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    UI.modeToggles.forEach(b => {
+                        b.classList.remove('active');
+                        b.setAttribute('aria-checked', 'false');
+                    });
+                    const target = e.currentTarget;
+                    target.classList.add('active');
+                    target.setAttribute('aria-checked', 'true');
+                    state.mode = target.dataset.mode;
+                });
+            });
+
+            UI.resetBtn.addEventListener('click', resetTube);
+            UI.newSaltBtn.addEventListener('click', generateNewSalt);
+            UI.submitBtn.addEventListener('click', submitAnalysis);
+        }
+
+        function generateNewSalt() {
+            const randomIndex = Math.floor(Math.random() * SALT_COMBINATIONS.length);
+            state.currentSalt = SALT_COMBINATIONS[randomIndex];
+            
+            // Reset UI
+            state.testsApplied = [];
+            state.status = 'idle';
+            UI.logPanel.innerHTML = '<div style="color: var(--text-light); text-align: center; font-style: italic;">No tests performed yet.</div>';
+            // Reset obs table
+            document.getElementById('obsTableBody').innerHTML = '<tr class="obs-empty-row"><td colspan="5">No tests performed yet. Add a reagent to begin.</td></tr>';
+            UI.cationSelect.value = "";
+            UI.anionSelect.value = "";
+            UI.equationInput.value = "";
+            UI.resultDisplay.className = "result-display";
+            UI.resultDisplay.innerHTML = "";
+            UI.submitBtn.disabled = false;
+            
+            resetTube();
+            
+            // Start with some solution of the unknown salt
+            setTimeout(() => {
+                state.tubeLevel = 0.3;
+                updateTubeVisuals({
+                    color: state.currentSalt.solutionColor,
+                    pptAmount: 0,
+                    obs: "Unknown salt solution prepared."
+                });
+            }, 500);
+        }
+
+        function resetTube() {
+            state.tubeLevel = 0.3; // Reset to base salt level
+            state.hasPrecipitate = false;
+            
+            UI.liquidPath.style.fill = state.currentSalt ? state.currentSalt.solutionColor : 'transparent';
+            UI.liquidPath.setAttribute('d', getTubePath(0.3));
+            
+            UI.precipitatePath.style.opacity = '0';
+            setTimeout(() => {
+                UI.precipitatePath.setAttribute('d', getTubePath(0, true));
+            }, 500);
+            
+            UI.gasParticlesGroup.innerHTML = '';
+            UI.pptParticlesGroup.innerHTML = '';
+            
+            UI.obsText.textContent = "Tube washed. Unknown salt solution added.";
+        }
+
+        function getTubePath(level, isPpt = false) {
+            // Test tube geometry: Top is Y=20, Bottom curve starts around 180, bottoms out at 200
+            // Width is from X=30 to X=70 (radius 20)
+            const minHeight = 200;
+            const maxHeight = 40;
+            
+            if (level <= 0) {
+                return `M34,200 L34,200 A16,16 0 0,0 66,200 L66,200 Z`;
+            }
+
+            const range = minHeight - maxHeight;
+            const targetY = minHeight - (range * level);
+            
+            if (isPpt) {
+                // Precipitate settles at bottom, max height is smaller
+                const pptTargetY = minHeight - (50 * level);
+                return `M30,${pptTargetY} L30,180 A20,20 0 0,0 70,180 L70,${pptTargetY} Z`;
+            }
+
+            // For liquid, handle the curve at bottom if level is very low
+            if (targetY > 180) {
+                // Simplification for very low liquid
+                return `M32,${targetY} L32,180 A18,18 0 0,0 68,180 L68,${targetY} Z`;
+            }
+
+            return `M30,${targetY} L30,180 A20,20 0 0,0 70,180 L70,${targetY} Z`;
+        }
+
+        function applyReagent(reagentId) {
+            if (!state.currentSalt || state.status === 'submitted') return;
+
+            state.status = 'testing';
+            let resultData = { obs: "No observable change." };
+            
+            const cation = state.currentSalt.cation;
+            const anion = state.currentSalt.anion;
+
+            if (reagentId === 'NaOH' || reagentId === 'NH3') {
+                const reaction = REACTION_MATRIX[reagentId][cation];
+                if (reaction) {
+                    resultData = reaction[state.mode];
+                }
+            } else {
+                // Anion / Special tests (mostly ignore mode, assume excess/standard)
+                const matrix = REACTION_MATRIX[reagentId];
+                if (matrix) {
+                    resultData = matrix[anion] || matrix[cation] || matrix["default"];
+                }
+            }
+
+            // Update tube volume
+            state.tubeLevel = Math.min(0.9, state.tubeLevel + (state.mode === 'excess' ? 0.3 : 0.1));
+
+            // Log test
+            logTest(reagentId, state.mode, resultData.obs);
+
+            // Animate Visuals
+            updateTubeVisuals(resultData);
+        }
+
+        function updateTubeVisuals(data) {
+            UI.obsText.textContent = escapeHtml(data.obs);
+            
+            // Update Liquid Level & Color
+            UI.liquidPath.setAttribute('d', getTubePath(state.tubeLevel));
+            if (data.color) {
+                UI.liquidPath.style.fill = data.color;
+            }
+
+            // Update Precipitate
+            if (data.pptAmount !== undefined) {
+                if (data.pptAmount > 0) {
+                    state.hasPrecipitate = true;
+                    UI.precipitatePath.style.fill = data.pptColor;
+                    UI.precipitatePath.style.opacity = '1';
+                    UI.precipitatePath.setAttribute('d', getTubePath(data.pptAmount, true));
+                    createPrecipitateParticles(data.pptColor);
+                } else {
+                    state.hasPrecipitate = false;
+                    UI.precipitatePath.style.opacity = '0';
+                    setTimeout(() => {
+                        UI.precipitatePath.setAttribute('d', getTubePath(0, true));
+                    }, 500);
+                }
+            }
+
+            // Gas evolution
+            if (data.gas) {
+                createGasParticles(data.gasColor || "rgba(255,255,255,0.8)");
+            }
+        }
+
+        function createGasParticles(color) {
+            UI.gasParticlesGroup.innerHTML = '';
+            for (let i = 0; i < 20; i++) {
+                const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+                const x = 35 + Math.random() * 30;
+                // Start below liquid level
+                const startY = 200 - (200 - 40) * state.tubeLevel + (Math.random() * 20); 
+                
+                circle.setAttribute('cx', x);
+                circle.setAttribute('cy', startY);
+                circle.setAttribute('r', 1 + Math.random() * 2);
+                circle.setAttribute('fill', color);
+                circle.setAttribute('class', 'particle');
+                
+                UI.gasParticlesGroup.appendChild(circle);
+
+                // Animate
+                setTimeout(() => {
+                    circle.style.opacity = '1';
+                    const duration = 1000 + Math.random() * 1000;
+                    circle.style.transition = `cy ${duration}ms ease-in, opacity ${duration}ms ease-out`;
+                    // Move up
+                    requestAnimationFrame(() => {
+                        circle.setAttribute('cy', 30);
+                        circle.style.opacity = '0';
+                    });
+                }, Math.random() * 500);
+            }
+        }
+
+        function createPrecipitateParticles(color) {
+            UI.pptParticlesGroup.innerHTML = '';
+            for (let i = 0; i < 30; i++) {
+                const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+                const x = 35 + Math.random() * 30;
+                const startY = 200 - (200 - 40) * state.tubeLevel; // Top of liquid
+                
+                circle.setAttribute('cx', x);
+                circle.setAttribute('cy', startY);
+                circle.setAttribute('r', 1 + Math.random() * 1.5);
+                circle.setAttribute('fill', color);
+                circle.setAttribute('class', 'particle');
+                
+                UI.pptParticlesGroup.appendChild(circle);
+
+                // Animate falling
+                setTimeout(() => {
+                    circle.style.opacity = '1';
+                    const duration = 800 + Math.random() * 800;
+                    circle.style.transition = `cy ${duration}ms ease-in, opacity ${duration}ms ease-out`;
+                    requestAnimationFrame(() => {
+                        const targetY = 180 + Math.random() * 15;
+                        circle.setAttribute('cy', targetY);
+                        setTimeout(() => {
+                            circle.style.opacity = '0'; // merges with bottom layer
+                        }, duration - 100);
+                    });
+                }, Math.random() * 400);
+            }
+        }
+
+        function logTest(reagent, mode, result) {
+            if (state.testsApplied.length === 0) {
+                UI.logPanel.innerHTML = '';
+            }
+
+            state.testsApplied.push({ reagent, mode, result });
+
+            const rName = REAGENTS.find(r => r.id === reagent).name;
+            const modeText = mode === 'excess' ? '(in excess)' : '(dropwise)';
+
+            // ── Legacy log entry ──────────────────────────────────────────
+            const entry = document.createElement('div');
+            entry.className = 'log-entry';
+            entry.innerHTML = `
+                <span class="badge">${state.testsApplied.length}</span>
+                <div>
+                    <strong>Added ${escapeHtml(rName)} ${escapeHtml(modeText)}:</strong><br>
+                    <span style="color: var(--text-light);">${escapeHtml(result)}</span>
+                </div>
+            `;
+            UI.logPanel.appendChild(entry);
+            UI.logPanel.scrollTop = UI.logPanel.scrollHeight;
+
+            // ── Update SPM Observation Table ──────────────────────────────
+            const tbody = document.getElementById('obsTableBody');
+            // Remove empty-row placeholder
+            const emptyRow = tbody.querySelector('.obs-empty-row');
+            if (emptyRow) emptyRow.remove();
+
+            const cation = state.currentSalt ? state.currentSalt.cation : '?';
+            const anion  = state.currentSalt ? state.currentSalt.anion  : '?';
+            const inference = getInference(reagent, mode, cation, anion);
+            const pillClass = mode === 'excess' ? 'pill-excess' : 'pill-dropwise';
+            const pillLabel = mode === 'excess' ? 'Excess' : 'Dropwise';
+
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td class="step-num">${state.testsApplied.length}</td>
+                <td class="reagent-cell">${escapeHtml(rName)}</td>
+                <td><span class="mode-pill ${pillClass}">${pillLabel}</span></td>
+                <td>${escapeHtml(result)}</td>
+                <td class="inference-cell">${escapeHtml(inference)}</td>
+            `;
+            tbody.appendChild(tr);
+        }
+
+        function submitAnalysis() {
+            if (!state.currentSalt) return;
+
+            const selectedCation = UI.cationSelect.value;
+            const selectedAnion = UI.anionSelect.value;
+            const typedEquation = UI.equationInput.value.trim().replace(/\s+/g, ''); // strip spaces for rough comparison
+            
+            if (!selectedCation || !selectedAnion) {
+                alert("Please select both a cation and an anion.");
+                return;
+            }
+
+            state.status = 'submitted';
+            UI.submitBtn.disabled = true;
+
+            const actualCation = state.currentSalt.cation;
+            const actualAnion = state.currentSalt.anion;
+            
+            let score = 0;
+            let feedback = [];
+
+            if (selectedCation === actualCation) {
+                score++;
+                feedback.push(`<div>✅ Cation correctly identified as ${escapeHtml(actualCation)} (1m)</div>`);
+            } else {
+                feedback.push(`<div>❌ Cation incorrect. Expected ${escapeHtml(actualCation)} (0m)</div>`);
+            }
+
+            if (selectedAnion === actualAnion) {
+                score++;
+                feedback.push(`<div>✅ Anion correctly identified as ${escapeHtml(actualAnion)} (1m)</div>`);
+            } else {
+                feedback.push(`<div>❌ Anion incorrect. Expected ${escapeHtml(actualAnion)} (0m)</div>`);
+            }
+
+            // Check equation (for cation precipitation usually)
+            const expectedEq = (EXPECTED_EQUATIONS[actualCation] || "").replace(/\s+/g, '');
+            const expectedAnionEq = (EXPECTED_EQUATIONS[actualAnion] || "").replace(/\s+/g, '');
+            
+            let eqCorrect = false;
+            if (typedEquation.length > 5) {
+                if (typedEquation === expectedEq || typedEquation === expectedAnionEq) {
+                    eqCorrect = true;
+                }
+            }
+
+            if (eqCorrect) {
+                score++;
+                feedback.push(`<div>✅ Ionic equation correct (1m)</div>`);
+            } else {
+                feedback.push(`<div>❌ Ionic equation incorrect. Expected e.g. <em>${escapeHtml(EXPECTED_EQUATIONS[actualCation])}</em> (0m)</div>`);
+            }
+
+            const totalScore = score;
+            const isSuccess = totalScore >= 2;
+
+            UI.resultDisplay.className = `result-display ${isSuccess ? 'success' : 'error'}`;
+            UI.resultDisplay.innerHTML = `
+                <div><strong>Final Score: ${totalScore}/3</strong></div>
+                <div class="mark-breakdown">
+                    ${feedback.join('')}
+                </div>
+                <div style="margin-top: 0.5rem; font-weight: bold;">
+                    Unknown salt was: ${escapeHtml(state.currentSalt.name)}
+                </div>
+            `;
+        }
+
+        // Run
+        init();
+
+    </script>
+</body>
+</html>

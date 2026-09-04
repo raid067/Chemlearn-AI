@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon.png">
+    <link rel="manifest" href="/site.webmanifest">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to ChemLearn AI | ChemLearn AI</title>
+    <meta name="description" content="Thank you for joining ChemLearn AI. Here is your quick start guide and SPM Chemistry revision roadmap.">
+    <meta name="robots" content="noindex, follow">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-base: #faf8ff;
+            --text-dark: #0f172a;
+            --text-muted: #64748b;
+            --accent-purple: #6d28d9;
+            --accent-purple-hover: #5b21b6;
+            --accent-purple-light: #f3e8ff;
+            --accent-green: #059669;
+            --border-color: #e2e8f0;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: linear-gradient(135deg, #faf8ff 0%, #ede9fe 50%, #f0fdf4 100%);
+            color: var(--text-dark);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 8%;
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border-color);
+        }
+        .brand-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.35rem;
+            font-weight: 800;
+            color: var(--text-dark);
+            text-decoration: none;
+        }
+        .brand-logo span { color: var(--accent-purple); }
+        .main-container {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 48px 20px;
+        }
+        .onboarding-card {
+            max-width: 720px;
+            width: 100%;
+            background: white;
+            border-radius: 24px;
+            padding: 48px 40px;
+            box-shadow: 0 25px 50px -12px rgba(109, 40, 217, 0.12);
+            border: 1px solid var(--border-color);
+            text-align: center;
+        }
+        .confetti-badge {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 20px;
+            background: #dcfce7;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 36px;
+            animation: bounceIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        @keyframes bounceIn {
+            0% { transform: scale(0.3); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .status-pill {
+            display: inline-block;
+            background: #dcfce7;
+            color: var(--accent-green);
+            padding: 4px 14px;
+            border-radius: 999px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            margin-bottom: 12px;
+        }
+        h1 {
+            font-size: 2.2rem;
+            font-weight: 800;
+            color: var(--text-dark);
+            margin-bottom: 10px;
+            letter-spacing: -0.02em;
+        }
+        p.subtitle {
+            font-family: 'Inter', sans-serif;
+            color: var(--text-muted);
+            font-size: 1.05rem;
+            line-height: 1.6;
+            margin-bottom: 32px;
+        }
+        .steps-container {
+            text-align: left;
+            margin-bottom: 36px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+        .step-row {
+            display: flex;
+            align-items: flex-start;
+            gap: 16px;
+            padding: 16px 20px;
+            background: #f8fafc;
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+        }
+        .step-number {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--accent-purple);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 0.95rem;
+            flex-shrink: 0;
+        }
+        .step-content h3 {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin-bottom: 4px;
+        }
+        .step-content p {
+            font-family: 'Inter', sans-serif;
+            font-size: 0.88rem;
+            color: var(--text-muted);
+            line-height: 1.5;
+        }
+        .calendar-box {
+            background: var(--accent-purple-light);
+            border: 1px dashed var(--accent-purple);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 32px;
+            text-align: center;
+        }
+        .calendar-box h4 {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: var(--accent-purple);
+            margin-bottom: 8px;
+        }
+        .calendar-box p {
+            font-family: 'Inter', sans-serif;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-bottom: 16px;
+        }
+        .calendar-btn-group {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .cal-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 18px;
+            border-radius: 10px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+        .cal-google {
+            background: white;
+            color: var(--text-dark);
+            border: 1px solid var(--border-color);
+        }
+        .cal-google:hover { background: #f8fafc; border-color: #cbd5e1; }
+        .cal-ical {
+            background: var(--accent-purple);
+            color: white;
+            border: none;
+        }
+        .cal-ical:hover { background: var(--accent-purple-hover); }
+
+        .cta-action {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            background: var(--accent-purple);
+            color: white;
+            padding: 16px 36px;
+            border-radius: 14px;
+            font-weight: 800;
+            font-size: 1.05rem;
+            text-decoration: none;
+            box-shadow: 0 10px 20px -5px rgba(109, 40, 217, 0.3);
+            transition: all 0.2s;
+        }
+        .cta-action:hover {
+            background: var(--accent-purple-hover);
+            transform: translateY(-2px);
+        }
+        .footer {
+            border-top: 1px solid var(--border-color);
+            padding: 24px 8%;
+            text-align: center;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            background: white;
+        }
+        @media (max-width: 640px) {
+            .onboarding-card { padding: 32px 20px; }
+            h1 { font-size: 1.75rem; }
+            .calendar-btn-group { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+    <header class="navbar" role="banner">
+        <a href="/" class="brand-logo" aria-label="ChemLearn AI Home">
+            <svg width="28" height="28" viewBox="0 0 32 32" aria-hidden="true">
+                <g transform="rotate(30 16 16)"><ellipse cx="16" cy="16" rx="12" ry="4.5" fill="none" stroke="#94a3b8" stroke-width="1.5"/><circle cx="28" cy="16" r="1.6" fill="#0ea5e9"/></g>
+                <g transform="rotate(90 16 16)"><ellipse cx="16" cy="16" rx="12" ry="4.5" fill="none" stroke="#94a3b8" stroke-width="1.5"/><circle cx="4" cy="16" r="1.6" fill="#0ea5e9"/></g>
+                <g transform="rotate(150 16 16)"><ellipse cx="16" cy="16" rx="12" ry="4.5" fill="none" stroke="#94a3b8" stroke-width="1.5"/><circle cx="28" cy="16" r="1.6" fill="#0ea5e9"/></g>
+                <circle cx="16" cy="16" r="4" fill="#6d28d9"/>
+            </svg>
+            ChemLearn <span>AI</span>
+        </a>
+    </header>
+
+    <main class="main-container" role="main">
+        <article class="onboarding-card">
+            <div class="confetti-badge" aria-hidden="true">🎉</div>
+            <div class="status-pill">REGISTRATION COMPLETE • 2026 COHORT</div>
+            <h1>You're All Set to Master SPM Chemistry!</h1>
+            <p class="subtitle">Welcome to ChemLearn AI. Your personalized learning workspace is active. Follow these 3 simple steps to maximize your exam score:</p>
+
+            <div class="steps-container">
+                <div class="step-row">
+                    <div class="step-number" aria-hidden="true">1</div>
+                    <div class="step-content">
+                        <h3>Bookmark the Qualitative Salt Analysis Simulator</h3>
+                        <p>Practice identifying cations and anions with dropwise &amp; excess reagents using our real-time precipitation matrix before your SPM practical assessment.</p>
+                    </div>
+                </div>
+
+                <div class="step-row">
+                    <div class="step-number" aria-hidden="true">2</div>
+                    <div class="step-content">
+                        <h3>Test Your Section B Essays with Gemini AI</h3>
+                        <p>Write an essay on alloy shear physics or ceramic composition and let the AI score it against the official Lembaga Peperiksaan Malaysia F-E-K-A rubric.</p>
+                    </div>
+                </div>
+
+                <div class="step-row">
+                    <div class="step-number" aria-hidden="true">3</div>
+                    <div class="step-content">
+                        <h3>Lock In Your Daily 15-Minute Study Streak</h3>
+                        <p>Consistent short repetitions using our SM-2 Spaced Repetition flashcards significantly outperform cramming the night before trials.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Calendar Integration Trigger -->
+            <section class="calendar-box" aria-labelledby="calHeading">
+                <h4 id="calHeading">📅 Sync SPM Chemistry Study Plan to Your Calendar</h4>
+                <p>Never miss a weekly revision milestone. Add our curated Form 4 &amp; 5 revision schedule to your personal calendar.</p>
+                <div class="calendar-btn-group">
+                    <a id="googleCalBtn" href="https://calendar.google.com/calendar/render?action=TEMPLATE&text=SPM+Chemistry+Revision+Session+-+ChemLearn+AI&details=Weekly+SPM+Form+4+%26+Form+5+Chemistry+Revision+with+interactive+3D+simulations+and+quizzes+at+https://chemlearn-67.web.app&location=https://chemlearn-67.web.app" target="_blank" rel="noopener noreferrer" class="cal-btn cal-google">
+                        <span>🗓️</span> Add to Google Calendar
+                    </a>
+                    <button type="button" id="downloadIcsBtn" class="cal-btn cal-ical">
+                        <span>📥</span> Download iCal / Outlook (.ics)
+                    </button>
+                </div>
+            </section>
+
+            <a href="/experiments/" class="cta-action">
+                Enter Interactive Laboratory →
+            </a>
+        </article>
+    </main>
+
+    <footer class="footer" role="contentinfo">
+        <p>&copy; 2026 ChemLearn Educational Technologies Sdn. Bhd. (SSM: 202401038492). Registered in Malaysia.</p>
+    </footer>
+
+    <!-- Analytics Conversion Firing Hooks -->
+    <script>
+        // Trigger conversion event
+        window.addEventListener('DOMContentLoaded', () => {
+            // 1. Google Analytics gtag event if initialized
+            if (typeof window.gtag === 'function') {
+                window.gtag('event', 'conversion', {
+                    'send_to': 'G-W11M94C9N1/signup',
+                    'event_category': 'Engagement',
+                    'event_label': 'Account Created / Thank You'
+                });
+                window.gtag('event', 'sign_up', { 'method': 'Email' });
+            }
+
+            // 2. Local storage conversion flag
+            localStorage.setItem('chemlearn_user_onboarded', 'true');
+
+            // 3. Custom DOM event hook for tracking
+            window.dispatchEvent(new CustomEvent('chemlearn:conversion', {
+                detail: { page: 'thank-you', timestamp: new Date().toISOString() }
+            }));
+
+            // 4. iCal (.ics) Generator
+            document.getElementById('downloadIcsBtn').addEventListener('click', () => {
+                const now = new Date();
+                const startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 20, 0, 0);
+                const endDate = new Date(startDate.getTime() + 45 * 60 * 1000);
+
+                const formatDate = (d) => d.toISOString().replace(/-|:|\.\d+/g, '');
+
+                const icsContent = [
+                    'BEGIN:VCALENDAR',
+                    'VERSION:2.0',
+                    'PRODID:-//ChemLearn AI//SPM Chemistry Study Schedule//EN',
+                    'CALSCALE:GREGORIAN',
+                    'METHOD:PUBLISH',
+                    'BEGIN:VEVENT',
+                    `UID:chemlearn-spm-${Date.now()}@chemlearn-67.web.app`,
+                    `DTSTAMP:${formatDate(now)}`,
+                    `DTSTART:${formatDate(startDate)}`,
+                    `DTEND:${formatDate(endDate)}`,
+                    'SUMMARY:SPM Chemistry Revision - ChemLearn AI',
+                    'DESCRIPTION:Practice Form 4 Chapter 6 (Salts) and Chapter 8 (Alloys) with interactive 3D simulations and AI essay grader on ChemLearn AI: https://chemlearn-67.web.app',
+                    'LOCATION:https://chemlearn-67.web.app/experiments/',
+                    'RRULE:FREQ=WEEKLY;BYDAY=MO,WE,FR;COUNT=12',
+                    'STATUS:CONFIRMED',
+                    'END:VEVENT',
+                    'END:VCALENDAR'
+                ].join('\r\n');
+
+                const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = 'SPM_Chemistry_Revision_Schedule.ics';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+  <defs>
+    <linearGradient id="nucleusGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#8b5cf6" />
+      <stop offset="100%" stop-color="#6d28d9" />
+    </linearGradient>
+  </defs>
+  <!-- Orbit 1 (30 degrees) -->
+  <g transform="rotate(30 16 16)">
+    <ellipse cx="16" cy="16" rx="12" ry="4.5" fill="none" stroke="#94a3b8" stroke-width="1.5" opacity="0.8" />
+    <circle cx="28" cy="16" r="1.6" fill="#0ea5e9" />
+  </g>
+  <!-- Orbit 2 (90 degrees) -->
+  <g transform="rotate(90 16 16)">
+    <ellipse cx="16" cy="16" rx="12" ry="4.5" fill="none" stroke="#94a3b8" stroke-width="1.5" opacity="0.8" />
+    <circle cx="4" cy="16" r="1.6" fill="#0ea5e9" />
+  </g>
+  <!-- Orbit 3 (150 degrees) -->
+  <g transform="rotate(150 16 16)">
+    <ellipse cx="16" cy="16" rx="12" ry="4.5" fill="none" stroke="#94a3b8" stroke-width="1.5" opacity="0.8" />
+    <circle cx="28" cy="16" r="1.6" fill="#0ea5e9" />
+  </g>
+  <!-- Central Nucleus -->
+  <circle cx="16" cy="16" r="4" fill="url(#nucleusGrad)" />
+  <circle cx="15" cy="15" r="1.2" fill="#ffffff" opacity="0.6" />
+</svg>

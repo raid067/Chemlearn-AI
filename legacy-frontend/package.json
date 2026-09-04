@@ -1,0 +1,15 @@
+{
+  "dependencies": {
+    "@dataconnect/generated": "file:src/dataconnect-generated",
+    "@firebase/ai": "^2.13.1",
+    "@genkit-ai/googleai": "^1.28.0",
+    "@tailwindcss/vite": "^4.3.3",
+    "firebase": "^12.17.0",
+    "genkit": "^1.40.1",
+    "tailwindcss": "^4.3.3",
+    "vite": "^8.1.5"
+  },
+  "scripts": {
+    "dev": "vite"
+  }
+}

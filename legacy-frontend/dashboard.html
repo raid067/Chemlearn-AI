@@ -1,0 +1,2606 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Chemistry Revision Dashboard | ChemLearn AI</title>
+    <meta name="description" content="Track your SPM chemistry study streaks, quiz averages, and interactive simulation completions in your personal dashboard.">
+    <link rel="canonical" href="https://chemlearn-67.web.app/dashboard.html">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600&family=Fira+Code:wght@400;500&display=swap"
+        rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-base: #fdfcff;
+            --bg-card: #ffffff;
+            --text-dark: #1e1b4b;
+            --text-muted: #64748b;
+            --accent-purple: #6d28d9;
+            --nav-active: #b85ee6;
+            --border-light: #f1f0f7;
+
+            --color-acids: #ef4444;
+            --bg-acids: #fee2e2;
+            --color-salts: #059669;
+            --bg-salts: #ecfdf5;
+            --color-analytical: #d97706;
+            --bg-analytical: #fef3c7;
+            --color-spm: #2563eb;
+            --bg-spm: #eff6ff;
+            --liquid-purple: #8b5cf6;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: var(--bg-base);
+            color: var(--text-dark);
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            letter-spacing: -0.01em;
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        /* --- GLOBAL NAVIGATION BAR --- */
+        .global-navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 10%;
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(243, 241, 248, 0.6);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02);
+            width: 100%;
+            position: relative;
+            top: 0;
+            z-index: 1000;
+            transform: translateZ(0);
+        }
+
+        .brand-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.35rem;
+            font-weight: 700;
+            color: #0f172a;
+            text-decoration: none;
+        }
+
+        .center-nav-links {
+            display: flex;
+            gap: 36px;
+        }
+
+        .center-nav-links a {
+            text-decoration: none;
+            color: #94a3b8;
+            font-size: 0.95rem;
+            font-weight: 500;
+            padding: 4px 0;
+            position: relative;
+            transition: color 0.2s;
+        }
+
+        .center-nav-links a:hover {
+            color: var(--nav-active);
+        }
+
+        .center-nav-links a.active {
+            color: var(--nav-active);
+            font-weight: 600;
+        }
+
+        .center-nav-links a.active::after {
+            content: '';
+            position: absolute;
+            bottom: -18px;
+            left: 0;
+            width: 100%;
+            height: 2.5px;
+            background-color: var(--nav-active);
+            border-radius: 2px;
+        }
+
+        .nav-right {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .icon-btn {
+            width: 42px;
+            height: 42px;
+            border: none;
+            background: #f8fafc;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 18px;
+            transition: .25s;
+        }
+
+        .icon-btn:hover {
+            background: var(--accent-purple);
+            color: #ffffff;
+            transform: translateY(-2px);
+        }
+
+        .profile-mini {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 6px 14px 6px 6px;
+            background: #f8fafc;
+            border-radius: 50px;
+            border: 1px solid #eef0f6;
+        }
+
+        .profile-mini img {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: 2px solid var(--accent-purple);
+        }
+
+        .profile-mini span {
+            font-weight: 700;
+            font-size: 0.9rem;
+            color: #1e1b4b;
+        }
+
+        /* --- HERO --- */
+        .hero-section {
+            padding: 50px 10% 10px 10%;
+        }
+
+        .hero-flex {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .hero-section h1 {
+            font-size: 2.3rem;
+            color: #1e1b4b;
+            font-weight: 800;
+            margin-bottom: 8px;
+        }
+
+        .hero-section h1 span {
+            color: var(--accent-purple);
+        }
+
+        .hero-section p.subtitle {
+            color: #64748b;
+            font-size: 1.02rem;
+            font-weight: 500;
+            max-width: 560px;
+            line-height: 1.5;
+        }
+
+        .hero-tag-row {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .hero-pill {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(8px);
+            border: 1.5px solid #e2e8f0;
+            border-radius: 50px;
+            padding: 10px 18px;
+            font-weight: 700;
+            font-size: 0.85rem;
+            color: #334155;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .hero-pill .emoji {
+            font-size: 1.1rem;
+        }
+
+        /* --- MAIN LAYOUT --- */
+        .dash-container {
+            max-width: 1300px;
+            width: 100%;
+            margin: 0 auto;
+            padding: 30px 10% 60px 10%;
+            display: grid;
+            grid-template-columns: 2.2fr 1fr;
+            gap: 30px;
+            align-items: start;
+        }
+
+        .card {
+            background: var(--bg-card);
+            border: 2px solid #eef0f6;
+            border-radius: 20px;
+            padding: 26px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.02);
+        }
+
+        .card h3 {
+            font-size: 1.05rem;
+            font-weight: 800;
+            color: #1e1b4b;
+            margin-bottom: 4px;
+        }
+
+        .card .card-sub {
+            font-size: 0.85rem;
+            color: #64748b;
+            margin-bottom: 20px;
+        }
+
+        .section-stack {
+            display: flex;
+            flex-direction: column;
+            gap: 26px;
+        }
+
+        /* --- STAT GRID --- */
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 18px;
+        }
+
+        .stat-card {
+            background: var(--bg-card);
+            border: 2px solid #eef0f6;
+            border-radius: 18px;
+            padding: 20px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.02);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card .stat-icon {
+            width: 42px;
+            height: 42px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            margin-bottom: 14px;
+        }
+
+        .stat-card .stat-value {
+            font-size: 1.6rem;
+            font-weight: 800;
+            color: #1e1b4b;
+            line-height: 1;
+        }
+
+        .stat-card .stat-label {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #64748b;
+            margin-top: 6px;
+        }
+
+        .stat-card .stat-trend {
+            position: absolute;
+            top: 18px;
+            right: 18px;
+            font-size: 0.7rem;
+            font-weight: 800;
+            padding: 4px 8px;
+            border-radius: 8px;
+        }
+
+        .icon-streak {
+            background: #fef3c7;
+        }
+
+        .icon-level {
+            background: #ede9fe;
+        }
+
+        .icon-quiz {
+            background: #dcfce7;
+        }
+
+        .icon-xp {
+            background: #fee2e2;
+        }
+
+        .trend-up {
+            background: #dcfce7;
+            color: #059669;
+        }
+
+        /* --- PROGRESS + GOAL --- */
+        .progress-row {
+            display: grid;
+            grid-template-columns: 1.4fr 1fr;
+            gap: 20px;
+        }
+
+        .goal-visual {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .circle {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: conic-gradient(var(--accent-purple) 0%, #e5e7eb 0);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-shrink: 0;
+            transition: background 0.6s ease;
+        }
+
+        .circle span {
+            width: 92px;
+            height: 92px;
+            background: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.4rem;
+            font-weight: 800;
+            color: var(--accent-purple);
+        }
+
+        .goal-info-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .goal-info-list .row {
+            display: flex;
+            justify-content: space-between;
+            gap: 24px;
+            font-size: 0.88rem;
+        }
+
+        .goal-info-list .row span:first-child {
+            color: #64748b;
+            font-weight: 600;
+        }
+
+        .goal-info-list .row span:last-child {
+            font-weight: 800;
+            color: #1e1b4b;
+        }
+
+        .xp-block {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            height: 100%;
+        }
+
+        .xp-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .xp-header span:first-child {
+            font-weight: 700;
+            font-size: 0.95rem;
+            color: #334155;
+        }
+
+        .xp-header span:last-child {
+            font-weight: 800;
+            font-size: 0.85rem;
+            color: var(--accent-purple);
+        }
+
+        .progress-bar-bg {
+            width: 100%;
+            background: #f1f5f9;
+            height: 12px;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        .progress-bar-fill {
+            width: 0%;
+            height: 100%;
+            background: linear-gradient(90deg, #c084fc, #6d28d9);
+            transition: width 0.6s ease;
+            border-radius: 6px;
+        }
+
+        .xp-caption {
+            font-size: 0.78rem;
+            color: #94a3b8;
+            margin-top: 8px;
+            font-weight: 600;
+        }
+
+        /* --- QUICK ACTIONS --- */
+        .quick-actions {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+        }
+
+        .qa-card {
+            border-radius: 18px;
+            padding: 22px;
+            color: #ffffff;
+            text-decoration: none;
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+            transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.25s ease;
+            min-height: 130px;
+        }
+
+        .qa-card:hover {
+            transform: translateY(-4px) scale(1.02);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .qa-card:active {
+            transform: scale(0.98);
+        }
+
+        .qa-card .qa-icon {
+            font-size: 26px;
+        }
+
+        .qa-card .qa-title {
+            font-weight: 800;
+            font-size: 1rem;
+        }
+
+        .qa-card .qa-desc {
+            font-size: 0.78rem;
+            opacity: 0.9;
+            font-weight: 500;
+        }
+
+        .qa-lessons {
+            background: linear-gradient(135deg, #6d28d9, #8b5cf6);
+        }
+
+        .qa-quiz {
+            background: linear-gradient(135deg, #047857, #10b981);
+        }
+
+        .qa-lab {
+            background: linear-gradient(135deg, #1d4ed8, #3b82f6);
+        }
+
+        /* --- CONTINUE LEARNING / TOPIC CARDS --- */
+        .topic-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+        }
+
+        .topic-card {
+            border: 2px solid #eef0f6;
+            border-radius: 16px;
+            padding: 18px;
+            transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.25s ease, border-color 0.25s;
+            cursor: pointer;
+        }
+
+        .topic-card:hover {
+            transform: translateY(-3px) scale(1.01);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.04);
+        }
+
+        .topic-card:active {
+            transform: scale(0.98);
+        }
+
+        .card-tag {
+            font-size: 0.7rem;
+            font-weight: 800;
+            padding: 4px 10px;
+            border-radius: 8px;
+            width: fit-content;
+            text-transform: uppercase;
+            margin-bottom: 12px;
+        }
+
+        .tag-acids {
+            background: var(--bg-acids);
+            color: var(--color-acids);
+        }
+
+        .tag-salts {
+            background: var(--bg-salts);
+            color: var(--color-salts);
+        }
+
+        .tag-spm {
+            background: var(--bg-spm);
+            color: var(--color-spm);
+        }
+
+        .tag-analytical {
+            background: var(--bg-analytical);
+            color: var(--color-analytical);
+        }
+
+        .topic-card:hover[data-topic="acids"] {
+            border-color: var(--color-acids);
+        }
+
+        .topic-card:hover[data-topic="salts"] {
+            border-color: var(--color-salts);
+        }
+
+        .topic-card:hover[data-topic="spm"] {
+            border-color: var(--color-spm);
+        }
+
+        .topic-card:hover[data-topic="analytical"] {
+            border-color: var(--color-analytical);
+        }
+
+        .topic-card h4 {
+            font-size: 0.95rem;
+            font-weight: 800;
+            margin-bottom: 6px;
+            color: #0f172a;
+        }
+
+        .topic-card p {
+            font-size: 0.8rem;
+            color: #64748b;
+            line-height: 1.4;
+            margin-bottom: 14px;
+        }
+
+        .mini-bar-bg {
+            width: 100%;
+            background: #f1f5f9;
+            height: 6px;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 6px;
+        }
+
+        .mini-bar-fill {
+            height: 100%;
+            border-radius: 4px;
+        }
+
+        .topic-card .pct-label {
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: #94a3b8;
+        }
+
+        /* --- SIDEBAR --- */
+        .badge-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
+            gap: 12px;
+            margin-top: 10px;
+        }
+
+        .badge-pill {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .badge-icon {
+            width: 56px;
+            height: 56px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            background: #f8fafc;
+            border: 2px solid #eef0f6;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .badge-icon.locked {
+            opacity: 0.35;
+            background: #f1f5f9;
+            filter: grayscale(100%);
+        }
+
+        .badge-icon.unlocked {
+            background: #fff;
+            border-color: var(--accent-purple);
+            box-shadow: 0 0 15px rgba(109, 40, 217, 0.2);
+            animation: glow 2s infinite alternate;
+        }
+
+        .badge-pill span {
+            font-size: 0.68rem;
+            font-weight: 700;
+            color: #64748b;
+            text-align: center;
+            line-height: 1.2;
+        }
+
+        @keyframes glow {
+            from {
+                box-shadow: 0 0 10px rgba(109, 40, 217, 0.1);
+            }
+
+            to {
+                box-shadow: 0 0 20px rgba(109, 40, 217, 0.4);
+            }
+        }
+
+        .activity-list {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .activity-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 0;
+            border-bottom: 1px solid #f4f3f9;
+        }
+
+        .activity-item:last-child {
+            border-bottom: none;
+        }
+
+        .activity-dot {
+            width: 38px;
+            height: 38px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            flex-shrink: 0;
+        }
+
+        .activity-text {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: #1e293b;
+        }
+
+        .activity-time {
+            font-size: 0.75rem;
+            color: #94a3b8;
+            font-weight: 600;
+        }
+
+        .leaderboard-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 0;
+            border-bottom: 1px solid #f4f3f9;
+        }
+
+        .leaderboard-item:last-child {
+            border-bottom: none;
+        }
+
+        .lb-rank {
+            width: 26px;
+            height: 26px;
+            border-radius: 8px;
+            background: #f1f5f9;
+            color: #475569;
+            font-weight: 800;
+            font-size: 0.78rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .lb-rank.gold {
+            background: #fef08a;
+            color: #92400e;
+        }
+
+        .lb-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+        }
+
+        .lb-name {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: #1e293b;
+            flex: 1;
+        }
+
+        .lb-score {
+            font-size: 0.8rem;
+            font-weight: 800;
+            color: var(--accent-purple);
+        }
+
+        .lb-you {
+            background: #faf5ff;
+            border-radius: 10px;
+            margin: 0 -8px;
+            padding: 10px 8px;
+        }
+
+        /* --- NEW FEATURES CSS --- */
+
+        /* Daily Challenge */
+        .daily-challenge-btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #f59e0b, #ef4444);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
+        }
+
+        .daily-challenge-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(239, 68, 68, 0.4);
+        }
+
+        .daily-challenge-btn:disabled {
+            background: #cbd5e1;
+            box-shadow: none;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .challenge-container {
+            margin-top: 15px;
+            display: none;
+        }
+
+        .challenge-question {
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 15px;
+            font-size: 0.95rem;
+        }
+
+        .challenge-options {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .challenge-option {
+            padding: 12px;
+            border: 2px solid #eef0f6;
+            border-radius: 10px;
+            background: #f8fafc;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+            text-align: left;
+        }
+
+        .challenge-option:hover {
+            border-color: var(--accent-purple);
+            background: #faf5ff;
+        }
+
+        .challenge-option.correct {
+            background: #dcfce7;
+            border-color: #22c55e;
+            color: #166534;
+        }
+
+        .challenge-option.incorrect {
+            background: #fee2e2;
+            border-color: #ef4444;
+            color: #991b1b;
+        }
+
+        .challenge-progress {
+            font-size: 0.8rem;
+            color: #64748b;
+            font-weight: 700;
+            text-align: right;
+            margin-bottom: 10px;
+        }
+
+        /* Weakness Detection */
+        .weakness-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-top: 10px;
+        }
+
+        .weakness-item {
+            border: 1px solid #eef0f6;
+            border-radius: 12px;
+            padding: 14px;
+            text-decoration: none;
+            display: block;
+            transition: border-color 0.2s;
+        }
+
+        .weakness-item:hover {
+            border-color: var(--accent-purple);
+        }
+
+        .weakness-title {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: #1e1b4b;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 6px;
+        }
+
+        .weakness-rec {
+            font-size: 0.75rem;
+            color: #64748b;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .weak-bar-bg {
+            width: 100%;
+            height: 6px;
+            background: #f1f5f9;
+            border-radius: 3px;
+            margin-top: 8px;
+            overflow: hidden;
+        }
+
+        .weak-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ef4444, #f59e0b);
+            border-radius: 3px;
+            transition: width 1s ease-out;
+        }
+
+        /* Study Plan */
+        .study-plan-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 15px;
+        }
+
+        .study-day {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+            background: #f8fafc;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #334155;
+            border: 1px solid transparent;
+        }
+
+        .study-day.today {
+            background: #faf5ff;
+            border-color: #d8b4fe;
+            color: var(--accent-purple);
+        }
+
+        .study-day-name {
+            width: 45px;
+            font-weight: 800;
+        }
+
+        .study-task {
+            flex: 1;
+            padding: 0 15px;
+        }
+
+        .study-status {
+            font-size: 1.1rem;
+        }
+
+        .btn-outline {
+            margin-top: 15px;
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #eef0f6;
+            background: white;
+            border-radius: 10px;
+            font-weight: 700;
+            color: #64748b;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-outline:hover {
+            border-color: var(--accent-purple);
+            color: var(--accent-purple);
+        }
+
+        /* Heatmap */
+        .heatmap-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            overflow-x: auto;
+            padding-bottom: 10px;
+            margin-top: 15px;
+        }
+
+        .heatmap-grid {
+            display: grid;
+            grid-template-columns: repeat(13, 1fr);
+            grid-template-rows: repeat(7, 1fr);
+            gap: 4px;
+        }
+
+        .heatmap-cell {
+            width: 14px;
+            height: 14px;
+            border-radius: 3px;
+            background: #ebedf0;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .heatmap-cell[data-level="1"] {
+            background: #9be9a8;
+        }
+
+        .heatmap-cell[data-level="2"] {
+            background: #40c463;
+        }
+
+        .heatmap-cell[data-level="3"] {
+            background: #30a14e;
+        }
+
+        .heatmap-cell[data-level="4"] {
+            background: #216e39;
+        }
+
+        .heatmap-cell:hover::after {
+            content: attr(title);
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #1e293b;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 10px;
+            white-space: nowrap;
+            z-index: 10;
+            margin-bottom: 4px;
+            pointer-events: none;
+        }
+
+        .heatmap-stats {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.75rem;
+            color: #64748b;
+            font-weight: 600;
+            margin-top: 10px;
+        }
+
+        /* Pomodoro Timer */
+        .pomodoro-card {
+            background: linear-gradient(145deg, #ffffff, #fcfaff);
+            border-color: #f1f0f7;
+        }
+
+        .pomo-controls {
+            display: flex;
+            gap: 8px;
+        }
+
+        .pomo-btn {
+            border: none;
+            padding: 8px 16px;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .pomo-btn.play {
+            background: var(--accent-purple);
+            color: white;
+            box-shadow: 0 4px 12px rgba(109, 40, 217, 0.2);
+        }
+
+        .pomo-btn.play:hover {
+            background: #5b21b6;
+            transform: translateY(-2px);
+        }
+
+        .pomo-btn.play.active {
+            background: #f59e0b;
+            box-shadow: 0 4px 12px rgba(245, 158, 11, 0.2);
+        }
+
+        .pomo-btn.reset {
+            background: #f1f5f9;
+            color: #475569;
+        }
+
+        .pomo-btn.reset:hover {
+            background: #e2e8f0;
+        }
+
+        .pomo-visual-container {
+            position: relative;
+            width: 160px;
+            height: 160px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .pomo-ring {
+            transform: rotate(-90deg);
+        }
+
+        .pomo-ring-bg {
+            fill: none;
+            stroke: #f1f5f9;
+            stroke-width: 12;
+        }
+
+        .pomo-ring-progress {
+            fill: none;
+            stroke: var(--accent-purple);
+            stroke-width: 12;
+            stroke-linecap: round;
+            stroke-dasharray: 440;
+            stroke-dashoffset: 0;
+            transition: stroke-dashoffset 1s linear;
+        }
+
+        .pomo-time-display {
+            position: absolute;
+            font-size: 2.2rem;
+            font-weight: 800;
+            color: #1e1b4b;
+            font-variant-numeric: tabular-nums;
+        }
+
+        /* Toast Notification */
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .toast {
+            background: white;
+            border-left: 4px solid var(--accent-purple);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transform: translateX(120%);
+            opacity: 0;
+            transition: transform 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55), opacity 0.5s;
+        }
+
+        .toast.show {
+            transform: translateX(0);
+            opacity: 1;
+        }
+
+        .toast-icon {
+            font-size: 24px;
+        }
+
+        .toast-title {
+            font-weight: 800;
+            color: #1e1b4b;
+            font-size: 0.95rem;
+            margin-bottom: 2px;
+        }
+
+        .toast-desc {
+            font-size: 0.8rem;
+            color: #64748b;
+        }
+
+        /* --- FOOTER --- */
+        .footer-wrapper {
+            background-color: #ffffff;
+            border-top: 1px solid #edf2f7;
+            padding: 40px 10% 30px 10%;
+            width: 100%;
+            margin-top: auto;
+        }
+
+        .footer-grid-row {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr;
+            gap: 40px;
+        }
+
+        .footer-brand-side p {
+            font-size: 0.9rem;
+            color: #718096;
+            margin-top: 12px;
+            max-width: 340px;
+            line-height: 1.5;
+        }
+
+        .footer-column h4 {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: #1a202c;
+            margin-bottom: 14px;
+        }
+
+        .footer-column ul {
+            list-style: none;
+        }
+
+        .footer-column ul li {
+            margin-bottom: 8px;
+        }
+
+        .footer-column ul li a {
+            text-decoration: none;
+            font-size: 0.9rem;
+            color: #718096;
+        }
+
+        .footer-bottom-bar {
+            border-top: 1px solid #edf2f7;
+            padding-top: 20px;
+            text-align: center;
+            color: #a0aec0;
+            font-size: 0.85rem;
+        }
+
+        @media (max-width: 1100px) {
+            .dash-container {
+                grid-template-columns: 1fr;
+            }
+
+            .stat-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .progress-row {
+                grid-template-columns: 1fr;
+            }
+
+            .quick-actions {
+                grid-template-columns: 1fr;
+            }
+
+            .topic-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 720px) {
+            .global-navbar {
+                flex-direction: column;
+                gap: 14px;
+                padding: 14px 6%;
+            }
+
+            .center-nav-links {
+                gap: 18px;
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+
+            .hero-section,
+            .dash-container {
+                padding-left: 6%;
+                padding-right: 6%;
+            }
+
+            .footer-grid-row {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        body[data-theme="dark"] {
+            --bg-base: #0f172a;
+            --bg-card: #1e293b;
+            --text-dark: #f8fafc;
+            --text-muted: #94a3b8;
+            --border-light: #334155;
+        }
+
+        body[data-theme="dark"] .global-navbar {
+            background: #1e293b;
+            border-bottom-color: #334155;
+        }
+
+        body[data-theme="dark"] .card {
+            border-color: #334155;
+        }
+
+        body[data-theme="dark"] .stat-card {
+            border-color: #334155;
+        }
+
+        body[data-theme="dark"] .hero-section h1 {
+            color: #f8fafc;
+        }
+
+        body[data-theme="dark"] .card h3 {
+            color: #f8fafc;
+        }
+
+        body[data-theme="dark"] .stat-card .stat-value {
+            color: #f8fafc;
+        }
+
+        body[data-theme="dark"] .hero-pill {
+            background: #1e293b;
+            border-color: #334155;
+            color: #f8fafc;
+        }
+
+        body[data-theme="dark"] .goal-info-list .row span:last-child {
+            color: #f8fafc;
+        }
+
+        body[data-theme="dark"] .topic-card h4 {
+            color: #f8fafc;
+        }
+
+        body[data-theme="dark"] .activity-text {
+            color: #f8fafc;
+        }
+    </style>
+    <link rel="stylesheet" href="global.css">
+    <script src="nav.js" defer></script>
+    <script>
+        if (localStorage.getItem('theme') === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+    </script>
+    <link rel="manifest" href="manifest.json">
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(reg => console.log('SW registered!', reg.scope))
+                    .catch(err => console.log('SW registration failed: ', err));
+            });
+        }
+    </script>
+    <script src="a11y-utils.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.8/purify.min.js"></script>
+</head>
+
+<body>
+
+    <nav class="global-navbar">
+        <a href="index.html" class="brand-logo">
+            <svg width="20" height="24" viewBox="0 0 22 26" fill="none" xmlns="http://www.w3.org/2000/svg"
+                style="display:inline-block; vertical-align:middle; margin-right:6px;">
+                <path
+                    d="M2 2H20M2 24H20M3.5 2C3.5 2 5 10.5 11 13C5 15.5 3.5 24 3.5 24M18.5 2C18.5 2 17 10.5 11 13C17 15.5 18.5 24 18.5 24"
+                    stroke="#b85ee6" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+            ChemLearn
+        </a>
+        <div class="center-nav-links">
+            <a href="index.html">Home</a>
+            <a href="lessons.html">Lessons</a>
+            <a href="quizzes.html">Quizzes</a>
+            <a href="resources.html">Resources</a>
+            <a href="experiment.html">Experiment</a>
+            <a href="dashboard.html" class="active">Dashboard</a>
+        </div>
+                <div class="right-auth-links">
+            <button type="button" class="transparent-btn login-btn" id="openLoginBtn">Login</button>
+            <button type="button" class="signup-btn" id="openSignupBtn">Sign Up</button>
+        </div>
+    </nav>
+
+
+
+
+
+    <div class="toast-container" id="toastContainer"></div>
+
+
+
+    <section class="hero-section">
+        <div class="hero-flex">
+            <div>
+                <h1 id="heroName">Welcome back<span>.</span></h1>
+                <p class="subtitle">Here's a snapshot of your chemistry progress. Keep the streak alive and chase that
+                    next badge!</p>
+            </div>
+            <div class="hero-tag-row">
+                <div class="hero-pill"><span class="emoji">🔥</span> <span id="heroStreak">0 Days</span></div>
+                <div class="hero-pill"><span class="emoji">🏅</span> <span id="heroLevel">Level 1</span></div>
+                <div class="hero-pill"><span class="emoji">🎯</span> <span id="heroAvg">0% Avg</span></div>
+                <button class="hero-pill" onclick="openShareModal()"
+                    style="background:linear-gradient(135deg,#7c3aed,#4f46e5); color:#fff; border:none; cursor:pointer; box-shadow:0 4px 12px rgba(124,58,237,0.3);"><span
+                        class="emoji">📤</span> <span>Share Progress</span></button>
+            </div>
+        </div>
+    </section>
+
+    <div class="dash-container">
+
+        <!-- LEFT COLUMN -->
+        <div class="section-stack">
+
+            <div class="stat-grid">
+                <div class="stat-card">
+                    <div class="stat-icon icon-streak">🔥</div>
+                    <div class="stat-value"><span id="statStreak">0</span></div>
+                    <div class="stat-label">Day Streak</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon icon-level">🏅</div>
+                    <div class="stat-value" id="statLevel">Level 1</div>
+                    <div class="stat-label">Current Rank</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon icon-quiz">📝</div>
+                    <div class="stat-value"><span id="statQuiz">0</span>%</div>
+                    <div class="stat-label">Quiz Average</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon icon-xp">⚡</div>
+                    <div class="stat-value"><span id="statXP">0</span></div>
+                    <div class="stat-label">Total XP</div>
+                </div>
+            </div>
+
+            <div class="progress-row">
+                <div class="card">
+                    <h3>Weekly Study Goal</h3>
+                    <p class="card-sub">Based on your quiz performance this week</p>
+                    <div class="goal-visual">
+                        <div class="circle" id="goalCircle">
+                            <span id="goalPercent">0%</span>
+                        </div>
+                        <div class="goal-info-list">
+                            <div class="row"><span>Target</span><span>Weekly 80%</span></div>
+                            <div class="row"><span>Current Average</span><span id="goalCurrentAvg">0%</span></div>
+                            <div class="row"><span>Status</span><span id="goalStatus">Getting Started</span></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card">
+                    <h3>Experience Points</h3>
+                    <p class="card-sub">Progress to next level</p>
+                    <div class="xp-block">
+                        <div class="xp-header">
+                            <span id="xpLevelTitle">Novice Chemist</span>
+                            <span><span id="xpCurrent">0</span> / <span id="xpNext">500</span> XP</span>
+                        </div>
+                        <div class="progress-bar-bg">
+                            <div class="progress-bar-fill" id="xpBar"></div>
+                        </div>
+                        <div class="xp-caption" id="xpCaption">Complete quizzes and labs to earn XP.</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- NEW POMODORO TIMER CARD -->
+            <div class="card pomodoro-card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <div>
+                        <h3>🍅 Focus Timer</h3>
+                        <p class="card-sub" style="margin-bottom: 0;">Boost productivity with Pomodoro</p>
+                    </div>
+                    <div class="pomo-controls">
+                        <button id="pomoPlayBtn" class="pomo-btn play">▶ Play</button>
+                        <button id="pomoResetBtn" class="pomo-btn reset">↺ Reset</button>
+                    </div>
+                </div>
+
+                <div class="pomo-visual-container">
+                    <svg class="pomo-ring" width="160" height="160">
+                        <circle class="pomo-ring-bg" cx="80" cy="80" r="70"></circle>
+                        <circle class="pomo-ring-progress" id="pomoRing" cx="80" cy="80" r="70"></circle>
+                    </svg>
+                    <div class="pomo-time-display" id="pomoTime">25:00</div>
+                </div>
+                <p style="text-align:center; font-size:0.85rem; color:#64748b; margin-top:15px;" id="pomoStatus">Ready
+                    to focus?</p>
+            </div>
+
+            <div class="card">
+                <h3>Quick Actions</h3>
+                <p class="card-sub">Jump back into your learning journey</p>
+                <div class="quick-actions">
+                    <a href="lessons.html" class="qa-card qa-lessons">
+                        <div class="qa-icon">📚</div>
+                        <div>
+                            <div class="qa-title">Continue Lessons</div>
+                            <div class="qa-desc">Pick up where you left off in Chapter 6</div>
+                        </div>
+                    </a>
+                    <a href="quizzes.html" class="qa-card qa-quiz">
+                        <div class="qa-icon">📝</div>
+                        <div>
+                            <div class="qa-title">Take a Quiz</div>
+                            <div class="qa-desc">Test yourself with a 20-question bank</div>
+                        </div>
+                    </a>
+                    <a href="experiment.html" class="qa-card qa-lab">
+                        <div class="qa-icon">🧪</div>
+                        <div>
+                            <div class="qa-title">Enter Virtual Lab</div>
+                            <div class="qa-desc">Run acid, salt & gas experiments</div>
+                        </div>
+                    </a>
+                </div>
+            </div>
+
+            <!-- NEW DAILY CHALLENGE CARD -->
+            <div class="card">
+                <h3>🧪 Daily Challenge</h3>
+                <p class="card-sub">5 quick questions to earn bonus XP</p>
+
+                <div id="challengeIntro">
+                    <button class="daily-challenge-btn" id="startChallengeBtn">Start Challenge</button>
+                </div>
+
+                <div class="challenge-container" id="challengeContainer">
+                    <div class="challenge-progress" id="challengeProgress">Question 1/5</div>
+                    <div class="challenge-question" id="challengeQuestion">Loading question...</div>
+                    <div class="challenge-options" id="challengeOptions">
+                        <!-- Options will be rendered here -->
+                    </div>
+                </div>
+
+                <div class="challenge-container" id="challengeResult" style="text-align: center; display: none;">
+                    <div style="font-size: 3rem; margin-bottom: 10px;">🎉</div>
+                    <h4 style="font-size: 1.2rem; font-weight: 800; color: #1e1b4b; margin-bottom: 5px;">Challenge
+                        Complete!</h4>
+                    <p style="color: #64748b; margin-bottom: 15px;" id="challengeResultText">You scored X/5.</p>
+                    <div
+                        style="display: inline-block; padding: 10px 20px; background: #faf5ff; border-radius: 12px; color: var(--accent-purple); font-weight: 800; font-size: 1.1rem;">
+                        +<span id="challengeXPEarned">0</span> XP
+                    </div>
+                    <p style="color: #94a3b8; font-size: 0.85rem; margin-top: 15px;">Come back tomorrow! 🌅</p>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>Continue Learning</h3>
+                <p class="card-sub">Recommended topics based on your recent activity</p>
+                <div class="topic-grid">
+                    <div class="topic-card" data-topic="acids" onclick="window.location.href='lessons.html'"
+                        tabindex="0" role="button">
+                        <div class="card-tag tag-acids">Acids & Bases</div>
+                        <h4>Strength of Acids and Alkalis</h4>
+                        <p>Explore ionization, pH scale and indicator color changes.</p>
+                        <div class="mini-bar-bg">
+                            <div class="mini-bar-fill" style="width:65%; background:var(--color-acids);"></div>
+                        </div>
+                        <div class="pct-label">65% complete</div>
+                    </div>
+                    <div class="topic-card" data-topic="salts" onclick="window.location.href='lessons.html'"
+                        tabindex="0" role="button">
+                        <div class="card-tag tag-salts">Salts</div>
+                        <h4>Preparation of Soluble Salts</h4>
+                        <p>Learn precipitation, titration and crystallization methods.</p>
+                        <div class="mini-bar-bg">
+                            <div class="mini-bar-fill" style="width:40%; background:var(--color-salts);"></div>
+                        </div>
+                        <div class="pct-label">40% complete</div>
+                    </div>
+                    <div class="topic-card" data-topic="analytical" onclick="window.location.href='quizzes.html'"
+                        tabindex="0" role="button">
+                        <div class="card-tag tag-analytical">Qualitative Tests</div>
+                        <h4>Anion & Cation Identification</h4>
+                        <p>Master confirmatory tests for chloride, sulphate & nitrate ions.</p>
+                        <div class="mini-bar-bg">
+                            <div class="mini-bar-fill" style="width:22%; background:var(--color-analytical);"></div>
+                        </div>
+                        <div class="pct-label">22% complete</div>
+                    </div>
+                    <div class="topic-card" data-topic="spm" onclick="window.location.href='quizzes.html'" tabindex="0"
+                        role="button">
+                        <div class="card-tag tag-spm">SPM Checkpoint</div>
+                        <h4>Molarity & Dilution Calculations</h4>
+                        <p>Practice M1V1 = M2V2 problems with real exam scenarios.</p>
+                        <div class="mini-bar-bg">
+                            <div class="mini-bar-fill" style="width:10%; background:var(--color-spm);"></div>
+                        </div>
+                        <div class="pct-label">10% complete</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- NEW AI STUDY PLAN CARD -->
+            <div class="card">
+                <h3>📅 Your SPM Study Plan</h3>
+                <p class="card-sub" id="spmCountdown">Your SPM is in 100 days</p>
+                <div class="study-plan-grid" id="studyPlanGrid">
+                    <!-- Will be populated by JS -->
+                </div>
+                <button class="btn-outline" id="regenPlanBtn">🔄 Regenerate Plan</button>
+            </div>
+
+            <!-- NEW PROGRESS HEATMAP CARD -->
+            <div class="card">
+                <h3>🗓️ Activity Heatmap</h3>
+                <p class="card-sub">Your study consistency over the last 90 days</p>
+                <div class="heatmap-container">
+                    <div class="heatmap-grid" id="heatmapGrid">
+                        <!-- Will be populated by JS -->
+                    </div>
+                </div>
+                <div class="heatmap-stats">
+                    <span>Current Streak: <span id="heatmapStreak">0</span> days</span>
+                    <span>Longest Streak: <span id="heatmapMaxStreak">0</span> days</span>
+                    <span>Total Active Days: <span id="heatmapActive">0</span></span>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- RIGHT COLUMN -->
+        <div class="section-stack">
+
+            <div class="card">
+                <h3>Badges Earned</h3>
+                <p class="card-sub" id="badgeCountText">0/10 Badges Earned</p>
+                <div class="badge-row" id="badgeRow">
+                    <!-- Badges injected by JS -->
+                </div>
+            </div>
+
+            <!-- NEW WEAKNESS DETECTION CARD -->
+            <div class="card">
+                <h3>📊 Your Weak Topics</h3>
+                <p class="card-sub">AI-powered analysis of your quiz performance</p>
+                <div class="weakness-list" id="weaknessList">
+                    <!-- Injected by JS -->
+                </div>
+            </div>
+
+            <!-- NEW AI EXAM PREDICTOR CARD (Feature 9) -->
+            <div class="card">
+                <h3>🔮 AI Exam Predictor</h3>
+                <p class="card-sub">Forecasted SPM Grade based on current metrics</p>
+                <div style="display: flex; align-items: center; justify-content: space-around; margin: 20px 0;">
+                    <div style="text-align: center;">
+                        <div style="font-size: 0.8rem; color: #64748b; font-weight: 700; margin-bottom: 5px;">CURRENT
+                        </div>
+                        <div style="font-size: 1.8rem; font-weight: 800; color: #1e1b4b;" id="currentGradeDisplay">--
+                        </div>
+                    </div>
+                    <div style="font-size: 1.5rem; color: #cbd5e1;">➔</div>
+                    <div style="text-align: center;">
+                        <div
+                            style="font-size: 0.8rem; color: var(--accent-purple); font-weight: 700; margin-bottom: 5px;">
+                            PREDICTED</div>
+                        <div style="font-size: 2.2rem; font-weight: 800; color: var(--accent-purple); text-shadow: 0 0 15px rgba(109, 40, 217, 0.3);"
+                            id="predictedGradeDisplay">--</div>
+                    </div>
+                </div>
+                <div class="progress-bar-bg" style="height: 8px;">
+                    <div class="progress-bar-fill" id="predictorBar"
+                        style="background: linear-gradient(90deg, #3b82f6, #6d28d9); width: 0%;"></div>
+                </div>
+                <p style="font-size: 0.8rem; color: #64748b; margin-top: 15px; text-align: center;"
+                    id="predictorCaption">Keep a 3-day streak to boost your prediction!</p>
+            </div>
+
+            <div class="card">
+                <h3>Recent Activity</h3>
+                <p class="card-sub">Your latest learning actions</p>
+                <div class="activity-list" id="activityList">
+                    <div class="activity-item">
+                        <div class="activity-dot" style="background:#ede9fe;">🧪</div>
+                        <div style="flex:1;">
+                            <div class="activity-text">Completed Virtual Acid–Base Lab</div>
+                            <div class="activity-time">2 days ago</div>
+                        </div>
+                    </div>
+                    <div class="activity-item">
+                        <div class="activity-dot" style="background:#dcfce7;">📝</div>
+                        <div style="flex:1;">
+                            <div class="activity-text">Scored 80% on Chapter 6 Quiz</div>
+                            <div class="activity-time">3 days ago</div>
+                        </div>
+                    </div>
+                    <div class="activity-item">
+                        <div class="activity-dot" style="background:#fef3c7;">🔥</div>
+                        <div style="flex:1;">
+                            <div class="activity-text">Reached a 5-day study streak</div>
+                            <div class="activity-time">5 days ago</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>Class Leaderboard</h3>
+                <p class="card-sub">Top students by XP</p>
+                <div id="leaderboardList">
+                    <div style="text-align:center; padding:20px; color:#64748b; font-size:0.9rem;">Loading
+                        leaderboard...</div>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- SHARE PROGRESS MODAL -->
+    <div id="shareModal" class="modal-overlay" onclick="if(event.target === this) closeShareModal()" tabindex="0"
+        role="button"
+        style="position:fixed; top: 0; left:0; width:100%; height:100%; background:rgba(15,23,42,0.6); backdrop-filter:blur(8px); display:none; justify-content:center; align-items:center; z-index:3000;">
+        <div
+            style="background:#ffffff; width:90%; max-width:480px; border-radius:24px; padding:32px; box-shadow:0 25px 50px rgba(0,0,0,0.25); text-align:center; position:relative; border:2px solid #ede9fe;">
+            <button onclick="closeShareModal()"
+                style="position:absolute; top:18px; right:18px; background:#f1f5f9; border:none; width:32px; height:32px; border-radius:50%; font-weight:800; cursor:pointer;">✕</button>
+            <div style="font-size:3rem; margin-bottom:8px;">🏆</div>
+            <h3 style="font-size:1.4rem; font-weight:800; color:#1e1b4b; margin-bottom:4px;">Share Achievement Card</h3>
+            <p style="font-size:0.88rem; color:#64748b; margin-bottom:20px;">Show your ChemLearn AI chemistry learning
+                streak to friends & teachers!</p>
+
+            <!-- CARD PREVIEW -->
+            <div id="shareCardPreview"
+                style="background:linear-gradient(135deg,#1e1b4b 0%,#312e81 60%,#4c1d95 100%); color:#fff; padding:24px; border-radius:18px; text-align:left; margin-bottom:20px; box-shadow:0 10px 25px rgba(49,46,129,0.3);">
+                <div
+                    style="font-size:0.75rem; font-weight:800; color:#a78bfa; text-transform:uppercase; letter-spacing:0.06em; margin-bottom:6px;">
+                    🧪 ChemLearn AI Scholar</div>
+                <div style="font-size:1.3rem; font-weight:800; color:#ffffff;" id="shareCardName">Student Scholar</div>
+                <div style="font-size:0.85rem; color:#c4b5fd; margin-bottom:16px;" id="shareCardRank">Novice Chemist
+                </div>
+                <div
+                    style="display:grid; grid-template-columns:repeat(3,1fr); gap:10px; background:rgba(255,255,255,0.08); padding:12px; border-radius:12px; text-align:center;">
+                    <div>
+                        <div style="font-size:1.1rem; font-weight:800; color:#fbbf24;" id="shareCardStreak">🔥 0d</div>
+                        <div style="font-size:0.7rem; color:#94a3b8;">Streak</div>
+                    </div>
+                    <div>
+                        <div style="font-size:1.1rem; font-weight:800; color:#34d399;" id="shareCardAvg">🎯 0%</div>
+                        <div style="font-size:0.7rem; color:#94a3b8;">Quiz Avg</div>
+                    </div>
+                    <div>
+                        <div style="font-size:1.1rem; font-weight:800; color:#60a5fa;" id="shareCardXP">⚡ 0</div>
+                        <div style="font-size:0.7rem; color:#94a3b8;">Total XP</div>
+                    </div>
+                </div>
+            </div>
+
+            <button onclick="copyShareText()" id="copyShareBtn"
+                style="width:100%; padding:14px; background:linear-gradient(135deg,#7c3aed,#4f46e5); color:#fff; border:none; border-radius:14px; font-size:0.95rem; font-weight:700; cursor:pointer; box-shadow:0 6px 20px rgba(124,58,237,0.35); transition:all 0.2s;">📋
+                Copy Shareable Link & Card</button>
+        </div>
+    </div>
+
+    <!-- SETTINGS MODAL -->
+    <div id="settingsModal" class="modal-overlay" onclick="if(event.target === this) closeSettingsModal()" tabindex="0"
+        role="button"
+        style="position:fixed; top: 0; left:0; width:100%; height:100%; background:rgba(15,23,42,0.6); backdrop-filter:blur(8px); display:none; justify-content:center; align-items:center; z-index:3000;">
+        <div
+            style="background:#ffffff; width:90%; max-width:400px; border-radius:24px; padding:32px; box-shadow:0 25px 50px rgba(0,0,0,0.25); text-align:center; position:relative; border:2px solid #ede9fe;">
+            <button onclick="closeSettingsModal()"
+                style="position:absolute; top:18px; right:18px; background:#f1f5f9; border:none; width:32px; height:32px; border-radius:50%; font-weight:800; cursor:pointer;">✕</button>
+            <div style="font-size:3rem; margin-bottom:8px;">⚙️</div>
+            <h3 style="font-size:1.4rem; font-weight:800; color:#1e1b4b; margin-bottom:4px;">Settings</h3>
+            <p style="font-size:0.88rem; color:#64748b; margin-bottom:20px;">Configure your learning experience.</p>
+
+            <div style="text-align:left; margin-bottom:20px;">
+                <label
+                    style="display:block; font-size:0.85rem; font-weight:700; color:#1e1b4b; margin-bottom:8px;">Target
+                    SPM Exam Date</label>
+                <input type="date" id="spmDateInput"
+                    style="width:100%; padding:12px; border:2px solid #eef0f6; border-radius:12px; font-family:'Plus Jakarta Sans'; font-size:1rem; outline:none; transition:border-color 0.2s;">
+            </div>
+
+            <button onclick="saveSettings()"
+                style="width:100%; padding:14px; background:linear-gradient(135deg,#7c3aed,#4f46e5); color:#fff; border:none; border-radius:14px; font-size:0.95rem; font-weight:700; cursor:pointer; box-shadow:0 6px 20px rgba(124,58,237,0.35); transition:all 0.2s;">💾
+                Save Settings</button>
+        </div>
+    </div>
+
+    <!-- PARENT VIEW MODAL -->
+    <div id="parentModal" class="modal-overlay" onclick="if(event.target === this) closeParentModal()" tabindex="0"
+        role="button"
+        style="position:fixed; top: 0; left:0; width:100%; height:100%; background:rgba(15,23,42,0.6); backdrop-filter:blur(8px); display:none; justify-content:center; align-items:center; z-index:3000;">
+        <div
+            style="background:#ffffff; width:90%; max-width:550px; border-radius:24px; padding:32px; box-shadow:0 25px 50px rgba(0,0,0,0.25); text-align:center; position:relative; border:2px solid #ede9fe;">
+            <button onclick="closeParentModal()"
+                style="position:absolute; top:18px; right:18px; background:#f1f5f9; border:none; width:32px; height:32px; border-radius:50%; font-weight:800; cursor:pointer;">✕</button>
+            <div style="font-size:3rem; margin-bottom:8px;">👨‍👩‍👧</div>
+            <h3 style="font-size:1.4rem; font-weight:800; color:#1e1b4b; margin-bottom:4px;">Parent Report Card</h3>
+            <p style="font-size:0.88rem; color:#64748b; margin-bottom:20px;">A summary of your child's learning journey.
+            </p>
+
+            <div id="parentCardPreview"
+                style="background:var(--bg-card); padding:24px; border:2px solid #eef0f6; border-radius:18px; text-align:left; margin-bottom:20px;">
+                <div
+                    style="display:flex; align-items:center; gap:15px; margin-bottom:20px; border-bottom:1px solid #f1f5f9; padding-bottom:15px;">
+                    <img loading="lazy" id="parentCardAvatar" src="data:,"
+                        style="width:60px; height:60px; border-radius:50%; border:3px solid var(--accent-purple);">
+                    <div>
+                        <div style="font-size:1.3rem; font-weight:800; color:#1e1b4b;" id="parentCardName">Student Name
+                        </div>
+                        <div style="font-size:0.85rem; color:#64748b; font-weight:600;" id="parentCardRank">Rank</div>
+                    </div>
+                </div>
+
+                <div style="display:grid; grid-template-columns:repeat(2,1fr); gap:15px; margin-bottom:20px;">
+                    <div style="background:#f8fafc; padding:15px; border-radius:12px; border:1px solid #eef0f6;">
+                        <div
+                            style="font-size:0.75rem; color:#64748b; font-weight:700; margin-bottom:5px; text-transform:uppercase;">
+                            Study Time</div>
+                        <div style="font-size:1.2rem; font-weight:800; color:#1e1b4b;" id="parentCardTime">0 hrs</div>
+                    </div>
+                    <div style="background:#f8fafc; padding:15px; border-radius:12px; border:1px solid #eef0f6;">
+                        <div
+                            style="font-size:0.75rem; color:#64748b; font-weight:700; margin-bottom:5px; text-transform:uppercase;">
+                            Quiz Average</div>
+                        <div style="font-size:1.2rem; font-weight:800; color:#1e1b4b;" id="parentCardAvg">0%</div>
+                    </div>
+                    <div style="background:#f8fafc; padding:15px; border-radius:12px; border:1px solid #eef0f6;">
+                        <div
+                            style="font-size:0.75rem; color:#64748b; font-weight:700; margin-bottom:5px; text-transform:uppercase;">
+                            Current Streak</div>
+                        <div style="font-size:1.2rem; font-weight:800; color:#1e1b4b;" id="parentCardStreak">0 Days
+                        </div>
+                    </div>
+                    <div style="background:#faf5ff; padding:15px; border-radius:12px; border:1px solid #e9d5ff;">
+                        <div
+                            style="font-size:0.75rem; color:var(--accent-purple); font-weight:700; margin-bottom:5px; text-transform:uppercase;">
+                            Predicted SPM Grade</div>
+                        <div style="font-size:1.4rem; font-weight:800; color:var(--accent-purple);"
+                            id="parentCardGrade">A</div>
+                    </div>
+                </div>
+
+                <div style="font-size:0.8rem; color:#64748b; text-align:center;">
+                    Powered by ChemLearn AI Analytics
+                </div>
+            </div>
+
+            <button onclick="generateParentLink()" id="generateParentLinkBtn"
+                style="width:100%; padding:14px; background:white; color:var(--accent-purple); border:2px solid var(--accent-purple); border-radius:14px; font-size:0.95rem; font-weight:700; cursor:pointer; transition:all 0.2s;">🔗
+                Generate Shareable Link</button>
+        </div>
+    </div>
+
+    <footer class="footer-wrapper">
+        <div class="footer-grid-row">
+            <div class="footer-brand-side">
+                <a href="index.html" class="brand-logo">
+                    <svg width="20" height="24" viewBox="0 0 22 26" fill="none" xmlns="http://www.w3.org/2000/svg"
+                        style="display:inline-block; vertical-align:middle;">
+                        <path
+                            d="M2 2H20M2 24H20M3.5 2C3.5 2 5 10.5 11 13C5 15.5 3.5 24 3.5 24M18.5 2C18.5 2 17 10.5 11 13C17 15.5 18.5 24 18.5 24"
+                            stroke="#b85ee6" stroke-width="2.8" stroke-linecap="round" />
+                    </svg>
+                    ChemLearn
+                </a>
+                <p>Empowering secondary school scholars to clear their SPM chemistry practical boards easily through
+                    dynamic visualization frameworks.</p>
+            </div>
+            <div class="footer-column">
+                <h4>Syllabus Tracks</h4>
+                <ul>
+                    <li><a href="lessons.html">Acids & Bases Profiles</a></li>
+                    <li><a href="experiments/qualitative-sim.html">Soluble Salt Workflows</a></li>
+                    <li><a href="experiments/qualitative-sim.html">Qualitative Anion Tests</a></li>
+                </ul>
+            </div>
+            <div class="footer-column">
+                <h4>Legal Info</h4>
+                <ul>
+                    <li><a href="terms-of-service.html">Terms of Service</a></li>
+                    <li><a href="privacy-policy.html">Privacy Policy</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom-bar">&copy; 2026 ChemLearn Engine. Built for KSSM Chemistry Excellence.</div>
+    </footer>
+
+    <script>
+        let lastDashData = { username: 'Scholar', streak: 0, quizScore: 0, level: 'Level 1' };
+
+        window.openShareModal = function () {
+            document.getElementById('shareCardName').textContent = lastDashData.username;
+            document.getElementById('shareCardRank').textContent = lastDashData.level;
+            document.getElementById('shareCardStreak').textContent = `🔥 ${lastDashData.streak}d`;
+            document.getElementById('shareCardAvg').textContent = `🎯 ${lastDashData.quizScore}%`;
+            const xp = Math.round(lastDashData.quizScore * 8 + lastDashData.streak * 15);
+            document.getElementById('shareCardXP').textContent = `⚡ ${xp}`;
+            document.getElementById('shareModal').style.display = 'flex';
+        };
+
+        window.closeShareModal = function () {
+            document.getElementById('shareModal').style.display = 'none';
+        };
+
+        window.copyShareText = function () {
+            const text = `🧪 ChemLearn AI Progress Card:\n👤 Scholar: ${lastDashData.username}\n🔥 Streak: ${lastDashData.streak} Days\n🎯 Quiz Average: ${lastDashData.quizScore}%\n🏅 Rank: ${lastDashData.level}\n⚡ XP: ${Math.round(lastDashData.quizScore * 8 + lastDashData.streak * 15)}\n\nTry SPM Chemistry Virtual Lab & AI Tutor at https://chemlearn-67.web.app !`;
+            navigator.clipboard.writeText(text).then(() => {
+                const btn = document.getElementById('copyShareBtn');
+                btn.textContent = '✅ Copied to Clipboard!';
+                setTimeout(() => { btn.textContent = '📋 Copy Shareable Link & Card'; }, 2500);
+            }).catch(err => {
+                alert('Copied Progress Summary:\n\n' + text);
+            });
+        };
+
+        window.openSettingsModal = function () {
+            document.getElementById('spmDateInput').value = localStorage.getItem("chemlearn_spm_date")?.split('T')[0] || "2026-11-01";
+            document.getElementById('settingsModal').style.display = 'flex';
+        };
+
+        window.closeSettingsModal = function () {
+            document.getElementById('settingsModal').style.display = 'none';
+        };
+
+        window.saveSettings = function () {
+            const newDate = document.getElementById('spmDateInput').value;
+            if (newDate) {
+                localStorage.setItem("chemlearn_spm_date", newDate + "T00:00:00Z");
+                closeSettingsModal();
+                location.reload();
+            }
+        };
+
+        window.calcTotalXP = function (data) {
+            if (!data) return 0;
+            return Math.round((data.quizScore || 0) * 8 + (data.streak || 0) * 15 + (data.xp || 0));
+        };
+
+        window.openParentModal = function () {
+            const xp = window.calcTotalXP(lastDashData);
+            const hours = Math.max(1, Math.round(xp / 100));
+
+            document.getElementById('parentCardName').textContent = lastDashData.username || 'Student';
+            document.getElementById('parentCardAvatar').src = lastDashData.photoUrl || `https://ui-avatars.com/api/?background=7c3aed&color=fff&name=${(lastDashData.username || 'S').charAt(0)}`;
+            document.getElementById('parentCardRank').textContent = lastDashData.level || 'Level 1';
+            document.getElementById('parentCardTime').textContent = `~${hours} hrs`;
+            document.getElementById('parentCardAvg').textContent = `${lastDashData.quizScore || 0}%`;
+            document.getElementById('parentCardStreak').textContent = `${lastDashData.streak || 0} Days`;
+
+            let predictedIdx = 0;
+            const score = lastDashData.quizScore || 0;
+            if (score >= 90) predictedIdx = 7;
+            else if (score >= 80) predictedIdx = 6;
+            else if (score >= 70) predictedIdx = 5;
+            else if (score >= 65) predictedIdx = 4;
+            else if (score >= 60) predictedIdx = 3;
+            else if (score >= 50) predictedIdx = 2;
+            else if (score >= 40) predictedIdx = 1;
+
+            if ((lastDashData.streak || 0) >= 3) predictedIdx = Math.min(predictedIdx + 1, 7);
+            const grades = ['G', 'D', 'C', 'B', 'B+', 'A-', 'A', 'A+'];
+            document.getElementById('parentCardGrade').textContent = grades[predictedIdx];
+
+            document.getElementById('parentModal').style.display = 'flex';
+        };
+
+        window.closeParentModal = function () {
+            document.getElementById('parentModal').style.display = 'none';
+        };
+
+        window.generateParentLink = function () {
+            const url = window.location.origin + '/dashboard.html?view=parent&uid=' + (currentUserId || '');
+            navigator.clipboard.writeText(url).then(() => {
+                const event = new CustomEvent('showToastEvent', { detail: { title: 'Link copied!', desc: 'You can now share this with parents.', icon: '🔗' } });
+                window.dispatchEvent(event);
+            });
+        };
+    </script>
+
+    <script type="module">
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+        import { getFirestore, doc, getDoc, updateDoc, increment, collection, query, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+        import { getAI, getGenerativeModel, GoogleAIBackend } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-ai.js";
+
+        import { app, auth, db, model } from "./js/firebase-config.js";// Initialize AI if available
+        let ai, geminiModel;
+        try {
+            ai = getAI(app, { backend: new GoogleAIBackend() });
+            geminiModel = getGenerativeModel(ai, { model: "gemini-2.5-flash" });
+        } catch (e) {
+            console.warn("AI module not found, AI features might be disabled", e);
+        }
+
+        // UI Elements
+        const navName = document.getElementById("navName");
+        const navPhoto = document.getElementById("navPhoto");
+        const heroName = document.getElementById("heroName");
+        const heroStreak = document.getElementById("heroStreak");
+        const heroLevel = document.getElementById("heroLevel");
+        const heroAvg = document.getElementById("heroAvg");
+
+        const statStreak = document.getElementById("statStreak");
+        const statLevel = document.getElementById("statLevel");
+        const statQuiz = document.getElementById("statQuiz");
+        const statXP = document.getElementById("statXP");
+
+        const goalPercent = document.getElementById("goalPercent");
+        const goalCircle = document.getElementById("goalCircle");
+        const goalCurrentAvg = document.getElementById("goalCurrentAvg");
+        const goalStatus = document.getElementById("goalStatus");
+
+        const xpLevelTitle = document.getElementById("xpLevelTitle");
+        const xpCurrent = document.getElementById("xpCurrent");
+        const xpNext = document.getElementById("xpNext");
+        const xpBar = document.getElementById("xpBar");
+        const xpCaption = document.getElementById("xpCaption");
+
+        const badgeRow = document.getElementById("badgeRow");
+        const badgeCountText = document.getElementById("badgeCountText");
+        const weaknessList = document.getElementById("weaknessList");
+
+        let currentUserId = null;
+        let currentUserData = null;
+
+        // Toast Function
+        function showToast(title, desc, icon) {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.innerHTML = DOMPurify.sanitize(`
+        <div class="toast-icon">${icon}</div>
+        <div>
+            <div class="toast-title">${title}</div>
+            <div class="toast-desc">${desc}</div>
+        </div>
+    `);
+            container.appendChild(toast);
+
+            // Trigger animation
+            setTimeout(() => toast.classList.add('show'), 100);
+
+            // Remove after 4s
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 500);
+            }, 4000);
+        }
+
+        window.addEventListener('showToastEvent', (e) => {
+            showToast(e.detail.title, e.detail.desc, e.detail.icon);
+        });
+
+        function levelTitleFor(quizScore) {
+            if (quizScore >= 90) return "Master Chemist";
+            if (quizScore >= 70) return "Advanced Chemist";
+            if (quizScore >= 40) return "Apprentice Chemist";
+            return "Novice Chemist";
+        }
+
+        function renderDashboard(data) {
+            const { username, photoUrl, streak, quizScore, level, chatCount, fastQuiz, lessonsCompleted, dailyChallengeStreak, experimentsCompleted } = data;
+            lastDashData = data;
+
+            if (navName) navName.textContent = username;
+            if (navPhoto && photoUrl) navPhoto.src = photoUrl;
+            if (heroName) heroName.innerHTML = DOMPurify.sanitize(`Welcome back, ${username}<span>.</span>`);
+            if (heroStreak) heroStreak.textContent = `${streak} Day${streak === 1 ? "" : "s"} Streak`;
+            if (heroLevel) heroLevel.textContent = level;
+            if (heroAvg) heroAvg.textContent = `${quizScore}% Avg`;
+
+            if (statStreak) statStreak.textContent = streak;
+            if (statLevel) statLevel.textContent = level;
+            if (statQuiz) statQuiz.textContent = quizScore;
+
+            const xp = window.calcTotalXP(data);
+            const levels = [{ name: 'Beginner', xp: 0 }, { name: 'Explorer', xp: 500 }, { name: 'Scholar', xp: 1200 }, { name: 'Expert', xp: 2500 }, { name: 'Master', xp: 5000 }, { name: 'Legend', xp: 10000 }];
+            let currentLevel = levels[0], nextLevel = levels[1];
+            for (let i = 0; i < levels.length; i++) {
+                if (xp >= levels[i].xp) { currentLevel = levels[i]; nextLevel = levels[i + 1] || levels[i]; }
+                else break;
+            }
+            const xpToNext = nextLevel.xp;
+            const xpPct = nextLevel.xp > currentLevel.xp ? Math.min(100, Math.round(((xp - currentLevel.xp) / (nextLevel.xp - currentLevel.xp)) * 100)) : 100;
+
+            if (statXP) statXP.textContent = xp;
+            if (xpCurrent) xpCurrent.textContent = xp;
+            if (xpNext) xpNext.textContent = xpToNext;
+            if (xpBar) xpBar.style.width = `${xpPct}%`;
+            if (xpLevelTitle) xpLevelTitle.textContent = currentLevel.name;
+            if (xpCaption) xpCaption.textContent = xpPct >= 100 ? "You're ready to level up! 🎉" : `${Math.max(0, xpToNext - xp)} XP to your next level`;
+
+            if (goalPercent) goalPercent.textContent = `${quizScore}%`;
+            if (goalCircle) goalCircle.style.background = `conic-gradient(#6d28d9 ${quizScore}%, #e5e7eb 0)`;
+            if (goalCurrentAvg) goalCurrentAvg.textContent = `${quizScore}%`;
+            if (goalStatus) goalStatus.textContent = quizScore >= 80 ? "Goal Achieved 🎉" : quizScore >= 50 ? "On Track" : "Getting Started";
+
+            // Badges 
+            if (badgeRow) {
+                const badgesDef = [
+                    { key: "First Blood", icon: "🧪", earned: streak >= 1 || quizScore > 0 },
+                    { key: "Diligent Scholar", icon: "📚", earned: streak >= 3 },
+                    { key: "Lab Master", icon: "🏆", earned: quizScore >= 70 },
+                    { key: "Perfect Score", icon: "💯", earned: quizScore >= 95 },
+                    { key: "7-Day Streak", icon: "🔥", earned: streak >= 7 },
+                    { key: "AI Explorer", icon: "🧠", earned: (chatCount || 0) >= 10 },
+                    { key: "Speed Demon", icon: "⚡", earned: fastQuiz === true },
+                    { key: "Bookworm", icon: "📖", earned: (lessonsCompleted || 0) >= 8 },
+                    { key: "Daily Warrior", icon: "🎯", earned: (dailyChallengeStreak || 0) >= 7 },
+                    { key: "Experiment Pro", icon: "🧪", earned: (experimentsCompleted || 0) >= 5 }
+                ];
+
+                let earnedCount = 0;
+                let html = '';
+
+                // Check for new unlocks using localStorage
+                let savedBadges = [];
+                const badgeKey = 'unlockedBadges_' + (currentUserId || 'guest');
+                try { savedBadges = JSON.parse(localStorage.getItem(badgeKey)) || []; } catch (e) { }
+                let newSavedBadges = [...savedBadges];
+
+                badgesDef.forEach(b => {
+                    if (b.earned) {
+                        earnedCount++;
+                        if (!savedBadges.includes(b.key)) {
+                            newSavedBadges.push(b.key);
+                            setTimeout(() => showToast(`Badge Unlocked: ${b.key}!`, "Check your achievements board.", "🎉"), 1000 + earnedCount * 500);
+                        }
+                    }
+                    html += `
+                <div class="badge-pill">
+                    <div class="badge-icon ${b.earned ? "unlocked" : "locked"}" title="${b.key}">${b.earned ? b.icon : "🔒"}</div>
+                    <span>${b.key}</span>
+                </div>
+            `;
+                });
+
+                localStorage.setItem(badgeKey, JSON.stringify(newSavedBadges));
+                badgeRow.innerHTML = DOMPurify.sanitize(html);
+                if (badgeCountText) badgeCountText.textContent = `${earnedCount}/10 Badges Earned`;
+            }
+
+            // Weakness Detection
+            if (weaknessList) {
+                let weaknesses = [];
+                if (quizScore < 50) {
+                    weaknesses = [
+                        { title: "Ionic Equations", color: "#ef4444", pct: 30, link: "lessons.html" },
+                        { title: "pH Calculation", color: "#f59e0b", pct: 45, link: "lessons.html" },
+                        { title: "Salt Preparation", color: "#f59e0b", pct: 40, link: "experiment.html" }
+                    ];
+                } else if (quizScore < 70) {
+                    weaknesses = [
+                        { title: "Electrolysis", color: "#f59e0b", pct: 55, link: "lessons.html" },
+                        { title: "Qualitative Analysis", color: "#f59e0b", pct: 60, link: "experiment.html" }
+                    ];
+                } else if (quizScore < 90) {
+                    weaknesses = [
+                        { title: "HOTS Questions", color: "#3b82f6", pct: 80, link: "quizzes.html" }
+                    ];
+                }
+
+                if (weaknesses.length === 0) {
+                    weaknessList.innerHTML = DOMPurify.sanitize(`<div style="padding: 15px; text-align: center; color: #059669; font-weight: 700;">✅ Great job! All topics mastered!</div>`);
+                } else {
+                    weaknessList.innerHTML = DOMPurify.sanitize(weaknesses.map(w => `
+                <a href="${w.link}" class="weakness-item">
+                    <div class="weakness-title">❌ ${w.title}</div>
+                    <div class="weakness-rec">✓ Lesson Review → ✓ AI Explanation → ✓ Practice Quiz</div>
+                    <div class="weak-bar-bg">
+                        <div class="weak-bar-fill" style="width: ${w.pct}%; background: ${w.color};"></div>
+                    </div>
+                </a>
+            `).join(''));
+                }
+            }
+
+            renderStudyPlan(quizScore);
+            renderHeatmap();
+            renderExamPredictor(data);
+        }
+
+        function renderExamPredictor(data) {
+            const { quizScore, streak } = data;
+            const grades = ['G', 'D', 'C', 'B', 'B+', 'A-', 'A', 'A+'];
+
+            let baseIdx = 0;
+            if (quizScore >= 90) baseIdx = 7;
+            else if (quizScore >= 80) baseIdx = 6;
+            else if (quizScore >= 70) baseIdx = 5;
+            else if (quizScore >= 65) baseIdx = 4;
+            else if (quizScore >= 60) baseIdx = 3;
+            else if (quizScore >= 50) baseIdx = 2;
+            else if (quizScore >= 40) baseIdx = 1;
+            else baseIdx = 0;
+
+            let predictedIdx = baseIdx;
+            if (streak >= 3) {
+                predictedIdx = Math.min(predictedIdx + 1, 7);
+            }
+
+            const currentGradeDisplay = document.getElementById("currentGradeDisplay");
+            const predictedGradeDisplay = document.getElementById("predictedGradeDisplay");
+            const predictorBar = document.getElementById("predictorBar");
+            const predictorCaption = document.getElementById("predictorCaption");
+
+            if (currentGradeDisplay) currentGradeDisplay.textContent = grades[baseIdx];
+            if (predictedGradeDisplay) predictedGradeDisplay.textContent = grades[predictedIdx];
+
+            if (predictorBar) {
+                const pct = Math.max(5, Math.min(100, Math.round((predictedIdx / 7) * 100)));
+                predictorBar.style.width = `${pct}%`;
+            }
+
+            if (predictorCaption) {
+                if (streak >= 3) {
+                    if (baseIdx === 7) {
+                        predictorCaption.textContent = "🔥 Max grade achieved! Maintain your streak to keep it.";
+                    } else {
+                        predictorCaption.textContent = "🔥 3+ Day streak detected! Prediction boosted by 1 grade.";
+                    }
+                    predictorCaption.style.color = "#059669";
+                } else {
+                    predictorCaption.textContent = "Keep a 3-day streak to boost your prediction!";
+                    predictorCaption.style.color = "#64748b";
+                }
+            }
+        }
+
+        function renderStudyPlan(score, shuffle = false) {
+            const grid = document.getElementById("studyPlanGrid");
+            if (!grid) return;
+
+            // SPM Countdown
+            const savedSpmDate = localStorage.getItem("chemlearn_spm_date") || "2026-11-01T00:00:00Z";
+            const examDate = new Date(savedSpmDate);
+            const today = new Date();
+            const diffDays = Math.ceil((examDate - today) / (1000 * 60 * 60 * 24));
+            document.getElementById("spmCountdown").textContent = `Your SPM is in ${diffDays} days`;
+
+            const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+            const currentDayIdx = today.getDay(); // 0 is Sunday
+
+            let planTasks = [
+                "📚 Chapter 6: Acids & Bases",
+                "📝 Quiz Practice",
+                "🧪 Virtual Lab",
+                "🔄 Weak Topics Review",
+                "📝 AI Quiz Generator",
+                "📚 Chapter 8: Manufactured",
+                "🏆 Challenge Day"
+            ];
+
+            if (score < 70) {
+                planTasks[3] = "🚨 Intensive Weakness Review";
+                planTasks[4] = "👨‍🏫 Consult AI Tutor";
+            }
+
+            if (shuffle) {
+                planTasks = planTasks.sort(() => Math.random() - 0.5);
+            }
+
+            let html = '';
+            // Align tasks to start from Monday as 1, Sun as 0
+            for (let i = 0; i < 7; i++) {
+                let displayDayIdx = (i + 1) % 7; // Start with Mon (1), end with Sun (0)
+                let isToday = displayDayIdx === currentDayIdx;
+                let task = planTasks[i];
+                let status = isToday ? '⏳' : (i < (currentDayIdx === 0 ? 6 : currentDayIdx - 1) ? '✅' : '🔒');
+
+                html += `
+            <div class="study-day ${isToday ? 'today' : ''}">
+                <div class="study-day-name">${days[displayDayIdx]}</div>
+                <div class="study-task">${task}</div>
+                <div class="study-status">${status}</div>
+            </div>
+        `;
+            }
+            grid.innerHTML = DOMPurify.sanitize(html);
+        }
+
+        function renderHeatmap() {
+            const grid = document.getElementById("heatmapGrid");
+            if (!grid) return;
+
+            let html = '';
+            let totalActive = 0;
+
+            // Generate 91 cells (13 weeks x 7 days)
+            for (let i = 0; i < 91; i++) {
+                // Mock data logic: more activity recently
+                let intensity = 0;
+                let rand = Math.random();
+                if (i > 70 && rand > 0.3) intensity = Math.floor(Math.random() * 4) + 1; // Recent
+                else if (i > 40 && rand > 0.6) intensity = Math.floor(Math.random() * 3) + 1;
+                else if (rand > 0.85) intensity = Math.floor(Math.random() * 2) + 1;
+
+                if (intensity > 0) totalActive++;
+                intensity = Math.min(intensity, 4);
+
+                let d = new Date();
+                d.setDate(d.getDate() - (90 - i));
+                let dateStr = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+
+                html += `<div class="heatmap-cell" data-level="${intensity}" title="${intensity > 0 ? intensity + ' activities' : 'No activity'} on ${dateStr}"></div>`;
+            }
+            grid.innerHTML = DOMPurify.sanitize(html);
+
+            document.getElementById("heatmapActive").textContent = totalActive;
+            document.getElementById("heatmapMaxStreak").textContent = Math.floor(totalActive / 4) + 2;
+            document.getElementById("heatmapStreak").textContent = lastDashData.streak || 0;
+        }
+
+        // -- DAILY CHALLENGE LOGIC --
+        let challengeQuestions = [];
+        let currentQuestionIndex = 0;
+        let challengeScore = 0;
+
+        const startBtn = document.getElementById("startChallengeBtn");
+        const introDiv = document.getElementById("challengeIntro");
+        const challengeDiv = document.getElementById("challengeContainer");
+        const resultDiv = document.getElementById("challengeResult");
+
+        if (startBtn) {
+            startBtn.addEventListener("click", async () => {
+                // Check if done today
+                if (currentUserData && currentUserData.dailyChallengeDate === new Date().toISOString().split('T')[0]) {
+                    introDiv.style.display = "none";
+                    resultDiv.style.display = "block";
+                    document.getElementById("challengeResultText").textContent = "You already completed today's challenge!";
+                    return;
+                }
+
+                startBtn.textContent = "Generating Challenge...";
+                startBtn.disabled = true;
+
+                try {
+                    if (!geminiModel) throw new Error("AI not initialized");
+                    const prompt = `Generate exactly 5 multiple choice questions for SPM Chemistry (Malaysian O-Level equivalent). Topics: Acids, Bases, Salts, Rate of Reaction. STRICT FORMATTING RULE: DO NOT use LaTeX formatting or math blocks (no \\text{}, no $$, no \\[ \\]). Use standard Unicode characters for chemical formulas and equations (e.g., H2O, OH-, Cu2+). Return ONLY a raw JSON object (no markdown formatting, no backticks) in this exact format: {"questions": [{"q": "Question text?", "options": ["A", "B", "C", "D"], "answer": 0}]} where answer is the index (0-3) of the correct option.`;
+
+                    const result = await geminiModel.generateContent(prompt);
+                    let text = result.response.text().trim();
+                    // Clean markdown blocks if any
+                    if (text.startsWith('```json')) text = text.replace(/```json/g, '').replace(/```/g, '').trim();
+                    else if (text.startsWith('```')) text = text.replace(/```/g, '').trim();
+
+                    const parsed = JSON.parse(text);
+                    if (parsed.questions && parsed.questions.length > 0) {
+                        challengeQuestions = parsed.questions.slice(0, 5);
+                        currentQuestionIndex = 0;
+                        challengeScore = 0;
+
+                        introDiv.style.display = "none";
+                        challengeDiv.style.display = "block";
+                        renderChallengeQuestion();
+                    } else {
+                        throw new Error("Invalid format");
+                    }
+                } catch (e) {
+                    console.error(e);
+                    if (!navigator.onLine || (e.message && (e.message.includes("Failed to fetch") || e.message.includes("network")))) {
+                        startBtn.textContent = "Offline. Connect to internet and try again.";
+                    } else {
+                        startBtn.textContent = "Failed to load. Try again.";
+                    }
+                    startBtn.disabled = false;
+                }
+            });
+        }
+
+        function renderChallengeQuestion() {
+            if (currentQuestionIndex >= challengeQuestions.length) {
+                finishChallenge();
+                return;
+            }
+
+            const q = challengeQuestions[currentQuestionIndex];
+            document.getElementById("challengeProgress").textContent = `Question ${currentQuestionIndex + 1}/5`;
+            document.getElementById("challengeQuestion").textContent = q.q;
+
+            const optionsDiv = document.getElementById("challengeOptions");
+            optionsDiv.innerHTML = '';
+
+            q.options.forEach((opt, idx) => {
+                const div = document.createElement("div");
+                div.className = "challenge-option";
+                div.textContent = opt;
+                div.onclick = () => selectChallengeAnswer(div, idx, q.answer);
+                optionsDiv.appendChild(div);
+            });
+        }
+
+        function selectChallengeAnswer(selectedElement, selectedIdx, correctIdx) {
+            const options = document.getElementById("challengeOptions").children;
+            // Disable clicks
+            for (let opt of options) opt.style.pointerEvents = 'none';
+
+            if (selectedIdx === correctIdx) {
+                selectedElement.classList.add('correct');
+                challengeScore++;
+            } else {
+                selectedElement.classList.add('incorrect');
+                options[correctIdx].classList.add('correct'); // Show correct
+            }
+
+            setTimeout(() => {
+                currentQuestionIndex++;
+                renderChallengeQuestion();
+            }, 1200);
+        }
+
+        async function finishChallenge() {
+            challengeDiv.style.display = "none";
+            resultDiv.style.display = "block";
+
+            const xpEarned = 50 + (challengeScore === 5 ? 25 : challengeScore * 5);
+
+            document.getElementById("challengeResultText").textContent = `You scored ${challengeScore}/5.`;
+            document.getElementById("challengeXPEarned").textContent = xpEarned;
+
+            // Save to Firestore
+            if (currentUserId) {
+                try {
+                    const studentRef = doc(db, "students", currentUserId);
+                    const todayStr = new Date().toISOString().split('T')[0];
+                    await updateDoc(studentRef, {
+                        dailyChallengeDate: todayStr,
+                        xp: (currentUserData.xp || 0) + xpEarned,
+                        dailyChallengeStreak: (currentUserData.dailyChallengeStreak || 0) + 1
+                    });
+                    if (currentUserData) {
+                        currentUserData.xp = (currentUserData.xp || 0) + xpEarned;
+                        currentUserData.dailyChallengeStreak = (currentUserData.dailyChallengeStreak || 0) + 1;
+                        currentUserData.dailyChallengeDate = todayStr;
+                        renderDashboard(currentUserData);
+                    }
+                } catch (e) {
+                    console.error("Failed to update challenge stats", e);
+                }
+            }
+        }
+
+
+        // -- POMODORO TIMER LOGIC --
+        let pomoInterval = null;
+        let pomoTimeLeft = 25 * 60; // 25 mins in seconds
+        const POMO_TOTAL = 25 * 60;
+        const pomoRing = document.getElementById("pomoRing");
+        const pomoTimeDisplay = document.getElementById("pomoTime");
+        const pomoPlayBtn = document.getElementById("pomoPlayBtn");
+        const pomoResetBtn = document.getElementById("pomoResetBtn");
+        const pomoStatus = document.getElementById("pomoStatus");
+
+        const chimeAudio = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
+
+        function updatePomoDisplay() {
+            const m = Math.floor(pomoTimeLeft / 60).toString().padStart(2, '0');
+            const s = (pomoTimeLeft % 60).toString().padStart(2, '0');
+            if (pomoTimeDisplay) pomoTimeDisplay.textContent = `${m}:${s}`;
+
+            if (pomoRing) {
+                const offset = 440 - (pomoTimeLeft / POMO_TOTAL) * 440;
+                pomoRing.style.strokeDashoffset = offset;
+            }
+        }
+
+        if (pomoPlayBtn) {
+            pomoPlayBtn.addEventListener('click', () => {
+                if (pomoInterval) {
+                    clearInterval(pomoInterval);
+                    pomoInterval = null;
+                    pomoPlayBtn.textContent = "▶ Play";
+                    pomoPlayBtn.classList.remove('active');
+                    pomoStatus.textContent = "Timer paused.";
+                } else {
+                    pomoPlayBtn.textContent = "⏸ Pause";
+                    pomoPlayBtn.classList.add('active');
+                    pomoStatus.textContent = "Focus mode active. You got this!";
+
+                    pomoInterval = setInterval(() => {
+                        pomoTimeLeft--;
+                        updatePomoDisplay();
+                        if (pomoTimeLeft <= 0) {
+                            clearInterval(pomoInterval);
+                            pomoInterval = null;
+                            if (pomoTimeDisplay) pomoTimeDisplay.textContent = "00:00";
+                            setTimeout(() => {
+                                pomoPlayBtn.textContent = "▶ Play";
+                                pomoPlayBtn.classList.remove('active');
+                                pomoStatus.textContent = "Session complete! Take a 5-min break.";
+                                pomoTimeLeft = POMO_TOTAL;
+                                chimeAudio.play().catch(e => console.log("Audio play blocked", e));
+                                updatePomoDisplay();
+
+                                if (auth.currentUser) {
+                                    updateDoc(doc(db, "students", auth.currentUser.uid), {
+                                        xp: increment(50),
+                                        completedPomodoros: increment(1)
+                                    }).then(() => {
+                                        window.showGlobalErrorToast("Focus session complete! +50 XP earned.", 3000);
+                                    }).catch(err => console.error("Failed to save Pomodoro progress", err));
+                                }
+                            }, 2000);
+                        }
+                    }, 1000);
+                }
+            });
+        }
+
+        if (pomoResetBtn) {
+            pomoResetBtn.addEventListener('click', () => {
+                if (pomoInterval) {
+                    clearInterval(pomoInterval);
+                    pomoInterval = null;
+                }
+                pomoTimeLeft = POMO_TOTAL;
+                updatePomoDisplay();
+                if (pomoPlayBtn) {
+                    pomoPlayBtn.textContent = "▶ Play";
+                    pomoPlayBtn.classList.remove('active');
+                }
+                if (pomoStatus) pomoStatus.textContent = "Ready to focus?";
+            });
+        }
+
+        // -- GLOBAL LEADERBOARD LOGIC --
+        async function loadLeaderboard() {
+            const list = document.getElementById("leaderboardList");
+            if (!list) return;
+            list.innerHTML = DOMPurify.sanitize(`<div style="text-align:center; padding:20px; color:#64748b; font-size:0.9rem;">Loading leaderboard...</div>`);
+
+            try {
+                const q = query(collection(db, "students"), orderBy("xp", "desc"), limit(5));
+                const querySnapshot = await getDocs(q);
+
+                if (querySnapshot.empty) {
+                    list.innerHTML = DOMPurify.sanitize(`<div style="text-align:center; padding:20px; color:#64748b; font-size:0.9rem;">No students found yet.</div>`);
+                    return;
+                }
+
+                let html = '';
+                let rank = 1;
+                querySnapshot.forEach((docSnap) => {
+                    const student = docSnap.data();
+                    const username = student.username || student.email?.split('@')[0] || 'Unknown';
+                    const xp = student.xp || 0;
+                    const level = student.level || 'Level 1';
+                    let photoUrl = student.photoUrl || `https://ui-avatars.com/api/?background=7c3aed&color=fff&name=${username.charAt(0).toUpperCase()}`;
+
+                    const isYou = currentUserId === docSnap.id;
+
+                    html += `
+                <div class="leaderboard-item ${isYou ? 'lb-you' : ''}">
+                    <div class="lb-rank ${rank === 1 ? 'gold' : ''}">${rank}</div>
+                    <img loading="lazy" class="lb-avatar" src="${photoUrl}">
+                    <div class="lb-name">${isYou ? 'You (' + username + ')' : username} <span style="font-size:0.7rem; color:#94a3b8; font-weight:600; margin-left:4px;">${level}</span></div>
+                    <div class="lb-score">${xp} XP</div>
+                </div>
+            `;
+                    rank++;
+                });
+
+                list.innerHTML = DOMPurify.sanitize(html);
+            } catch (err) {
+                console.error("Error loading leaderboard:", err);
+                list.innerHTML = DOMPurify.sanitize(`<div style="text-align:center; padding:20px; color:#ef4444; font-size:0.9rem;">Failed to load leaderboard.</div>`);
+            }
+        }
+
+        // Auth Listener
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                currentUserId = user.uid;
+                const username = user.email ? user.email.split("@")[0] : (user.displayName || 'Student');
+                const photoUrl = user.photoURL || `https://ui-avatars.com/api/?background=7c3aed&color=fff&name=${username.charAt(0).toUpperCase()}`;
+
+                const studentRef = doc(db, "students", user.uid);
+                let studentSnap;
+
+                try {
+                    studentSnap = await getDoc(studentRef);
+                } catch (error) {
+                    console.error(error);
+                }
+
+                let data = { username, photoUrl, streak: 0, quizScore: 0, level: "Level 1" };
+                if (studentSnap && studentSnap.exists()) {
+                    data = { ...data, ...studentSnap.data() };
+                }
+                currentUserData = data;
+
+                // If already completed challenge today, show done state
+                if (data.dailyChallengeDate === new Date().toISOString().split('T')[0]) {
+                    if (introDiv) introDiv.style.display = "none";
+                    if (resultDiv) {
+                        resultDiv.style.display = "block";
+                        document.getElementById("challengeResultText").textContent = "You've completed today's challenge!";
+                        document.getElementById("challengeXPEarned").textContent = "-";
+                    }
+                }
+
+                renderDashboard(data);
+                loadLeaderboard();
+            } else {
+                currentUserId = null;
+                currentUserData = null;
+                renderDashboard({ username: "Guest", photoUrl: null, streak: 0, quizScore: 0, level: "Level 1" });
+                loadLeaderboard();
+            }
+        });
+
+        const regenPlanBtn = document.getElementById("regenPlanBtn");
+        if (regenPlanBtn) {
+            regenPlanBtn.addEventListener("click", () => {
+                if (currentUserData) renderStudyPlan(currentUserData.quizScore, true);
+            });
+        }
+    </script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const loginBtn = document.getElementById('openLoginBtn');
+            const signupBtn = document.getElementById('openSignupBtn');
+            if (loginBtn) {
+                loginBtn.addEventListener('click', () => {
+                    if (typeof auth !== 'undefined' && auth && auth.currentUser) {
+                        if (confirm("Signed in as " + auth.currentUser.email + ". Would you like to log out?")) {
+                            signOut(auth).then(() => { window.location.reload(); });
+                        }
+                    } else {
+                        window.location.href = 'index.html#login';
+                    }
+                });
+            }
+            if (signupBtn) {
+                signupBtn.addEventListener('click', () => {
+                    window.location.href = 'index.html#signup';
+                });
+            }
+        });
+    </script>
+
+</body>
+
+</html>

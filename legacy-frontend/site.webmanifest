@@ -1,0 +1,63 @@
+{
+  "name": "ChemLearn AI - SPM Chemistry Learning Platform",
+  "short_name": "ChemLearn",
+  "description": "Interactive SPM Chemistry simulations, qualitative salt analysis, and AI marking engine for Malaysian Form 4 & 5 students.",
+  "start_url": "/",
+  "id": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#faf8ff",
+  "theme_color": "#6d28d9",
+  "lang": "en-MY",
+  "icons": [
+    {
+      "src": "/icons/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ],
+  "categories": [
+    "education",
+    "science"
+  ],
+  "shortcuts": [
+    {
+      "name": "Interactive Experiments",
+      "short_name": "Labs",
+      "url": "/experiments/",
+      "description": "Jump directly into virtual chemistry simulations"
+    },
+    {
+      "name": "Qualitative Salt Analysis",
+      "short_name": "Salts",
+      "url": "/experiments/qualitative-sim.html",
+      "description": "Practice cation and anion precipitation tests"
+    },
+    {
+      "name": "SPM Chemistry Quizzes",
+      "short_name": "Quizzes",
+      "url": "/quizzes.html",
+      "description": "Test yourself on Chapter 6 and Chapter 8"
+    }
+  ]
+}

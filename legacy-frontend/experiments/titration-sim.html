@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Acid-Base Titration Curve & pH Simulator | ChemLearn AI</title>
+    <meta name="description" content="Simulate strong and weak acid-base titrations with real-time pH calculation, Henderson-Hasselbalch buffer modeling, and indicator color transitions.">
+    <link rel="canonical" href="https://chemlearn-67.web.app/experiments/titration-sim.html">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f3ff; /* subtle purple background */
+            color: #1f2937;
+            line-height: 1.6;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        h1 {
+            color: #6d28d9;
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        p.subtitle {
+            color: #4b5563;
+            font-size: 1.1rem;
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1.5fr;
+            gap: 20px;
+            align-items: start;
+        }
+
+        @media (max-width: 992px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .panel {
+            background-color: #ffffff;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        /* Controls Panel */
+        .controls-grid {
+            display: grid;
+            gap: 16px;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .control-group label {
+            font-weight: 600;
+            color: #374151;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .control-group span.val {
+            color: #6d28d9;
+            font-weight: bold;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            accent-color: #6d28d9;
+            cursor: pointer;
+        }
+
+        select, .radio-group {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 1rem;
+            font-family: inherit;
+        }
+
+        .radio-group {
+            border: none;
+            padding: 0;
+            display: flex;
+            gap: 16px;
+        }
+
+        .radio-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+        }
+
+        button.primary-btn {
+            background-color: #6d28d9;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            margin-top: 10px;
+            width: 100%;
+        }
+
+        button.primary-btn:hover {
+            background-color: #5b21b6;
+        }
+
+        button.primary-btn:disabled {
+            background-color: #9ca3af;
+            cursor: not-allowed;
+        }
+
+        /* Stats & Visuals Panel */
+        .stats-display {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            background-color: #f3f4f6;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 20px;
+        }
+
+        .stat-box {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #6d28d9;
+            font-variant-numeric: tabular-nums;
+        }
+        
+        .stat-label {
+            font-size: 0.875rem;
+            color: #4b5563;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .visual-area {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            height: 350px;
+            margin-top: 20px;
+            background: linear-gradient(to bottom, #ffffff, #f9fafb);
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+        }
+
+        /* Chart Panel */
+        .chart-container {
+            position: relative;
+            height: 500px;
+            width: 100%;
+        }
+
+        .formula-box {
+            background-color: #fef3c7;
+            border-left: 4px solid #f59e0b;
+            padding: 12px;
+            margin-top: 20px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 1.1rem;
+        }
+
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>Chapter 7: Acid-Base Titration Simulator</h1>
+        <p class="subtitle">Stoichiometry & pH Curve Visualization (SPM KSSM)</p>
+    </header>
+
+    <div class="main-grid">
+        <!-- Left Column: Controls & Lab Animation -->
+        <div class="left-col" style="display: flex; flex-direction: column; gap: 20px;">
+            <div class="panel">
+                <div class="controls-grid">
+                    <div class="control-group">
+                        <label>Titration Type</label>
+                        <div class="radio-group">
+                            <label class="radio-item">
+                                <input type="radio" name="titrationType" value="strong" checked> 
+                                Strong Acid + Strong Base
+                            </label>
+                            <label class="radio-item">
+                                <input type="radio" name="titrationType" value="weak"> 
+                                Weak Acid + Strong Base
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="control-group">
+                        <label for="acidConc">
+                            Acid Concentration, M<sub>a</sub> (M)
+                            <span class="val" id="acidConcVal">0.10</span>
+                        </label>
+                        <input type="range" id="acidConc" min="0.01" max="2.00" step="0.01" value="0.10">
+                    </div>
+
+                    <div class="control-group">
+                        <label for="acidVol">
+                            Analyte Volume, V<sub>a</sub> (mL)
+                            <span class="val" id="acidVolVal">25.0</span>
+                        </label>
+                        <input type="range" id="acidVol" min="10.0" max="50.0" step="1.0" value="25.0">
+                    </div>
+
+                    <div class="control-group">
+                        <label for="baseConc">
+                            Base Concentration, M<sub>b</sub> (M)
+                            <span class="val" id="baseConcVal">0.10</span>
+                        </label>
+                        <input type="range" id="baseConc" min="0.01" max="2.00" step="0.01" value="0.10">
+                    </div>
+
+                    <div class="control-group">
+                        <label for="indicator">Indicator</label>
+                        <select id="indicator">
+                            <option value="phenolphthalein">Phenolphthalein (pH 8.3 - 10.0)</option>
+                            <option value="methylOrange">Methyl Orange (pH 3.1 - 4.4)</option>
+                        </select>
+                    </div>
+
+                    <button class="primary-btn" id="animateBtn">Animate Titration</button>
+                </div>
+            </div>
+
+            <div class="panel">
+                <div class="stats-display">
+                    <div class="stat-box">
+                        <div class="stat-label">Current pH</div>
+                        <div class="stat-value" id="currentPh">1.00</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-label">Eq. Volume (mL)</div>
+                        <div class="stat-value" id="eqVol">25.0</div>
+                    </div>
+                </div>
+
+                <div class="visual-area">
+                    <!-- SVG Lab Setup -->
+                    <svg width="200" height="300" viewBox="0 0 200 300" id="labSvg">
+                        <defs>
+                            <linearGradient id="liquidGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                                <stop offset="0%" stop-color="#ffffff" stop-opacity="0.8"/>
+                                <stop offset="100%" stop-color="#ffffff" stop-opacity="0.8"/>
+                            </linearGradient>
+                            <clipPath id="flaskClip">
+                                <!-- Inner shape of the flask -->
+                                <path d="M90 120 L90 50 L110 50 L110 120 L150 240 Q160 270 100 270 Q40 270 50 240 Z" />
+                            </clipPath>
+                        </defs>
+                        
+                        <!-- Burette -->
+                        <rect x="95" y="10" width="10" height="80" fill="#e5e7eb" stroke="#9ca3af" stroke-width="1" rx="2" />
+                        <rect x="90" y="90" width="20" height="5" fill="#4b5563" /> <!-- Tap -->
+                        <path d="M98 95 L98 105 L102 105 L102 95 Z" fill="#9ca3af" /> <!-- Tip -->
+                        
+                        <!-- Drop Animation Placeholder -->
+                        <circle cx="100" cy="110" r="3" fill="#6d28d9" id="drop" opacity="0" />
+
+                        <!-- Flask Liquid -->
+                        <g clip-path="url(#flaskClip)">
+                            <rect x="40" y="160" width="120" height="120" id="flaskLiquid" fill="url(#liquidGrad)" />
+                        </g>
+                        
+                        <!-- Flask Outline -->
+                        <path d="M90 120 L90 50 L110 50 L110 120 L150 240 Q160 270 100 270 Q40 270 50 240 Z" fill="none" stroke="#6b7280" stroke-width="3" stroke-linejoin="round" />
+                        <line x1="85" y1="50" x2="115" y2="50" stroke="#6b7280" stroke-width="3" stroke-linecap="round"/>
+                        
+                        <!-- Liquid Level Line -->
+                        <ellipse cx="100" cy="160" rx="28" ry="4" fill="none" stroke="#9ca3af" stroke-width="1" id="liquidSurface" />
+                    </svg>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column: Graph -->
+        <div class="panel" style="display: flex; flex-direction: column;">
+            <h2>Titration Curve</h2>
+            <div class="chart-container">
+                <canvas id="titrationChart"></canvas>
+            </div>
+            
+            <div class="formula-box">
+                <strong>Equivalence Point Stoichiometry:</strong><br>
+                M<sub>a</sub>V<sub>a</sub> / a = M<sub>b</sub>V<sub>b</sub> / b<br>
+                <span id="calcDetail" style="font-size: 0.9em; color: #4b5563; display: block; margin-top: 8px;">
+                    0.10(25) / 1 = 0.10(V_b) / 1 ➔ V_b = 25.0 mL
+                </span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // --- Helper Functions ---
+    const escapeHtml = (unsafe) => {
+        if (typeof unsafe !== 'string') return unsafe;
+        return unsafe
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+    };
+
+    // --- State & DOM Elements ---
+    const elements = {
+        typeRadios: document.getElementsByName('titrationType'),
+        acidConc: document.getElementById('acidConc'),
+        acidVol: document.getElementById('acidVol'),
+        baseConc: document.getElementById('baseConc'),
+        indicator: document.getElementById('indicator'),
+        acidConcVal: document.getElementById('acidConcVal'),
+        acidVolVal: document.getElementById('acidVolVal'),
+        baseConcVal: document.getElementById('baseConcVal'),
+        currentPh: document.getElementById('currentPh'),
+        eqVol: document.getElementById('eqVol'),
+        calcDetail: document.getElementById('calcDetail'),
+        animateBtn: document.getElementById('animateBtn'),
+        flaskLiquid: document.getElementById('flaskLiquid'),
+        drop: document.getElementById('drop')
+    };
+
+    let chartInstance = null;
+    let fullData = [];
+    let animationFrameId = null;
+    let isAnimating = false;
+    let currentVbIndex = 0;
+    
+    // Constants
+    const Kw = 1.0e-14;
+    const Ka = 1.8e-5; // Acetic acid
+    const pKa = -Math.log10(Ka);
+
+    // --- Chemistry Engine ---
+    
+    function calculatePh(type, Ma, Va, Mb, Vt) {
+        if (Vt === 0) {
+            // Initial pH
+            if (type === 'strong') {
+                return -Math.log10(Ma);
+            } else {
+                return -Math.log10(Math.sqrt(Ka * Ma));
+            }
+        }
+
+        const initialMolesAcid = Ma * Va;
+        const molesBaseAdded = Mb * Vt;
+        const totalVolume = Va + Vt;
+
+        if (type === 'strong') {
+            if (molesBaseAdded < initialMolesAcid) {
+                // Before equivalence
+                const molesRemaining = initialMolesAcid - molesBaseAdded;
+                const H_plus = molesRemaining / totalVolume;
+                return -Math.log10(H_plus);
+            } else if (Math.abs(molesBaseAdded - initialMolesAcid) < 1e-10) {
+                // At equivalence
+                return 7.00;
+            } else {
+                // After equivalence
+                const excessBase = molesBaseAdded - initialMolesAcid;
+                const OH_minus = excessBase / totalVolume;
+                return 14.0 - (-Math.log10(OH_minus));
+            }
+        } else if (type === 'weak') {
+            if (molesBaseAdded < initialMolesAcid) {
+                // Buffer zone
+                const n_acid = initialMolesAcid - molesBaseAdded;
+                const n_base = molesBaseAdded;
+                
+                // Very close to equivalence but still before, switch to more precise calculation if needed, 
+                // but Henderson-Hasselbalch is usually sufficient until very close
+                if (n_acid < 1e-5) {
+                    // Approximation breaks down, but for visualization HH is usually fine
+                }
+                return pKa + Math.log10(n_base / n_acid);
+            } else if (Math.abs(molesBaseAdded - initialMolesAcid) < 1e-10) {
+                // At equivalence
+                const C_salt = initialMolesAcid / totalVolume;
+                const Kb = Kw / Ka;
+                const OH_minus = Math.sqrt(Kb * C_salt);
+                return 14.0 - (-Math.log10(OH_minus));
+            } else {
+                // After equivalence (excess strong base dominates)
+                // Technically there's some OH- from acetate, but negligible
+                const excessBase = molesBaseAdded - initialMolesAcid;
+                const OH_minus = excessBase / totalVolume;
+                return 14.0 - (-Math.log10(OH_minus));
+            }
+        }
+        return 7.0; // Fallback
+    }
+
+    function generateTitrationData() {
+        const type = Array.from(elements.typeRadios).find(r => r.checked).value;
+        const Ma = parseFloat(elements.acidConc.value);
+        const Va = parseFloat(elements.acidVol.value);
+        const Mb = parseFloat(elements.baseConc.value);
+
+        const Veq = (Ma * Va) / Mb;
+        const Vmax = Math.ceil(Veq * 2); 
+        
+        let data = [];
+        // Generate points every 0.1 mL
+        for (let Vt = 0; Vt <= Vmax; Vt += 0.1) {
+            // Fix floating point issues
+            Vt = Math.round(Vt * 10) / 10;
+            
+            // To get a sharp curve at equivalence, add fine points near Veq
+            if (Math.abs(Vt - Veq) < 0.2 && Math.abs(Vt - Veq) > 0.01) {
+                // We'll just rely on standard points for now, or add explicit Veq
+            }
+
+            let pH = calculatePh(type, Ma, Va, Mb, Vt);
+            
+            // Clamp pH to realistic values
+            if (isNaN(pH) || pH < 0) pH = 0;
+            if (pH > 14) pH = 14;
+
+            data.push({ x: Vt, y: pH });
+        }
+        
+        // Ensure exact Veq is in the dataset
+        const eqPh = calculatePh(type, Ma, Va, Mb, Veq);
+        // Find insert index
+        let insertIndex = data.findIndex(d => d.x > Veq);
+        if (insertIndex === -1) {
+            data.push({ x: Veq, y: eqPh });
+        } else if (data[insertIndex-1].x !== Veq) {
+            data.splice(insertIndex, 0, { x: Veq, y: eqPh });
+        }
+
+        return { data, Veq, Vmax };
+    }
+
+    // --- Visualization & UI ---
+    
+    function getIndicatorColor(pH, indicator) {
+        if (indicator === 'phenolphthalein') {
+            if (pH < 8.3) return 'rgba(255, 255, 255, 0.8)';
+            if (pH > 10.0) return 'rgba(236, 72, 153, 0.8)'; // Pink
+            // Interpolate
+            const ratio = (pH - 8.3) / (10.0 - 8.3);
+            return `rgba(236, 72, 153, ${0.1 + ratio * 0.7})`;
+        } else if (indicator === 'methylOrange') {
+            if (pH < 3.1) return 'rgba(239, 68, 68, 0.8)'; // Red
+            if (pH > 4.4) return 'rgba(250, 204, 21, 0.8)'; // Yellow
+            // Orange transition
+            return 'rgba(249, 115, 22, 0.8)'; 
+        }
+        return 'rgba(255, 255, 255, 0.8)';
+    }
+
+    function updateLabVisuals(pH, Vt, Vmax) {
+        elements.currentPh.textContent = pH.toFixed(2);
+        
+        // Update flask color
+        const color = getIndicatorColor(pH, elements.indicator.value);
+        elements.flaskLiquid.setAttribute('fill', color);
+        
+        // Update liquid level (moves up slightly as volume increases)
+        // Base y = 160, full y = 130
+        const fillRatio = Math.min(Vt / (Vmax || 50), 1);
+        const yPos = 160 - (fillRatio * 30);
+        elements.flaskLiquid.setAttribute('y', yPos);
+        elements.flaskLiquid.setAttribute('height', 120 + (fillRatio * 30));
+        
+        const surface = document.getElementById('liquidSurface');
+        if(surface) {
+            surface.setAttribute('cy', yPos);
+            // Width grows as it goes up the conical flask
+            // At y=160 (bottom narrow part for visual simplification), rx=28
+            // We approximate a conical increase
+            const rx = 28 + (fillRatio * 15);
+            surface.setAttribute('rx', rx);
+        }
+    }
+
+    function updateFormulas(Ma, Va, Mb, Veq) {
+        elements.eqVol.textContent = Veq.toFixed(1);
+        elements.calcDetail.innerHTML = `${Ma.toFixed(2)}(${Va.toFixed(1)}) / 1 = ${Mb.toFixed(2)}(V<sub>b</sub>) / 1 ➔ V<sub>b</sub> = ${Veq.toFixed(1)} mL`;
+    }
+
+    function initChart() {
+        const ctx = document.getElementById('titrationChart').getContext('2d');
+        chartInstance = new Chart(ctx, {
+            type: 'line',
+            data: {
+                datasets: [{
+                    label: 'pH Curve',
+                    data: [],
+                    borderColor: '#6d28d9',
+                    backgroundColor: 'rgba(109, 40, 217, 0.1)',
+                    borderWidth: 2,
+                    pointRadius: 0,
+                    pointHoverRadius: 5,
+                    fill: true,
+                    tension: 0.3
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: {
+                        type: 'linear',
+                        title: { display: true, text: 'Volume of Base Added (mL)' },
+                        min: 0
+                    },
+                    y: {
+                        title: { display: true, text: 'pH' },
+                        min: 0,
+                        max: 14,
+                        ticks: { stepSize: 2 }
+                    }
+                },
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            label: (context) => `Vol: ${context.parsed.x.toFixed(1)} mL, pH: ${context.parsed.y.toFixed(2)}`
+                        }
+                    },
+                    legend: { display: false }
+                }
+            }
+        });
+    }
+
+    function updateChartData(fullDataArray, Veq, Vmax, isPartial = false) {
+        chartInstance.data.datasets[0].data = fullDataArray;
+        
+        // Update axes
+        chartInstance.options.scales.x.max = Math.ceil(Vmax / 10) * 10;
+        
+        // Add equivalence point annotation (using chartjs-plugin-annotation would be better, 
+        // but we'll use a hacky vertical line via a second dataset if needed, 
+        // or just rely on drawing)
+        
+        if (!isPartial) {
+            // If we have a second dataset for the eq line, update it
+            if (chartInstance.data.datasets.length === 1) {
+                chartInstance.data.datasets.push({
+                    label: 'Equivalence Point',
+                    data: [{x: Veq, y: 0}, {x: Veq, y: 14}],
+                    borderColor: 'rgba(239, 68, 68, 0.5)',
+                    borderWidth: 2,
+                    borderDash: [5, 5],
+                    pointRadius: 0,
+                    fill: false,
+                    tension: 0
+                });
+            } else {
+                chartInstance.data.datasets[1].data = [{x: Veq, y: 0}, {x: Veq, y: 14}];
+            }
+        }
+        
+        chartInstance.update();
+    }
+
+    function syncUI() {
+        const Ma = parseFloat(elements.acidConc.value);
+        const Va = parseFloat(elements.acidVol.value);
+        const Mb = parseFloat(elements.baseConc.value);
+        
+        elements.acidConcVal.textContent = Ma.toFixed(2);
+        elements.acidVolVal.textContent = Va.toFixed(1);
+        elements.baseConcVal.textContent = Mb.toFixed(2);
+
+        const { data, Veq, Vmax } = generateTitrationData();
+        fullData = data;
+        
+        if (!isAnimating) {
+            updateChartData(fullData, Veq, Vmax);
+            updateFormulas(Ma, Va, Mb, Veq);
+            updateLabVisuals(fullData[0].y, 0, Vmax);
+        }
+    }
+
+    // --- Animation Engine ---
+    
+    function startAnimation() {
+        if (isAnimating) return;
+        
+        isAnimating = true;
+        elements.animateBtn.disabled = true;
+        elements.animateBtn.textContent = "Titrating...";
+        
+        // Disable inputs
+        elements.acidConc.disabled = true;
+        elements.acidVol.disabled = true;
+        elements.baseConc.disabled = true;
+        Array.from(elements.typeRadios).forEach(r => r.disabled = true);
+        
+        const { Veq, Vmax } = generateTitrationData();
+        
+        // Clear chart curve
+        chartInstance.data.datasets[0].data = [];
+        if(chartInstance.data.datasets.length > 1) {
+            chartInstance.data.datasets[1].data = [{x: Veq, y: 0}, {x: Veq, y: 14}];
+        }
+        chartInstance.update();
+        
+        currentVbIndex = 0;
+        let lastTime = 0;
+        let dropState = 0; // 0-100 for drop position
+        
+        function animateFrame(timestamp) {
+            if (!lastTime) lastTime = timestamp;
+            const delta = timestamp - lastTime;
+            
+            if (delta > 50) { // Update every 50ms
+                lastTime = timestamp;
+                
+                // Advance drop animation
+                dropState += 20;
+                if (dropState > 100) {
+                    dropState = 0;
+                    // Add point when drop hits
+                    const stepSize = Math.max(1, Math.floor(fullData.length / 100)); // Speed of titration
+                    currentVbIndex += stepSize;
+                    
+                    if (currentVbIndex < fullData.length) {
+                        const currentPoint = fullData[currentVbIndex];
+                        const partialData = fullData.slice(0, currentVbIndex + 1);
+                        
+                        updateChartData(partialData, Veq, Vmax, true);
+                        updateLabVisuals(currentPoint.y, currentPoint.x, Vmax);
+                    }
+                }
+                
+                // Render drop
+                if (dropState > 0 && currentVbIndex < fullData.length) {
+                    elements.drop.setAttribute('opacity', '1');
+                    // Drop starts at cy=110, ends at cy=160
+                    elements.drop.setAttribute('cy', 110 + (dropState / 100) * 50);
+                } else {
+                    elements.drop.setAttribute('opacity', '0');
+                }
+                
+                if (currentVbIndex >= fullData.length) {
+                    finishAnimation();
+                    return;
+                }
+            }
+            
+            animationFrameId = requestAnimationFrame(animateFrame);
+        }
+        
+        animationFrameId = requestAnimationFrame(animateFrame);
+    }
+    
+    function finishAnimation() {
+        isAnimating = false;
+        elements.animateBtn.disabled = false;
+        elements.animateBtn.textContent = "Animate Titration";
+        elements.drop.setAttribute('opacity', '0');
+        
+        elements.acidConc.disabled = false;
+        elements.acidVol.disabled = false;
+        elements.baseConc.disabled = false;
+        Array.from(elements.typeRadios).forEach(r => r.disabled = false);
+        
+        syncUI(); // Final sync to ensure everything is matched up
+    }
+
+    // --- Event Listeners ---
+    
+    // Debounce slider updates
+    let timeoutId;
+    const handleInput = () => {
+        if (isAnimating) {
+            cancelAnimationFrame(animationFrameId);
+            finishAnimation();
+        }
+        clearTimeout(timeoutId);
+        timeoutId = setTimeout(syncUI, 50);
+        
+        // Immediate visual update for numbers
+        elements.acidConcVal.textContent = parseFloat(elements.acidConc.value).toFixed(2);
+        elements.acidVolVal.textContent = parseFloat(elements.acidVol.value).toFixed(1);
+        elements.baseConcVal.textContent = parseFloat(elements.baseConc.value).toFixed(2);
+    };
+
+    elements.acidConc.addEventListener('input', handleInput);
+    elements.acidVol.addEventListener('input', handleInput);
+    elements.baseConc.addEventListener('input', handleInput);
+    elements.indicator.addEventListener('change', syncUI);
+    Array.from(elements.typeRadios).forEach(r => r.addEventListener('change', syncUI));
+    
+    elements.animateBtn.addEventListener('click', startAnimation);
+
+    // --- Initialization ---
+    window.addEventListener('DOMContentLoaded', () => {
+        initChart();
+        syncUI();
+    });
+
+</script>
+</body>
+</html>
