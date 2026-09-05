@@ -15,6 +15,11 @@ jest.mock('@/lib/firebase-admin', () => ({
 jest.mock('@/lib/server/gemini', () => ({
   generateGeminiJson: (...args: any[]) => mockGenerateGeminiJson(...args),
   generateGeminiText: (...args: any[]) => mockGenerateGeminiText(...args),
+  GEMINI_MODELS: {
+    DEFAULT: 'gemini-3.8-flash',
+    LIGHT: 'gemini-3.5-flash-lite',
+    FALLBACK: 'gemini-2.5-flash',
+  },
 }));
 
 import {

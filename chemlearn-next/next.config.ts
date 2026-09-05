@@ -1,5 +1,6 @@
 import type { NextConfig } from "next";
 import withPWAInit from "@ducanh2912/next-pwa";
+import path from "path";
 
 const withPWA = withPWAInit({
   dest: "public",
@@ -47,6 +48,7 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   /* config options here */
+  outputFileTracingRoot: path.join(process.cwd(), "./"),
   turbopack: {},
   experimental: {
     workerThreads: false,

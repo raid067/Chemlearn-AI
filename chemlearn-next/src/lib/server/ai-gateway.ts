@@ -1,7 +1,7 @@
 import { adminDb } from '@/lib/firebase-admin';
 import { FieldValue } from 'firebase-admin/firestore';
 import { getMalaysianDateString } from './gamification';
-import { generateGeminiJson, generateGeminiText } from './gemini';
+import { generateGeminiJson, generateGeminiText, GEMINI_MODELS } from './gemini';
 import { z } from 'zod';
 import { Part } from '@google/generative-ai';
 
@@ -27,65 +27,81 @@ Strict Guardrails:
 
 /**
  * Authoritative Centralized Gemini AI Model Strategy & Task-Specific Generation Configuration
+ * Utilizing modern Gemini 3.8/3.5 models with lower latency and higher reasoning fidelity.
  */
 export const AI_CONFIG = {
   tutor: {
-    modelName: 'gemini-1.5-flash',
+    modelName: GEMINI_MODELS.DEFAULT,
     temperature: 0.4,
     topP: 0.9,
-    maxOutputTokens: 800,
+    maxOutputTokens: 1200,
   },
   tutorVision: {
-    modelName: 'gemini-1.5-pro',
+    modelName: GEMINI_MODELS.VISION,
     temperature: 0.3,
     topP: 0.9,
-    maxOutputTokens: 1000,
+    maxOutputTokens: 1500,
   },
   grading: {
-    modelName: 'gemini-1.5-flash',
+    modelName: GEMINI_MODELS.DEFAULT,
     temperature: 0.1,
-    topP: 0.8,
-    maxOutputTokens: 600,
-  },
-  questionGeneration: {
-    modelName: 'gemini-1.5-flash',
-    temperature: 0.3,
-    topP: 0.8,
-    maxOutputTokens: 1500,
-  },
-  flashcards: {
-    modelName: 'gemini-1.5-flash',
-    temperature: 0.3,
-    topP: 0.8,
-    maxOutputTokens: 1000,
-  },
-  duelGeneration: {
-    modelName: 'gemini-1.5-flash',
-    temperature: 0.3,
-    topP: 0.8,
-    maxOutputTokens: 1000,
-  },
-  notes: {
-    modelName: 'gemini-1.5-flash',
-    temperature: 0.4,
-    topP: 0.9,
-    maxOutputTokens: 1500,
-  },
-  insights: {
-    modelName: 'gemini-1.5-flash',
-    temperature: 0.3,
     topP: 0.8,
     maxOutputTokens: 800,
   },
-  worksheet: {
-    modelName: 'gemini-1.5-flash',
-    temperature: 0.3,
+  questionGeneration: {
+    modelName: GEMINI_MODELS.DEFAULT,
+    temperature: 0.5,
+    topP: 0.8,
+    maxOutputTokens: 2000,
+  },
+  flashcards: {
+    modelName: GEMINI_MODELS.LIGHT,
+    temperature: 0.4,
     topP: 0.8,
     maxOutputTokens: 1500,
+  },
+  duelGeneration: {
+    modelName: GEMINI_MODELS.LIGHT,
+    temperature: 0.5,
+    topP: 0.8,
+    maxOutputTokens: 1200,
+  },
+  notes: {
+    modelName: GEMINI_MODELS.DEFAULT,
+    temperature: 0.3,
+    topP: 0.9,
+    maxOutputTokens: 2000,
+  },
+  insights: {
+    modelName: GEMINI_MODELS.LIGHT,
+    temperature: 0.3,
+    topP: 0.8,
+    maxOutputTokens: 1000,
+  },
+  worksheet: {
+    modelName: GEMINI_MODELS.DEFAULT,
+    temperature: 0.4,
+    topP: 0.8,
+    maxOutputTokens: 2500,
   },
 } as const;
 
 export type AITaskType = keyof typeof AI_CONFIG;
+
+/**
+ * Tiered daily quotas per task type to prevent cost overruns on expensive operations.
+ */
+export const TASK_QUOTAS: Record<AITaskType, number> = {
+  flashcards: 100,
+  insights: 80,
+  tutor: 60,
+  duelGeneration: 50,
+  grading: 50,
+  questionGeneration: 30,
+  notes: 30,
+  worksheet: 20,
+  tutorVision: 15,
+};
 
 /**
  * Sanitizes and wraps untrusted user input with unambiguous boundary delimiters.
@@ -101,6 +117,35 @@ export function wrapUntrustedInput(input: string, label = 'USER_INPUT'): string 
 export function formatCurriculumContext(context: string): string {
   const sanitized = context.replace(/<<</g, '< < <').replace(/>>>/g, '> > >');
   return `<<<CURRICULUM_CONTEXT>>>\n${sanitized}\n<<<END_CURRICULUM_CONTEXT>>>`;
+}
+
+// ── In-Memory Idempotency Cache ─────────────────────────────────────────────
+
+interface CachedAIResponse<T> {
+  data: T;
+  expiresAt: number;
+}
+const idempotencyCache = new Map<string, CachedAIResponse<unknown>>();
+
+function getCachedResponse<T>(key: string): T | null {
+  const entry = idempotencyCache.get(key);
+  if (!entry) return null;
+  if (Date.now() > entry.expiresAt) {
+    idempotencyCache.delete(key);
+    return null;
+  }
+  return entry.data as T;
+}
+
+function setCachedResponse<T>(key: string, data: T, ttlMs = 45000): void {
+  // Prune expired entries if cache grows
+  if (idempotencyCache.size > 200) {
+    const now = Date.now();
+    for (const [k, v] of idempotencyCache.entries()) {
+      if (v.expiresAt <= now) idempotencyCache.delete(k);
+    }
+  }
+  idempotencyCache.set(key, { data, expiresAt: Date.now() + ttlMs });
 }
 
 // ── Strict Domain Output Schemas for AI Generation ──────────────────────────
@@ -144,7 +189,7 @@ export const generatedFlashcardSchema = z.object({
 
 export type GeneratedFlashcard = z.infer<typeof generatedFlashcardSchema>;
 
-/** Schema for a generated flashcard deck (10 cards) */
+/** Schema for a generated flashcard deck (5-15 cards) */
 export const generatedFlashcardListSchema = z.array(generatedFlashcardSchema)
   .min(5, 'Flashcard deck must have at least 5 cards')
   .max(15, 'Flashcard deck cannot exceed 15 cards');
@@ -165,16 +210,24 @@ export type GeneratedDuelQuestion = z.infer<typeof generatedDuelQuestionSchema>;
 export const generatedDuelListSchema = z.array(generatedDuelQuestionSchema)
   .length(5, 'Duel must have exactly 5 questions');
 
-/** Schema for authoritative AI structured chemistry rubric grading */
+/** Schema for authoritative AI structured chemistry rubric grading with criteria breakdown */
 export const structuredRubricSchema = z.object({
   score: z.number().min(0, 'Score cannot be negative'),
   reason: z.string().trim().default(''),
   matchedConcepts: z.array(z.string().trim()).default([]),
   missingConcepts: z.array(z.string().trim()).default([]),
   misconceptions: z.array(z.string().trim()).default([]),
+  criteriaAwarded: z.array(z.string().trim()).default([]),
+  criteriaMissed: z.array(z.string().trim()).default([]),
 });
 
 export type StructuredRubricData = z.infer<typeof structuredRubricSchema>;
+
+export interface MarkingCriterion {
+  id: string; // e.g., 'M1', 'M2'
+  concept: string;
+  marks: number;
+}
 
 export interface StructuredRubricEvaluation {
   score: number;
@@ -184,6 +237,8 @@ export interface StructuredRubricEvaluation {
   matchedConcepts: string[];
   missingConcepts: string[];
   misconceptions: string[];
+  criteriaAwarded?: string[];
+  criteriaMissed?: string[];
   feedback: string;
 }
 
@@ -191,25 +246,30 @@ export interface StructuredRubricEvaluation {
 
 /**
  * Checks and records daily AI usage per user using Malaysian calendar days (UTC+8).
- * Enforces anti-abuse quota (default: 50 requests/day per user).
+ * Enforces task-aware and daily quotas.
  */
 export async function enforceAIQuota(
   uid: string,
   endpoint: string,
-  maxDailyQuota = 50
+  maxDailyQuota = 50,
+  taskType?: AITaskType
 ): Promise<{ usedToday: number; remainingToday: number }> {
   const todayStr = getMalaysianDateString();
   const usageDocId = `${uid}_${todayStr}`;
   const usageRef = adminDb.collection('ai_usage').doc(usageDocId);
 
+  // Use tiered task limit if specified, else maxDailyQuota
+  const effectiveQuota = taskType && TASK_QUOTAS[taskType] ? TASK_QUOTAS[taskType] : maxDailyQuota;
+
   return await adminDb.runTransaction(async (transaction) => {
     const doc = await transaction.get(usageRef);
     const data = doc.data() || {};
     const currentTotal = Number(data.totalRequests) || 0;
+    const currentTaskTotal = taskType ? Number(data[`task_${taskType}`]) || 0 : currentTotal;
 
-    if (currentTotal >= maxDailyQuota) {
+    if (currentTotal >= 150 || currentTaskTotal >= effectiveQuota) {
       throw new AIGatewayError(
-        `Daily AI quota of ${maxDailyQuota} requests reached. Your quota will reset at midnight (UTC+8).`,
+        `Daily AI quota of ${effectiveQuota} requests reached for this task. Quota resets at midnight (UTC+8).`,
         429,
         'QUOTA_EXCEEDED'
       );
@@ -218,21 +278,23 @@ export async function enforceAIQuota(
     const newTotal = currentTotal + 1;
     const currentEndpointCount = Number(data[endpoint]) || 0;
 
-    transaction.set(
-      usageRef,
-      {
-        uid,
-        date: todayStr,
-        totalRequests: FieldValue.increment(1),
-        [endpoint]: currentEndpointCount + 1,
-        updatedAt: FieldValue.serverTimestamp(),
-      },
-      { merge: true }
-    );
+    const updates: Record<string, unknown> = {
+      uid,
+      date: todayStr,
+      totalRequests: FieldValue.increment(1),
+      [endpoint]: currentEndpointCount + 1,
+      updatedAt: FieldValue.serverTimestamp(),
+    };
+
+    if (taskType) {
+      updates[`task_${taskType}`] = currentTaskTotal + 1;
+    }
+
+    transaction.set(usageRef, updates, { merge: true });
 
     return {
       usedToday: newTotal,
-      remainingToday: Math.max(0, maxDailyQuota - newTotal),
+      remainingToday: Math.max(0, effectiveQuota - (currentTaskTotal + 1)),
     };
   });
 }
@@ -249,11 +311,12 @@ export interface SecureGenerateAIOptions<T> {
   maxOutputTokens?: number;
   maxDailyQuota?: number;
   timeoutMs?: number;
+  idempotencyKey?: string;
 }
 
 /**
  * Secure AI invocation with single-layer quota enforcement, prompt injection delimiters,
- * timeout handling, task-appropriate generation parameters, and strict fail-closed Zod output validation.
+ * idempotency cache, timeout handling, task-appropriate generation parameters, and strict fail-closed Zod output validation.
  */
 export async function secureGenerateAI<T>(options: SecureGenerateAIOptions<T>): Promise<T> {
   const {
@@ -264,10 +327,19 @@ export async function secureGenerateAI<T>(options: SecureGenerateAIOptions<T>): 
     taskType,
     maxDailyQuota = 50,
     timeoutMs = 25000,
+    idempotencyKey,
   } = options;
 
+  // Check idempotency cache to prevent duplicate AI invocations on mobile reconnects/double-clicks
+  if (idempotencyKey) {
+    const cached = getCachedResponse<T>(idempotencyKey);
+    if (cached !== null) {
+      return cached;
+    }
+  }
+
   const taskCfg = taskType ? AI_CONFIG[taskType] : undefined;
-  const modelName = options.modelName || taskCfg?.modelName || 'gemini-1.5-flash';
+  const modelName = options.modelName || taskCfg?.modelName || GEMINI_MODELS.DEFAULT;
   const temperature = options.temperature !== undefined ? options.temperature : taskCfg?.temperature;
   const topP = options.topP !== undefined ? options.topP : taskCfg?.topP;
   const maxOutputTokens = options.maxOutputTokens !== undefined ? options.maxOutputTokens : taskCfg?.maxOutputTokens;
@@ -280,7 +352,7 @@ export async function secureGenerateAI<T>(options: SecureGenerateAIOptions<T>): 
   };
 
   // 1. Quota check (authoritative single-layer accounting)
-  await enforceAIQuota(uid, endpoint, maxDailyQuota);
+  await enforceAIQuota(uid, endpoint, maxDailyQuota, taskType);
 
   // 2. Timeout wrapper
   const timeoutPromise = new Promise<never>((_, reject) => {
@@ -308,6 +380,11 @@ export async function secureGenerateAI<T>(options: SecureGenerateAIOptions<T>): 
           'AI_INVALID_OUTPUT'
         );
       }
+
+      if (idempotencyKey) {
+        setCachedResponse(idempotencyKey, parsed.data);
+      }
+
       return parsed.data;
     } else {
       const rawText = await Promise.race([
@@ -322,7 +399,13 @@ export async function secureGenerateAI<T>(options: SecureGenerateAIOptions<T>): 
           'AI_INVALID_OUTPUT'
         );
       }
-      return rawText as unknown as T;
+
+      const result = rawText as unknown as T;
+      if (idempotencyKey) {
+        setCachedResponse(idempotencyKey, result);
+      }
+
+      return result;
     }
   } catch (err: unknown) {
     if (err instanceof AIGatewayError) {
@@ -346,23 +429,27 @@ export async function secureGenerateAI<T>(options: SecureGenerateAIOptions<T>): 
 
 /**
  * Server-authoritative structured answer grading through the centralized secure AI Gateway.
- * Evaluates chemistry concepts, relationships, equations, numbers, units, and misconceptions.
+ * Supports explicit criteria breakdown (M1, M2), prevents double counting, and checks misconceptions.
  */
 export async function gradeStructuredRubricWithGateway(params: {
   uid: string;
   question: string;
   expectedAnswer: string;
   markingScheme?: string;
+  criteria?: MarkingCriterion[];
   maximumMarks: number;
   studentAnswer: string;
+  idempotencyKey?: string;
 }): Promise<StructuredRubricEvaluation> {
   const {
     uid,
     question,
     expectedAnswer,
     markingScheme,
+    criteria,
     maximumMarks,
     studentAnswer,
+    idempotencyKey,
   } = params;
 
   const safeQuestion = wrapUntrustedInput(question, 'QUESTION');
@@ -370,23 +457,31 @@ export async function gradeStructuredRubricWithGateway(params: {
   const safeScheme = markingScheme ? wrapUntrustedInput(markingScheme, 'MARKING_SCHEME') : '';
   const safeStudent = wrapUntrustedInput(studentAnswer, 'STUDENT_ANSWER');
 
+  let criteriaPrompt = '';
+  if (criteria && criteria.length > 0) {
+    const formatted = criteria.map((c) => `- [${c.id}] (${c.marks} mark): ${c.concept}`).join('\n');
+    criteriaPrompt = `Marking Criteria Breakdown:\n${formatted}\n`;
+  }
+
   const prompt = `${SYSTEM_SAFETY_GUARDRAIL}
 
 You are an authoritative SPM Chemistry Chief Examiner grading a structured response.
-Evaluate the student's submission against the expected answer and marking criteria.
+Evaluate the student's submission against the expected answer and explicit marking criteria.
 
 ${safeQuestion}
 ${safeExpected}
 ${safeScheme ? safeScheme + '\n' : ''}
+${criteriaPrompt}
 ${safeStudent}
 Maximum Marks: ${maximumMarks}
 
 Strict Chemistry Evaluation Rules:
 1. Do NOT award marks merely because isolated keywords appear. Evaluate full chemical concepts, relationships, equations, numerical values, and correct units.
-2. If the question requires a numerical calculation, verify numerical values and units strictly.
-3. Check for genuine student misconceptions (e.g. confusing oxidation/reduction, ionic/covalent, atom/ion).
-4. Consider acceptable chemical alternatives (e.g., standard abbreviations, IUPAC systematic names).
-5. Award a numeric score between 0 and ${maximumMarks}. The score must NEVER exceed ${maximumMarks} and never be less than 0.
+2. If explicit criteria (e.g. M1, M2) are provided, state exactly which were awarded in "criteriaAwarded" and which were missed in "criteriaMissed". Do NOT double-count criteria.
+3. If the question requires a numerical calculation, verify numerical values and units strictly.
+4. Check for genuine student misconceptions (e.g. confusing oxidation/reduction, ionic/covalent, atom/ion).
+5. Consider acceptable chemical alternatives (e.g., standard abbreviations, IUPAC systematic names).
+6. Award a numeric score between 0 and ${maximumMarks}. The score must NEVER exceed ${maximumMarks} and never be less than 0.
 
 Return ONLY valid JSON matching this exact schema:
 {
@@ -394,7 +489,9 @@ Return ONLY valid JSON matching this exact schema:
   "reason": "<rigorous examiner rationale for awarded marks>",
   "matchedConcepts": ["<accurately stated concept/equation>"],
   "missingConcepts": ["<omitted essential concept/relationship>"],
-  "misconceptions": ["<student misconception if any>"]
+  "misconceptions": ["<student misconception if any>"],
+  "criteriaAwarded": ["<M1>", "<M2>"],
+  "criteriaMissed": ["<M1>", "<M2>"]
 }`;
 
   const rubric = await secureGenerateAI<StructuredRubricData>({
@@ -404,9 +501,20 @@ Return ONLY valid JSON matching this exact schema:
     prompt,
     schema: structuredRubricSchema,
     maxDailyQuota: 60,
+    idempotencyKey,
   });
 
-  const clampedScore = Math.max(0, Math.min(maximumMarks, Math.round(rubric.score)));
+  // Calculate clamped score and prevent double counting
+  let calculatedScore = rubric.score;
+  if (criteria && criteria.length > 0 && rubric.criteriaAwarded.length > 0) {
+    const uniqueAwarded = new Set(rubric.criteriaAwarded);
+    const sumAwarded = criteria
+      .filter((c) => uniqueAwarded.has(c.id))
+      .reduce((sum, c) => sum + c.marks, 0);
+    calculatedScore = Math.min(sumAwarded, calculatedScore);
+  }
+
+  const clampedScore = Math.max(0, Math.min(maximumMarks, Math.round(calculatedScore)));
   const feedback = rubric.reason || (clampedScore === maximumMarks ? 'Accurate and comprehensive response.' : 'Review required chemistry concepts.');
 
   return {
@@ -417,8 +525,8 @@ Return ONLY valid JSON matching this exact schema:
     matchedConcepts: rubric.matchedConcepts,
     missingConcepts: rubric.missingConcepts,
     misconceptions: rubric.misconceptions,
+    criteriaAwarded: rubric.criteriaAwarded,
+    criteriaMissed: rubric.criteriaMissed,
     feedback,
   };
 }
-
-

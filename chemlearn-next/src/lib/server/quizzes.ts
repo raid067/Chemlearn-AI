@@ -81,9 +81,33 @@ export function normalizeChemistrySpellings(str: string): string {
   return str
     .replace(/\bsulph(ate|ide|ite|ur|uric|urous)\b/gi, 'sulf$1')
     .replace(/\balumin(i)?um\b/gi, 'aluminium')
+    .replace(/\bcolourless\b/gi, 'colorless')
     .replace(/\bcolour\b/gi, 'color')
+    .replace(/\bfiberglass\b/gi, 'fibreglass')
+    .replace(/\bdelocalized\b/gi, 'delocalised')
+    .replace(/\bneutralization\b/gi, 'neutralisation')
     .replace(/\bionise\b/gi, 'ionize')
     .replace(/\bionisation\b/gi, 'ionization');
+}
+
+/**
+ * Normalizes chemistry units to standard canonical representations.
+ */
+export function normalizeUnit(rawUnit: string): string {
+  let u = rawUnit.trim().toLowerCase();
+  u = u.replace(/\s+/g, '');
+  if (u === 'm' || u === 'molar' || u === 'moldm-3' || u === 'mol/dm3' || u === 'moldm3') return 'mol/dm3';
+  if (u === 'cm3' || u === 'ml' || u === 'milliliter' || u === 'millilitre') return 'cm3';
+  if (u === 'dm3' || u === 'l' || u === 'liter' || u === 'litre') return 'dm3';
+  if (u === 'g' || u === 'gram' || u === 'grams') return 'g';
+  if (u === 'kg' || u === 'kilogram' || u === 'kilograms') return 'kg';
+  if (u === 'mol' || u === 'mole' || u === 'moles') return 'mol';
+  if (u === 'c' || u === '°c' || u === 'degc' || u === 'degreesc') return 'c';
+  if (u === 'k' || u === 'kelvin') return 'k';
+  if (u === 'g/dm3' || u === 'gdm-3' || u === 'gdm3') return 'g/dm3';
+  if (u === 'g/mol' || u === 'gmol-1' || u === 'gmol') return 'g/mol';
+  if (u === '%' || u === 'percent' || u === 'percentage') return '%';
+  return u;
 }
 
 /**
@@ -161,8 +185,8 @@ export function parseScientificNumber(raw: string): { value: number; unit: strin
     if (!isNaN(val)) return { value: val, unit };
   }
 
-  // Match: standard floating point number with optional unit
-  const numMatch = cleaned.match(/^([+-]?\d+(?:\.\d+)?)(?:\s+([a-z0-9/°^ -]+))?$/i);
+  // Match: standard floating point number with optional unit (including %)
+  const numMatch = cleaned.match(/^([+-]?\d+(?:\.\d+)?)(?:\s*([a-z0-9/°^% -]+))?$/i);
   if (numMatch) {
     const val = parseFloat(numMatch[1]);
     const unit = (numMatch[2] || '').trim();
@@ -219,10 +243,41 @@ export function gradeStructuredDeterministic(
     return { score: 0, isCorrect: false, feedback: 'No answer was provided.' };
   }
 
+  // Anti-Adversarial Prompt Injection Guard
+  const injectionPatterns = [
+    /ignore\s+(all\s+)?(previous\s+)?instructions/i,
+    /system\s+prompt/i,
+    /api[_\s-]?key/i,
+    /developer\s+mode/i,
+    /administrator/i,
+    /override/i,
+    /give\s+(me\s+)?(full\s+)?marks/i,
+    /award\s+\d+\s+marks/i,
+    /drop\s+table/i,
+    /<<<\s*end/i,
+    /<script/i,
+    /teacher\s+note/i,
+  ];
+  if (injectionPatterns.some((p) => p.test(studentAnswer))) {
+    return {
+      score: 0,
+      isCorrect: false,
+      feedback: 'Adversarial input detected. Submission flagged and rejected.',
+    };
+  }
+
   const normExpected = normalizeChemistryAnswer(expectedAnswer);
 
   // 1. Layer 1: Exact normalized match
   if (normStudent === normExpected) {
+    return { score: maxMarks, isCorrect: true, feedback: 'Correct!' };
+  }
+
+  // Optional substance state words (e.g. "hydrogen" vs "hydrogen gas")
+  const stripStateWord = (s: string) =>
+    s.replace(/\s+(gas|solid|liquid|solution|precipitate|ppt)\b/g, '').trim();
+
+  if (stripStateWord(normStudent) === stripStateWord(normExpected)) {
     return { score: maxMarks, isCorrect: true, feedback: 'Correct!' };
   }
 
@@ -233,7 +288,7 @@ export function gradeStructuredDeterministic(
     .filter(Boolean);
 
   for (const alt of alternatives) {
-    if (normStudent === alt) {
+    if (normStudent === alt || stripStateWord(normStudent) === stripStateWord(alt)) {
       return { score: maxMarks, isCorrect: true, feedback: 'Correct!' };
     }
   }
@@ -250,8 +305,8 @@ export function gradeStructuredDeterministic(
       const isNumCorrect = relDiff <= 0.02 || Math.abs(studentNum.value - expectedNum.value) < 1e-5;
 
       if (isNumCorrect) {
-        const expectedUnitNorm = normalizeChemistryAnswer(expectedNum.unit);
-        const studentUnitNorm = normalizeChemistryAnswer(studentNum.unit);
+        const expectedUnitNorm = normalizeUnit(expectedNum.unit);
+        const studentUnitNorm = normalizeUnit(studentNum.unit);
 
         if (!expectedUnitNorm || studentUnitNorm === expectedUnitNorm) {
           return { score: maxMarks, isCorrect: true, feedback: 'Correct numerical value and units.' };
@@ -279,6 +334,19 @@ export function gradeStructuredDeterministic(
         feedback: `Expected a numerical answer with units (expected: ${expectedAnswer}).`,
       };
     }
+  }
+
+  // Strict Chemical Formula Check: do not allow misspelled chemical formulas to fall through to keyword matching
+  const isFormula = (s: string) => /^[a-z0-9()+-]{2,15}$/i.test(s) && !/\s/.test(s);
+  if (isFormula(normExpected)) {
+    if (normStudent === normExpected) {
+      return { score: maxMarks, isCorrect: true, feedback: 'Correct chemical formula!' };
+    }
+    return {
+      score: 0,
+      isCorrect: false,
+      feedback: `Incorrect chemical formula. Expected: ${expectedAnswer}`,
+    };
   }
 
   // 4. Layer 4: Chemical Equation matching (permutations of reactants and products)
