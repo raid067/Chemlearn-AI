@@ -39,7 +39,7 @@ import {
 
 
 const firebaseConfig = {
-    apiKey: "AIzaSyBcAA7uU-bKuFkBtpqLCFyB4b4PsZWlHzw",
+    apiKey: "YOUR_FIREBASE_API_KEY",
   authDomain: "chemlearn-67.firebaseapp.com",
   projectId: "chemlearn-67",
   storageBucket: "chemlearn-67.firebasestorage.app",

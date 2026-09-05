@@ -4,7 +4,7 @@ import { getFirestore } from "https://www.gstatic.com/firebasejs/12.15.0/firebas
 import { getAI, getGenerativeModel, GoogleAIBackend } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-ai.js";
 
 const firebaseConfig = {
-    apiKey: "AIzaSyBcAA7uU-bKuFkBtpqLCFyB4b4PsZWlHzw",
+    apiKey: "YOUR_FIREBASE_API_KEY",
     authDomain: "chemlearn-67.firebaseapp.com",
     projectId: "chemlearn-67",
     storageBucket: "chemlearn-67.firebasestorage.app",
