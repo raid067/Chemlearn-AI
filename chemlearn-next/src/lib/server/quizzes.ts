@@ -2,8 +2,13 @@ import { adminDb } from '@/lib/firebase-admin';
 import { FieldValue } from 'firebase-admin/firestore';
 import { randomBytes } from 'crypto';
 import { awardXPEvent, updateAuthoritativeStreak, getMalaysianDateString } from './gamification';
-import { generateGeminiJson } from './gemini';
-import { z } from 'zod';
+import {
+  gradeStructuredRubricWithGateway,
+  StructuredRubricEvaluation,
+  structuredRubricSchema,
+} from './ai-gateway';
+export type { StructuredRubricEvaluation };
+export { structuredRubricSchema };
 
 export interface AuthoritativeMCQQuestion {
   q: string;
@@ -225,34 +230,19 @@ export function gradeStructuredDeterministic(
   };
 }
 
-export interface StructuredRubricEvaluation {
-  score: number;
-  maxScore: number;
-  correct: boolean;
-  reason: string;
-  matchedConcepts: string[];
-  missingConcepts: string[];
-  misconceptions: string[];
-  feedback: string;
-}
-
-export const structuredRubricSchema = z.object({
-  score: z.number(),
-  reason: z.string().default(''),
-  matchedConcepts: z.array(z.string()).default([]),
-  missingConcepts: z.array(z.string()).default([]),
-  misconceptions: z.array(z.string()).default([]),
-});
-
 /**
- * Safely grades a free-response answer using AI with strict schema validation and clamp.
- * Falls back to deterministic grading if AI invocation fails.
+ * Safely grades a free-response answer using the two-stage rubric protocol:
+ * 1. Deterministic evaluation: if clearly correct or clearly incorrect, returns immediately.
+ * 2. Ambiguous / conceptual evaluation: routes to the centralized fail-closed AI Gateway with strict Zod validation.
+ * 3. Falls back gracefully to deterministic grading if AI invocation times out or errors.
  */
 export async function gradeStructuredAnswerWithAI(
   question: string,
   expectedAnswer: string,
   studentAnswer: string,
-  maxMarks = 2
+  maxMarks = 2,
+  uid = 'authoritative-grader',
+  markingScheme?: string
 ): Promise<StructuredRubricEvaluation> {
   const normStudent = normalizeChemistryAnswer(studentAnswer);
   if (!normStudent) {
@@ -268,62 +258,61 @@ export async function gradeStructuredAnswerWithAI(
     };
   }
 
-  try {
-    const prompt = `You are a strict SPM Chemistry grading examiner.
-Mark the student's answer against the rubric/expected answer.
-Question: ${question}
-Marking Rubric / Expected Answer: ${expectedAnswer}
-Student's Answer: ${studentAnswer}
-Maximum Marks: ${maxMarks}
+  // Stage 1: Deterministic evaluation
+  const deterministic = gradeStructuredDeterministic(studentAnswer, expectedAnswer, maxMarks);
 
-Evaluate the student's response thoroughly:
-1. Identify all matched chemistry concepts.
-2. Identify missing chemical concepts or key terminology.
-3. Identify misconceptions or factual errors.
-4. Award a score between 0 and ${maxMarks}. Score must NOT exceed ${maxMarks} or be less than 0.
-
-Return ONLY valid JSON matching this exact structure:
-{
-  "score": <number between 0 and ${maxMarks}>,
-  "reason": "<detailed rationale for awarded mark>",
-  "matchedConcepts": ["<correct concept 1>", "<correct concept 2>"],
-  "missingConcepts": ["<missing required concept 1>"],
-  "misconceptions": ["<student misconception if any>"]
-}`;
-
-    const rawJson = await generateGeminiJson(prompt);
-    const parsed = structuredRubricSchema.safeParse(rawJson);
-
-    if (parsed.success) {
-      const clampedScore = Math.max(0, Math.min(maxMarks, Math.round(parsed.data.score)));
-      const feedback = parsed.data.reason || (clampedScore === maxMarks ? 'Accurate and comprehensive answer.' : 'Review key chemical concepts.');
-      return {
-        score: clampedScore,
-        maxScore: maxMarks,
-        correct: clampedScore === maxMarks,
-        reason: parsed.data.reason,
-        matchedConcepts: parsed.data.matchedConcepts,
-        missingConcepts: parsed.data.missingConcepts,
-        misconceptions: parsed.data.misconceptions,
-        feedback,
-      };
-    }
-  } catch (err) {
-    console.warn('[quizzes] AI grading failed, falling back to deterministic evaluation:', err);
+  // Clearly correct: full marks awarded deterministically
+  if (deterministic.isCorrect && deterministic.score === maxMarks) {
+    return {
+      score: maxMarks,
+      maxScore: maxMarks,
+      correct: true,
+      reason: deterministic.feedback,
+      matchedConcepts: ['Matched authoritative chemistry answer key'],
+      missingConcepts: [],
+      misconceptions: [],
+      feedback: deterministic.feedback,
+    };
   }
 
-  // Guaranteed deterministic fallback
-  const fallback = gradeStructuredDeterministic(studentAnswer, expectedAnswer, maxMarks);
-  return {
-    score: fallback.score,
-    maxScore: maxMarks,
-    correct: fallback.isCorrect,
-    reason: fallback.feedback,
-    matchedConcepts: fallback.isCorrect ? ['Matched expected answer'] : [],
-    missingConcepts: fallback.isCorrect ? [] : ['Key chemical points'],
-    misconceptions: [],
-    feedback: fallback.feedback,
-  };
+  // Clearly incorrect: expected a numerical answer but student provided non-numeric text
+  const numMatch = expectedAnswer.match(/[-+]?[0-9]*\.?[0-9]+/);
+  if (numMatch && !studentAnswer.match(/[-+]?[0-9]*\.?[0-9]+/)) {
+    return {
+      score: 0,
+      maxScore: maxMarks,
+      correct: false,
+      reason: deterministic.feedback,
+      matchedConcepts: [],
+      missingConcepts: ['Numerical value and correct chemistry unit'],
+      misconceptions: ['Provided non-numeric answer for numerical calculation question'],
+      feedback: deterministic.feedback,
+    };
+  }
+
+  // Stage 2: Ambiguous or conceptual answer -> Centralized AI Gateway rubric evaluation
+  try {
+    return await gradeStructuredRubricWithGateway({
+      uid,
+      question,
+      expectedAnswer,
+      markingScheme,
+      maximumMarks: maxMarks,
+      studentAnswer,
+    });
+  } catch (err) {
+    console.warn('[quizzes] AI Gateway rubric grading unavailable, falling back to deterministic evaluation:', err);
+    return {
+      score: deterministic.score,
+      maxScore: maxMarks,
+      correct: deterministic.isCorrect,
+      reason: deterministic.feedback,
+      matchedConcepts: deterministic.isCorrect ? ['Matched expected answer'] : [],
+      missingConcepts: deterministic.isCorrect ? [] : ['Key chemical points'],
+      misconceptions: [],
+      feedback: deterministic.feedback,
+    };
+  }
 }
 
 /**

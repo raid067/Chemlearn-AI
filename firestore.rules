@@ -68,14 +68,27 @@ service cloud.firestore {
     // Chat History Whitelist and Bounds
     function validChatHistory() {
       let data = request.resource.data;
-      let allowedKeys = ['id', 'title', 'messages', 'question', 'answer', 'role', 'timestamp', 'createdAt', 'updatedAt'];
+      let allowedKeys = ['id', 'title', 'messages', 'question', 'answer', 'role', 'content', 'timestamp', 'createdAt', 'updatedAt'];
       return data.keys().hasOnly(allowedKeys)
-          && (!('role' in data) || data.role in ['user', 'assistant'])
+          && (!('role' in data) || (data.role in ['user', 'assistant'] && !(data.role in ['system', 'developer', 'admin'])))
           && (!('title' in data) || (data.title is string && data.title.size() <= 200))
           && (!('question' in data) || (data.question is string && data.question.size() <= 4000))
           && (!('answer' in data) || (data.answer is string && data.answer.size() <= 10000))
+          && (!('content' in data) || (data.content is string && data.content.size() <= 10000))
           && (!('messages' in data) || (data.messages is list && data.messages.size() <= 100))
-          && (!data.keys().hasAny(['systemPrompt', 'systemInstruction', 'admin', 'xp', 'level', 'streak', 'quizScore']));
+          && (!data.keys().hasAny(['systemPrompt', 'systemInstruction', 'admin', 'developer', 'xp', 'level', 'streak', 'quizScore', 'metadata', 'role_override']));
+    }
+
+    // Individual Chat Message Validation (Subcollections)
+    function validChatMessage() {
+      let data = request.resource.data;
+      let allowedKeys = ['id', 'role', 'content', 'timestamp', 'createdAt'];
+      return data.keys().hasOnly(allowedKeys)
+          && data.role in ['user', 'assistant']
+          && !(data.role in ['system', 'developer', 'admin'])
+          && data.content is string
+          && data.content.size() <= 4000
+          && (!data.keys().hasAny(['systemPrompt', 'systemInstruction', 'admin', 'developer', 'xp', 'level', 'streak', 'role_override']));
     }
 
     // ── Server-Only Collections (Admin SDK Exclusive) ─────────────────────────
@@ -124,6 +137,11 @@ service cloud.firestore {
       match /chatHistory/{chatId} {
         allow read, delete: if isOwner(userId);
         allow create, update: if isOwner(userId) && validChatHistory();
+
+        match /messages/{messageId} {
+          allow read, delete: if isOwner(userId);
+          allow create, update: if isOwner(userId) && validChatMessage();
+        }
       }
     }
 

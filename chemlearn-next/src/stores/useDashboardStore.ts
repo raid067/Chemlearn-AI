@@ -7,7 +7,7 @@ interface DashboardState {
   challengeScore: number;
   challengeIndex: number;
   challengeComplete: boolean;
-  setStudentData: (data: StudentData) => void;
+  setStudentData: (data: StudentData | null) => void;
   startChallenge: () => void;
   setChallengeScore: (score: number) => void;
   nextChallengeQuestion: () => void;

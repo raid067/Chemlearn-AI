@@ -10,7 +10,7 @@ export async function POST(req: NextRequest) {
   try {
     const user = await requireTeacher(req);
     
-    if (await isRateLimitedAsync('ai-insights', user.uid, 5, 60_000)) {
+    if (await isRateLimitedAsync('ai-insights', user.uid, 5, 60_000, { failClosedInProduction: true })) {
       return errorResponse('Too many insight generation requests. Please wait a moment.', 429);
     }
     

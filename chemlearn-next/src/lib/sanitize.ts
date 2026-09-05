@@ -12,7 +12,7 @@ export const CHEMISTRY_ALLOWED_TAGS = [
 ];
 
 export const CHEMISTRY_ALLOWED_ATTR = [
-  'class', 'className', 'style', 'id', 'align', 'colspan', 'rowspan',
+  'class', 'className', 'id', 'align', 'colspan', 'rowspan',
 ];
 
 /**
@@ -30,7 +30,7 @@ export function sanitizeHtml(dirty: string): string {
           ALLOWED_TAGS: CHEMISTRY_ALLOWED_TAGS,
           ALLOWED_ATTR: CHEMISTRY_ALLOWED_ATTR,
           FORBID_TAGS: ['script', 'style', 'iframe', 'object', 'embed', 'form', 'input'],
-          FORBID_ATTR: ['onerror', 'onload', 'onclick', 'onmouseover', 'href'],
+          FORBID_ATTR: ['onerror', 'onload', 'onclick', 'onmouseover', 'href', 'style'],
         });
       }
     } catch {
@@ -42,6 +42,7 @@ export function sanitizeHtml(dirty: string): string {
       .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
       .replace(/<iframe\b[^<]*(?:(?!<\/iframe>)<[^<]*)*<\/iframe>/gi, '')
       .replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, '')
+      .replace(/style\s*=\s*(["'][^"']*["']|[^\s>]+)/gi, '')
       .replace(/on\w+\s*=\s*(["'][^"']*["']|[^\s>]+)/gi, '')
       .replace(/javascript\s*:/gi, '');
   }
@@ -51,6 +52,6 @@ export function sanitizeHtml(dirty: string): string {
     ALLOWED_ATTR: CHEMISTRY_ALLOWED_ATTR,
     ALLOW_DATA_ATTR: false,
     FORBID_TAGS: ['script', 'style', 'iframe', 'object', 'embed', 'form', 'input'],
-    FORBID_ATTR: ['onerror', 'onload', 'onclick', 'onmouseover'],
+    FORBID_ATTR: ['onerror', 'onload', 'onclick', 'onmouseover', 'style'],
   });
 }

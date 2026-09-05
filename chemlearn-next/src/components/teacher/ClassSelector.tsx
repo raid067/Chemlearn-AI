@@ -61,8 +61,8 @@ export default function ClassSelector() {
       setSelectedClassId(data.classId);
       setIsModalOpen(false);
       setNewClassName('');
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Failed to create class');
     } finally {
       setLoading(false);
     }

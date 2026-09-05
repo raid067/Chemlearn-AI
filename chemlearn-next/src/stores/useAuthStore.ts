@@ -93,7 +93,7 @@ export const useAuthStore = create<AuthState>((set) => ({
               doc(db, 'students', user.uid),
               (snap) => {
                 if (snap.exists()) {
-                  useDashboardStore.getState().setStudentData(snap.data() as any);
+                  useDashboardStore.getState().setStudentData(snap.data() as unknown as import('@/types/student').StudentData);
                 }
               },
               (err) => {
@@ -106,7 +106,7 @@ export const useAuthStore = create<AuthState>((set) => ({
         if (unsubscribeDoc) unsubscribeDoc();
         set({ user: null, claims: {}, isTeacher: false, initialized: true });
         import('@/stores/useDashboardStore').then(({ useDashboardStore }) => {
-          useDashboardStore.getState().setStudentData(null as any);
+          useDashboardStore.getState().setStudentData(null);
         });
       }
     });

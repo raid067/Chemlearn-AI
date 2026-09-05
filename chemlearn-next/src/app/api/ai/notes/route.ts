@@ -10,7 +10,7 @@ export async function POST(req: NextRequest) {
   try {
     const user = await requireAuth(req);
     
-    if (await isRateLimitedAsync('ai-notes', user.uid, 5, 60_000)) {
+    if (await isRateLimitedAsync('ai-notes', user.uid, 5, 60_000, { failClosedInProduction: true })) {
       return errorResponse('Too many notes generation requests. Please wait a moment.', 429);
     }
     

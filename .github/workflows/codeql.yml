@@ -69,12 +69,4 @@ jobs:
       uses: github/codeql-action/analyze@v3
       with:
         category: "/language:${{matrix.language}}"
-        upload: never
-        output: results
 
-    - name: Upload SARIF report artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: codeql-report-${{ matrix.language }}
-        path: results/*.sarif
-      if: always()

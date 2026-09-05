@@ -45,4 +45,36 @@ describe('Sanitize Utility (XSS Prevention & Chemistry Allowlist)', () => {
     expect(sanitizeHtml(null as unknown as string)).toBe('');
     expect(sanitizeHtml(undefined as unknown as string)).toBe('');
   });
+
+  describe('Strict OWASP XSS Regression Vectors', () => {
+    it('neutralizes <script>alert(1)</script>', () => {
+      const payload = 'Chemistry notes: <script>alert(1)</script> H2O is water';
+      const res = sanitizeHtml(payload);
+      expect(res).not.toContain('<script');
+      expect(res).not.toContain('alert(1)');
+      expect(res).toContain('Chemistry notes:');
+      expect(res).toContain('H2O is water');
+    });
+
+    it('neutralizes <img src=x onerror=alert(1)>', () => {
+      const payload = '<p>Formula</p><img src=x onerror=alert(1)>';
+      const res = sanitizeHtml(payload);
+      expect(res).not.toContain('onerror');
+      expect(res).not.toContain('alert(1)');
+      expect(res).toContain('<p>Formula</p>');
+    });
+
+    it('neutralizes <a href="javascript:alert(1)">test</a>', () => {
+      const payload = '<a href="javascript:alert(1)">Click for solution</a>';
+      const res = sanitizeHtml(payload);
+      expect(res).not.toContain('javascript:');
+      expect(res).not.toContain('alert(1)');
+    });
+
+    it('neutralizes obfuscated javascript URI in SVG or attributes', () => {
+      const payload = '<div style="background-image: url(&#x6a;avascript:alert(1))">Test</div>';
+      const res = sanitizeHtml(payload);
+      expect(res).not.toContain('alert(1)');
+    });
+  });
 });

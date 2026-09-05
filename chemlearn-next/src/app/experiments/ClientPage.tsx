@@ -49,13 +49,13 @@ export default function ExperimentsPage() {
       </header>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {[
-          { id: 'thermal', title: 'Thermal Decomposition', desc: 'Heat nitrate salts and observe the gases evolved.', isLink: false },
-          { id: 'dilution', title: 'Acid Dilution', desc: 'Prepare standard solutions using the M1V1=M2V2 formula.', isLink: false },
-          { id: 'gas-test', title: 'Gas Tests', desc: 'Identify oxygen, hydrogen, and carbon dioxide.', isLink: false },
-          { id: 'qualitative', title: 'Salt Analysis', desc: 'Identify cations and anions in unknown salts.', isLink: false },
-          { id: 'chapter-8', title: 'Chapter 8: Alloys & Composites', desc: 'Read the official KSSM SPM target procedures and theories.', isLink: true, href: '/experiments/chapter-8' }
-        ].map((lab) => (
+        {([
+          { id: 'thermal' as const, title: 'Thermal Decomposition', desc: 'Heat nitrate salts and observe the gases evolved.', isLink: false as const },
+          { id: 'dilution' as const, title: 'Acid Dilution', desc: 'Prepare standard solutions using the M1V1=M2V2 formula.', isLink: false as const },
+          { id: 'gas-test' as const, title: 'Gas Tests', desc: 'Identify oxygen, hydrogen, and carbon dioxide.', isLink: false as const },
+          { id: 'qualitative' as const, title: 'Salt Analysis', desc: 'Identify cations and anions in unknown salts.', isLink: false as const },
+          { id: 'chapter-8' as const, title: 'Chapter 8: Alloys & Composites', desc: 'Read the official KSSM SPM target procedures and theories.', isLink: true as const, href: '/experiments/chapter-8' }
+        ]).map((lab) => (
           <div key={lab.id} className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 flex flex-col">
             <div className="w-12 h-12 bg-blue-50 text-blue-500 rounded-xl flex items-center justify-center mb-4">
               <Beaker className="w-6 h-6" />
@@ -71,7 +71,7 @@ export default function ExperimentsPage() {
               </a>
             ) : (
               <button 
-                onClick={() => setActiveLab(lab.id as any)}
+                onClick={() => setActiveLab(lab.id)}
                 className="mt-auto py-3 bg-slate-900 text-white rounded-xl font-bold hover:bg-slate-800 transition-colors"
               >
                 Enter Lab

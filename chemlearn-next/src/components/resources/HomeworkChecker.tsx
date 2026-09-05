@@ -103,7 +103,7 @@ export default function HomeworkChecker() {
                 <h3 className="font-bold text-lg text-brand-purple mb-4">Teacher's Feedback</h3>
                 <div 
                   className="prose prose-slate max-w-none"
-                  dangerouslySetInnerHTML={{ __html: feedback }}
+                  dangerouslySetInnerHTML={{ __html: sanitizeHtml(feedback) }}
                 />
               </div>
             )}

@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { adminAuth } from '@/lib/firebase-admin';
-
-export { genAI, generateGeminiText, generateGeminiJson } from '@/lib/server/gemini';
+import { RateLimitError } from '@/lib/rate-limit';
 
 export async function verifyAuth(req: NextRequest): Promise<string> {
   const authHeader = req.headers.get('Authorization');
@@ -14,6 +13,12 @@ export async function verifyAuth(req: NextRequest): Promise<string> {
 }
 
 export function errorResponse(error: unknown, defaultStatus = 400) {
+  if (error instanceof RateLimitError) {
+    return NextResponse.json(
+      { error: error.code, message: error.message },
+      { status: error.statusCode }
+    );
+  }
   const rawMessage = error instanceof Error ? error.message : typeof error === 'string' ? error : 'Unknown error';
   let status = defaultStatus;
   

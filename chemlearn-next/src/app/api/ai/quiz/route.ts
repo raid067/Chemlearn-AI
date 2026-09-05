@@ -18,7 +18,7 @@ export async function POST(req: NextRequest) {
   try {
     const user = await requireAuth(req);
     
-    if (await isRateLimitedAsync('ai-quiz', user.uid, 5, 60_000)) {
+    if (await isRateLimitedAsync('ai-quiz', user.uid, 5, 60_000, { failClosedInProduction: true })) {
       return errorResponse('Too many quiz generation requests. Please wait a moment.', 429);
     }
 

@@ -45,8 +45,8 @@ export default function AIQuizModal() {
       setAIQuestions(data.questions);
       closeAIModal();
       useQuizStore.getState().openDirectModal();
-    } catch (err: any) {
-      setError(err.message || 'Failed to generate quiz');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Failed to generate quiz');
     } finally {
       setLoading(false);
     }

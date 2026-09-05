@@ -87,7 +87,7 @@ export default function AINotesGenerator() {
             </div>
             <div 
               className="prose prose-slate max-w-none"
-              dangerouslySetInnerHTML={{ __html: notesHtml }}
+              dangerouslySetInnerHTML={{ __html: sanitizeHtml(notesHtml) }}
             />
           </div>
         ) : (

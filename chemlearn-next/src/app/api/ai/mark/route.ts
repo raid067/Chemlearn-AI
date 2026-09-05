@@ -10,7 +10,7 @@ export async function POST(req: NextRequest) {
   try {
     const user = await requireAuth(req);
     
-    if (await isRateLimitedAsync('ai-mark', user.uid, 15, 60_000)) {
+    if (await isRateLimitedAsync('ai-mark', user.uid, 15, 60_000, { failClosedInProduction: true })) {
       return errorResponse('Too many grading requests. Please wait a moment.', 429);
     }
     

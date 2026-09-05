@@ -10,7 +10,7 @@ export async function POST(req: NextRequest) {
   try {
     const user = await requireAuth(req);
     
-    if (await isRateLimitedAsync('ai-worksheet', user.uid, 5, 60_000)) {
+    if (await isRateLimitedAsync('ai-worksheet', user.uid, 5, 60_000, { failClosedInProduction: true })) {
       return errorResponse('Too many worksheet generation requests. Please wait a moment.', 429);
     }
     

@@ -17,15 +17,15 @@ export default function ResourcesPage() {
       </header>
 
       <div className="flex overflow-x-auto gap-2 pb-2 scrollbar-hide border-b border-slate-200">
-        {[
-          { id: 'downloads', label: 'Downloads', icon: <FileText className="w-4 h-4" /> },
-          { id: 'notes', label: 'AI Notes', icon: <FileText className="w-4 h-4" /> },
-          { id: 'homework', label: 'Homework Checker', icon: <CheckSquare className="w-4 h-4" /> },
-          { id: 'tools', label: 'Calculators', icon: <Calculator className="w-4 h-4" /> },
-        ].map((tab) => (
+        {([
+          { id: 'downloads' as const, label: 'Downloads', icon: <FileText className="w-4 h-4" /> },
+          { id: 'notes' as const, label: 'AI Notes', icon: <FileText className="w-4 h-4" /> },
+          { id: 'homework' as const, label: 'Homework Checker', icon: <CheckSquare className="w-4 h-4" /> },
+          { id: 'tools' as const, label: 'Calculators', icon: <Calculator className="w-4 h-4" /> },
+        ]).map((tab) => (
           <button
             key={tab.id}
-            onClick={() => setActiveTab(tab.id as any)}
+            onClick={() => setActiveTab(tab.id)}
             className={`flex items-center gap-2 px-5 py-3 border-b-2 font-medium whitespace-nowrap transition-colors ${
               activeTab === tab.id
                 ? 'border-brand-purple text-brand-purple'

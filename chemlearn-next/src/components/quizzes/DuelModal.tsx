@@ -56,8 +56,8 @@ export default function DuelModal() {
       const effectiveMatchId = returnedMatchId || newMatchId;
       const mId = await createMatch(user.uid, user.displayName || 'Player 1', questions, effectiveMatchId);
       setMatchState({ matchId: mId } as DuelState); // Temporary state to trigger subscription
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Failed to create match');
     } finally {
       setLoading(false);
     }
@@ -71,8 +71,8 @@ export default function DuelModal() {
     try {
       await joinMatch(matchIdInput, user.uid, user.displayName || 'Player 2');
       setMatchState({ matchId: matchIdInput } as DuelState);
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Failed to join match');
     } finally {
       setLoading(false);
     }

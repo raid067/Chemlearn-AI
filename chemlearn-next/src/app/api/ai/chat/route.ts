@@ -36,7 +36,7 @@ export async function POST(req: NextRequest) {
   try {
     const user = await requireAuth(req);
 
-    if (await isRateLimitedAsync('ai-chat', user.uid, 15, 60_000)) {
+    if (await isRateLimitedAsync('ai-chat', user.uid, 15, 60_000, { failClosedInProduction: true })) {
       return NextResponse.json({ error: 'Too many requests. Please wait a moment.' }, { status: 429 });
     }
 

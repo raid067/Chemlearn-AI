@@ -56,19 +56,52 @@ export function isRateLimited(
   return false;
 }
 
+export class RateLimitError extends Error {
+  statusCode: number;
+  code: string;
+
+  constructor(
+    message = 'Rate limiting service temporarily unavailable.',
+    statusCode = 503,
+    code = 'RATE_LIMIT_UNAVAILABLE'
+  ) {
+    super(message);
+    this.name = 'RateLimitError';
+    this.statusCode = statusCode;
+    this.code = code;
+  }
+}
+
+export interface RateLimitOptions {
+  failClosedInProduction?: boolean;
+}
+
 /**
- * Distributed rate limiter supporting Upstash Redis REST API when configured,
- * with automatic fallback to the in-memory limiter.
+ * Distributed rate limiter supporting Upstash Redis REST API when configured.
+ * In production, sensitive AI endpoints can enforce fail-closed behavior (503 RATE_LIMIT_UNAVAILABLE)
+ * if Redis is unreachable, preventing unmetered LLM resource consumption.
+ * In development or testing, automatically falls back to in-memory sliding window limiter.
  * @returns true if the request should be BLOCKED, false if allowed
  */
 export async function isRateLimitedAsync(
   key: string,
   uid: string,
   maxRequests: number = 10,
-  windowMs: number = 60_000
+  windowMs: number = 60_000,
+  options: RateLimitOptions = {}
 ): Promise<boolean> {
+  const isProduction = process.env.NODE_ENV === 'production';
   const upstashUrl = process.env.UPSTASH_REDIS_REST_URL;
   const upstashToken = process.env.UPSTASH_REDIS_REST_TOKEN;
+
+  // Fail-closed guard: in production, sensitive operations must reject if rate limiting is absent
+  if (isProduction && options.failClosedInProduction && (!upstashUrl || !upstashToken)) {
+    throw new RateLimitError(
+      'Rate limiting service is unconfigured or unavailable in production. Rejecting request to protect AI infrastructure.',
+      503,
+      'RATE_LIMIT_UNAVAILABLE'
+    );
+  }
 
   if (!upstashUrl || !upstashToken) {
     return isRateLimited(key, uid, maxRequests, windowMs);
@@ -90,6 +123,13 @@ export async function isRateLimitedAsync(
     });
 
     if (!response.ok) {
+      if (isProduction && options.failClosedInProduction) {
+        throw new RateLimitError(
+          'Rate limiting service error in production. Rejecting request to protect AI infrastructure.',
+          503,
+          'RATE_LIMIT_UNAVAILABLE'
+        );
+      }
       console.warn('[rate-limit] Upstash Redis request failed, using in-memory limiter');
       return isRateLimited(key, uid, maxRequests, windowMs);
     }
@@ -108,6 +148,16 @@ export async function isRateLimitedAsync(
 
     return currentCount > maxRequests;
   } catch (err) {
+    if (err instanceof RateLimitError) {
+      throw err;
+    }
+    if (isProduction && options.failClosedInProduction) {
+      throw new RateLimitError(
+        'Rate limiting service exception in production. Rejecting request to protect AI infrastructure.',
+        503,
+        'RATE_LIMIT_UNAVAILABLE'
+      );
+    }
     console.warn('[rate-limit] Distributed limiter exception, using in-memory fallback:', err);
     return isRateLimited(key, uid, maxRequests, windowMs);
   }

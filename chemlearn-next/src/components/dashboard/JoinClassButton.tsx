@@ -38,8 +38,8 @@ export default function JoinClassButton() {
       setIsOpen(false);
       setInviteCode('');
       showToast('Joined Class!', `Successfully joined ${data.className}`, '🎉');
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Failed to join class');
     } finally {
       setLoading(false);
     }

@@ -94,6 +94,28 @@ export type GeneratedDuelQuestion = z.infer<typeof generatedDuelQuestionSchema>;
 export const generatedDuelListSchema = z.array(generatedDuelQuestionSchema)
   .length(5, 'Duel must have exactly 5 questions');
 
+/** Schema for authoritative AI structured chemistry rubric grading */
+export const structuredRubricSchema = z.object({
+  score: z.number().min(0, 'Score cannot be negative'),
+  reason: z.string().trim().default(''),
+  matchedConcepts: z.array(z.string().trim()).default([]),
+  missingConcepts: z.array(z.string().trim()).default([]),
+  misconceptions: z.array(z.string().trim()).default([]),
+});
+
+export type StructuredRubricData = z.infer<typeof structuredRubricSchema>;
+
+export interface StructuredRubricEvaluation {
+  score: number;
+  maxScore: number;
+  correct: boolean;
+  reason: string;
+  matchedConcepts: string[];
+  missingConcepts: string[];
+  misconceptions: string[];
+  feedback: string;
+}
+
 // ── Quota & Gateway Execution ───────────────────────────────────────────────
 
 /**
@@ -224,4 +246,81 @@ export async function secureGenerateAI<T>(options: {
     );
   }
 }
+
+/**
+ * Server-authoritative structured answer grading through the centralized secure AI Gateway.
+ * Evaluates chemistry concepts, relationships, equations, numbers, units, and misconceptions.
+ */
+export async function gradeStructuredRubricWithGateway(params: {
+  uid: string;
+  question: string;
+  expectedAnswer: string;
+  markingScheme?: string;
+  maximumMarks: number;
+  studentAnswer: string;
+}): Promise<StructuredRubricEvaluation> {
+  const {
+    uid,
+    question,
+    expectedAnswer,
+    markingScheme,
+    maximumMarks,
+    studentAnswer,
+  } = params;
+
+  const safeQuestion = wrapUntrustedInput(question, 'QUESTION');
+  const safeExpected = wrapUntrustedInput(expectedAnswer, 'EXPECTED_ANSWER');
+  const safeScheme = markingScheme ? wrapUntrustedInput(markingScheme, 'MARKING_SCHEME') : '';
+  const safeStudent = wrapUntrustedInput(studentAnswer, 'STUDENT_ANSWER');
+
+  const prompt = `${SYSTEM_SAFETY_GUARDRAIL}
+
+You are an authoritative SPM Chemistry Chief Examiner grading a structured response.
+Evaluate the student's submission against the expected answer and marking criteria.
+
+${safeQuestion}
+${safeExpected}
+${safeScheme ? safeScheme + '\n' : ''}
+${safeStudent}
+Maximum Marks: ${maximumMarks}
+
+Strict Chemistry Evaluation Rules:
+1. Do NOT award marks merely because isolated keywords appear. Evaluate full chemical concepts, relationships, equations, numerical values, and correct units.
+2. If the question requires a numerical calculation, verify numerical values and units strictly.
+3. Check for genuine student misconceptions (e.g. confusing oxidation/reduction, ionic/covalent, atom/ion).
+4. Consider acceptable chemical alternatives (e.g., standard abbreviations, IUPAC systematic names).
+5. Award a numeric score between 0 and ${maximumMarks}. The score must NEVER exceed ${maximumMarks} and never be less than 0.
+
+Return ONLY valid JSON matching this exact schema:
+{
+  "score": <number between 0 and ${maximumMarks}>,
+  "reason": "<rigorous examiner rationale for awarded marks>",
+  "matchedConcepts": ["<accurately stated concept/equation>"],
+  "missingConcepts": ["<omitted essential concept/relationship>"],
+  "misconceptions": ["<student misconception if any>"]
+}`;
+
+  const rubric = await secureGenerateAI<StructuredRubricData>({
+    uid,
+    endpoint: 'ai-structured-rubric',
+    prompt,
+    schema: structuredRubricSchema,
+    maxDailyQuota: 60,
+  });
+
+  const clampedScore = Math.max(0, Math.min(maximumMarks, Math.round(rubric.score)));
+  const feedback = rubric.reason || (clampedScore === maximumMarks ? 'Accurate and comprehensive response.' : 'Review required chemistry concepts.');
+
+  return {
+    score: clampedScore,
+    maxScore: maximumMarks,
+    correct: clampedScore === maximumMarks,
+    reason: rubric.reason,
+    matchedConcepts: rubric.matchedConcepts,
+    missingConcepts: rubric.missingConcepts,
+    misconceptions: rubric.misconceptions,
+    feedback,
+  };
+}
+
 
