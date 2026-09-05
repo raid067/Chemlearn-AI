@@ -48,6 +48,40 @@ service cloud.firestore {
           && (!affectedKeys.hasAny(['xp', 'quizScore', 'level', 'role', 'teacherIds']));
     }
 
+    // User Profile Whitelist
+    function validUserCreate() {
+      let data = request.resource.data;
+      let allowedKeys = ['uid', 'email', 'displayName', 'photoURL', 'avatarUrl', 'role', 'createdAt', 'updatedAt', 'preferences'];
+      return data.keys().hasOnly(allowedKeys)
+          && (!('role' in data) || data.role == 'student')
+          && (!('displayName' in data) || (data.displayName is string && data.displayName.size() <= 100));
+    }
+
+    function validUserUpdate() {
+      let affected = request.resource.data.diff(resource.data).affectedKeys();
+      let allowedUpdateKeys = ['displayName', 'photoURL', 'avatarUrl', 'preferences', 'updatedAt'];
+      return affected.hasOnly(allowedUpdateKeys)
+          && (!affected.hasAny(['displayName']) || (request.resource.data.displayName is string && request.resource.data.displayName.size() <= 100))
+          && (!affected.hasAny(['role', 'admin', 'xp', 'level', 'streak', 'email', 'uid']));
+    }
+
+    // ── Server-Only Collections (Admin SDK Exclusive) ─────────────────────────
+    match /server_quizzes/{document=**} {
+      allow read, write: if false;
+    }
+
+    match /server_duels/{document=**} {
+      allow read, write: if false;
+    }
+
+    match /xp_events/{document=**} {
+      allow read, write: if false;
+    }
+
+    match /ai_usage/{document=**} {
+      allow read, write: if false;
+    }
+
     // ── Admin System Stats ────────────────────────────────────────────────────
     match /system_stats/{document=**} {
       allow read: if isAdmin();
@@ -70,9 +104,9 @@ service cloud.firestore {
     // ── User Progress and Profile ─────────────────────────────────────────────
     match /users/{userId} {
       allow read: if isOwner(userId) || isAdmin();
-      allow write: if isOwner(userId)
-                   && request.resource.data.keys().size() <= 50
-                   && (!('role' in request.resource.data) || !('role' in resource.data) || request.resource.data.role == resource.data.role);
+      allow create: if isOwner(userId) && validUserCreate();
+      allow update: if isOwner(userId) && validUserUpdate();
+      allow delete: if isAdmin();
 
       match /chatHistory/{chatId} {
         allow read, write: if isOwner(userId);
@@ -138,6 +172,8 @@ service cloud.firestore {
           && (!('player2' in resource.data) || request.resource.data.player2 == resource.data.player2)
           && request.resource.data.player1.uid == resource.data.player1.uid
           && request.resource.data.player1.displayName == resource.data.player1.displayName
+          // Scores can ONLY be updated server-authoritatively
+          && request.resource.data.player1.score == resource.data.player1.score
           && (request.resource.data.status == resource.data.status
               || (request.resource.data.status == 'finished'
                   && request.resource.data.player1.finished == true
@@ -153,6 +189,8 @@ service cloud.firestore {
           && request.resource.data.player1 == resource.data.player1
           && request.resource.data.player2.uid == resource.data.player2.uid
           && request.resource.data.player2.displayName == resource.data.player2.displayName
+          // Scores can ONLY be updated server-authoritatively
+          && request.resource.data.player2.score == resource.data.player2.score
           && (request.resource.data.status == resource.data.status
               || (request.resource.data.status == 'finished'
                   && request.resource.data.player2.finished == true
@@ -172,14 +210,10 @@ service cloud.firestore {
 
     // ── Quiz Results ──────────────────────────────────────────────────────────
     match /quiz_results/{resultId} {
-      allow create: if isAuthenticated()
-                    && request.resource.data.uid == request.auth.uid
-                    && request.resource.data.keys().hasOnly(['uid', 'score', 'quizId', 'timestamp', 'answers'])
-                    && request.resource.data.score is int
-                    && request.resource.data.score >= 0
-                    && request.resource.data.score <= 100;
       allow read: if isAuthenticated()
                   && (request.auth.uid == resource.data.uid || isAdmin());
+      // Authoritative only: Client writes forbidden
+      allow write: if false;
     }
 
     // ── Teachers Collection ───────────────────────────────────────────────────

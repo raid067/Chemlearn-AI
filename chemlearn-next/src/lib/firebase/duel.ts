@@ -30,8 +30,8 @@ export interface DuelState {
   createdAt: any;
 }
 
-export const createMatch = async (uid: string, displayName: string, questions: any[]) => {
-  const matchId = generateMatchId();
+export const createMatch = async (uid: string, displayName: string, questions: any[], existingMatchId?: string) => {
+  const matchId = existingMatchId || generateMatchId();
   const matchRef = doc(collection(db, 'duels'), matchId);
 
   const newMatch: DuelState = {
@@ -135,4 +135,48 @@ export const subscribeToMatch = (
       else console.warn(`[Duel Listener] Match ${matchId} snapshot error:`, err.message);
     }
   );
+};
+
+export const submitAuthoritativeDuelAnswer = async (
+  matchId: string,
+  questionIndex: number,
+  selectedOption: number,
+  token: string
+): Promise<{ correct: boolean; score: number }> => {
+  const res = await fetch('/api/duel/answer', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ matchId, questionIndex, selectedOption }),
+  });
+
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(data.error || 'Failed to evaluate duel answer');
+  }
+
+  return res.json();
+};
+
+export const finishAuthoritativeDuelMatch = async (
+  matchId: string,
+  token: string
+): Promise<{ status: string; winnerUid: string | null; xpAwarded: number }> => {
+  const res = await fetch('/api/duel/finish', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ matchId }),
+  });
+
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(data.error || 'Failed to finish duel match');
+  }
+
+  return res.json();
 };

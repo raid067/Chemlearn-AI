@@ -39,6 +39,9 @@ export default function AIQuizModal() {
       if (!res.ok) throw new Error('Generation failed');
       const data = await res.json();
       
+      if (data.quizId) {
+        useQuizStore.getState().setActiveQuizId(data.quizId);
+      }
       setAIQuestions(data.questions);
       closeAIModal();
       useQuizStore.getState().openDirectModal();

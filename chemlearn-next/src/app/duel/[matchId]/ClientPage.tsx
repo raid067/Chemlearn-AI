@@ -2,8 +2,13 @@
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useAuthStore } from '@/stores/useAuthStore';
-import { useGamificationStore } from '@/stores/useGamificationStore';
-import { subscribeToMatch, updateScore, finishMatch, DuelState } from '@/lib/firebase/duel';
+import {
+  subscribeToMatch,
+  submitAuthoritativeDuelAnswer,
+  finishAuthoritativeDuelMatch,
+  DuelState,
+} from '@/lib/firebase/duel';
+import { auth } from '@/lib/firebase';
 
 import { Loader2, Swords, Trophy, XCircle, CheckCircle2 } from 'lucide-react';
 
@@ -17,6 +22,8 @@ export default function DuelArenaPage() {
   const [loading, setLoading] = useState(true);
   const [qIndex, setQIndex] = useState(0);
   const [answered, setAnswered] = useState<number | null>(null);
+  const [evaluating, setEvaluating] = useState(false);
+  const [answerResult, setAnswerResult] = useState<{ isCorrect: boolean; selectedOption: number } | null>(null);
 
   useEffect(() => {
     if (initialized && !user) router.push('/');
@@ -45,26 +52,40 @@ export default function DuelArenaPage() {
   const isFinished = match.status === 'finished' || me?.finished;
 
   const handleAnswer = async (optIndex: number) => {
-    if (answered !== null || isFinished || !me) return;
+    if (answered !== null || isFinished || !me || evaluating) return;
     setAnswered(optIndex);
+    setEvaluating(true);
 
-    const isCorrect = optIndex === currentQ.ans;
-    if (isCorrect) {
-      await updateScore(match.matchId, user.uid, me.score + 10);
-    }
+    try {
+      const token = await auth.currentUser?.getIdToken();
+      if (!token) throw new Error('Not authenticated');
 
-    setTimeout(async () => {
-      setAnswered(null);
-      if (qIndex + 1 < match.questions.length) {
-        setQIndex(prev => prev + 1);
-      } else {
-        await finishMatch(match.matchId, user.uid);
-        // Award XP when finishing
-        if (isCorrect) {
-          await useGamificationStore.getState().syncWithFirebase(user.uid, 'WIN_DUEL');
+      const res = await submitAuthoritativeDuelAnswer(
+        match.matchId,
+        qIndex,
+        optIndex,
+        token
+      );
+
+      setAnswerResult({ isCorrect: res.correct, selectedOption: optIndex });
+
+      setTimeout(async () => {
+        setAnswered(null);
+        setAnswerResult(null);
+        setEvaluating(false);
+
+        if (qIndex + 1 < match.questions.length) {
+          setQIndex((prev) => prev + 1);
+        } else {
+          await finishAuthoritativeDuelMatch(match.matchId, token);
         }
-      }
-    }, 1000);
+      }, 1000);
+    } catch (err) {
+      console.error('Failed to submit duel answer:', err);
+      setAnswered(null);
+      setAnswerResult(null);
+      setEvaluating(false);
+    }
   };
 
   const winner = match.status === 'finished' 
@@ -143,12 +164,17 @@ export default function DuelArenaPage() {
                   let icon = null;
                   
                   if (answered !== null) {
-                    if (i === currentQ.ans) {
-                      stateStyle = 'bg-green-50 border-green-500 text-green-700 font-bold';
-                      icon = <CheckCircle2 className="w-6 h-6 text-green-500" />;
-                    } else if (i === answered) {
-                      stateStyle = 'bg-red-50 border-red-500 text-red-700';
-                      icon = <XCircle className="w-6 h-6 text-red-500" />;
+                    if (answerResult && answerResult.selectedOption === i) {
+                      if (answerResult.isCorrect) {
+                        stateStyle = 'bg-green-50 border-green-500 text-green-700 font-bold';
+                        icon = <CheckCircle2 className="w-6 h-6 text-green-500" />;
+                      } else {
+                        stateStyle = 'bg-red-50 border-red-500 text-red-700';
+                        icon = <XCircle className="w-6 h-6 text-red-500" />;
+                      }
+                    } else if (i === answered && evaluating) {
+                      stateStyle = 'bg-purple-50 border-brand-purple text-brand-purple font-medium';
+                      icon = <Loader2 className="w-5 h-5 animate-spin text-brand-purple" />;
                     } else {
                       stateStyle = 'bg-slate-50 border-slate-200 text-slate-400 opacity-50';
                     }

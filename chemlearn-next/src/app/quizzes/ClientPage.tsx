@@ -5,12 +5,8 @@ import QuizFilterDock from '@/components/quizzes/QuizFilterDock';
 import AIQuizModal from '@/components/quizzes/AIQuizModal';
 import DuelModal from '@/components/quizzes/DuelModal';
 import DirectQuizModal from '@/components/quizzes/DirectQuizModal';
-import { useQuizStore } from '@/stores/useQuizStore';
-import { Bot, Swords } from 'lucide-react';
-
 export default function QuizzesPage() {
   const [activeFilter, setActiveFilter] = useState('All');
-  const { openAIModal, openDuelModal } = useQuizStore();
 
   return (
     <div className="container mx-auto px-4 py-8 flex flex-col gap-8 max-w-6xl">

@@ -1,13 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { verifyAuth, errorResponse, generateGeminiJson } from '../_helpers';
+import { requireAuth, AuthError } from '@/lib/server/auth';
+import { errorResponse, generateGeminiJson } from '../_helpers';
 import { isRateLimited } from '@/lib/rate-limit';
 import { aiFlashcardsSchema } from '@/lib/validations';
+import { enforceAIQuota, wrapUntrustedInput, SYSTEM_SAFETY_GUARDRAIL, AIGatewayError } from '@/lib/server/ai-gateway';
 
 export async function POST(req: NextRequest) {
   try {
-    const uid = await verifyAuth(req);
+    const user = await requireAuth(req);
     
-    if (isRateLimited('ai-flashcards', uid, 5, 60_000)) {
+    if (isRateLimited('ai-flashcards', user.uid, 5, 60_000)) {
       return errorResponse('Too many flashcard generation requests. Please wait a moment.', 429);
     }
     
@@ -19,13 +21,24 @@ export async function POST(req: NextRequest) {
 
     const { topic } = validation.data;
 
-    const prompt = `Generate 10 flashcards for SPM Chemistry topic: ${topic}. 
+    // Check daily quota
+    await enforceAIQuota(user.uid, 'ai-flashcards', 30);
+
+    const safeTopic = wrapUntrustedInput(topic, 'TOPIC');
+    const prompt = `${SYSTEM_SAFETY_GUARDRAIL}
+
+Generate 10 flashcards for SPM Chemistry on the requested topic:
+${safeTopic}
+
 Return the output ONLY as a valid JSON array of objects. Each object should have properties: "question" (string) and "answer" (string). No markdown blocks.`;
 
     const flashcards = await generateGeminiJson(prompt);
 
     return NextResponse.json({ flashcards });
   } catch (error: unknown) {
+    if (error instanceof AuthError || error instanceof AIGatewayError) {
+      return NextResponse.json({ error: error.message }, { status: error.statusCode });
+    }
     console.error('Flashcards API Error:', error);
     return errorResponse(error, 500);
   }

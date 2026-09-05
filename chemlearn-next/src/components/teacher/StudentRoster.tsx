@@ -4,7 +4,7 @@ import { Search, MoreVertical, FileDown, Loader2 } from 'lucide-react';
 import { useTeacherStore } from '@/stores/useTeacherStore';
 import { useUIStore } from '@/stores/useUIStore';
 import { app } from '@/lib/firebase';
-import { doc, getFirestore, collection, query, where, getDocs, documentId } from 'firebase/firestore';
+import { getFirestore, collection, query, where, getDocs, documentId } from 'firebase/firestore';
 import { StudentData } from '@/types/student';
 import { getLevelTitle } from '@/lib/utils';
 
@@ -60,7 +60,7 @@ export default function StudentRoster() {
     fetchStudents();
 
     return () => { isMounted = false; };
-  }, [selectedClass?.id, selectedClass?.studentIds?.join(',')]);
+  }, [selectedClass]);
 
   const filteredStudents = students.filter(s => 
     s.displayName?.toLowerCase().includes(searchTerm.toLowerCase()) || 

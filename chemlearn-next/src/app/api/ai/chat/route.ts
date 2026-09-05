@@ -1,10 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { verifyAuth, errorResponse, genAI } from '../_helpers';
-import { isRateLimited, validateImagePayload } from '@/lib/rate-limit';
+import { requireAuth, AuthError } from '@/lib/server/auth';
+import { errorResponse, genAI } from '../_helpers';
+import { isRateLimited } from '@/lib/rate-limit';
 import { aiChatSchema } from '@/lib/validations';
+import { validateImageBase64, ImageValidationError } from '@/lib/server/image-validator';
+import { enforceAIQuota, wrapUntrustedInput, SYSTEM_SAFETY_GUARDRAIL, AIGatewayError } from '@/lib/server/ai-gateway';
 import { Part } from '@google/generative-ai';
 
-const SYSTEM_PROMPT = `You are ChemLearn AI Tutor for Malaysian SPM Chemistry (Form 4 & Form 5 KSSM DLP Dual-Language Programme).
+const SYSTEM_PROMPT = `${SYSTEM_SAFETY_GUARDRAIL}
+
+You are ChemLearn AI Tutor for Malaysian SPM Chemistry (Form 4 & Form 5 KSSM DLP Dual-Language Programme).
 
 Rules:
 - Adapt language automatically to the student's language (if question contains Malay words like "apa", "bagaimana", "terangkan", "asid", "garam", "aloi", "kenapa", reply in clear Bahasa Melayu using official KSSM SPM Chemistry terms. Otherwise reply in English).
@@ -28,9 +33,9 @@ SPM Tip / Petua SPM:
 
 export async function POST(req: NextRequest) {
   try {
-    const uid = await verifyAuth(req);
+    const user = await requireAuth(req);
 
-    if (isRateLimited('ai-chat', uid, 10, 60_000)) {
+    if (isRateLimited('ai-chat', user.uid, 15, 60_000)) {
       return NextResponse.json({ error: 'Too many requests. Please wait a moment.' }, { status: 429 });
     }
 
@@ -42,32 +47,38 @@ export async function POST(req: NextRequest) {
 
     const { question, imageBase64, imageMimeType } = validation.data;
 
-    const payloadError = validateImagePayload(imageBase64);
-    if (payloadError) {
-      return errorResponse(payloadError);
+    // Check daily quota
+    await enforceAIQuota(user.uid, 'ai-chat', 60);
+
+    const content: (string | Part)[] = [];
+
+    if (question) {
+      // Delimit user input to stop prompt injection
+      content.push(wrapUntrustedInput(question, 'STUDENT_QUESTION'));
+    }
+
+    if (imageBase64) {
+      // Magic bytes and mime verification
+      const validatedImage = validateImageBase64(imageBase64, imageMimeType);
+      content.push({
+        inlineData: {
+          data: validatedImage.cleanBase64,
+          mimeType: validatedImage.detectedMimeType,
+        },
+      });
     }
 
     const modelName = imageBase64 ? 'gemini-1.5-pro' : 'gemini-1.5-flash';
     const model = genAI.getGenerativeModel({ model: modelName, systemInstruction: SYSTEM_PROMPT });
-
-    const content: (string | Part)[] = [];
-    if (question) content.push(question);
-    
-    if (imageBase64 && imageMimeType) {
-      const base64Data = imageBase64.includes(',') ? imageBase64.split(',')[1] : imageBase64;
-      content.push({
-        inlineData: {
-          data: base64Data,
-          mimeType: imageMimeType
-        }
-      });
-    }
 
     const result = await model.generateContent(content);
     const response = result.response.text();
 
     return NextResponse.json({ response });
   } catch (error: unknown) {
+    if (error instanceof AuthError || error instanceof ImageValidationError || error instanceof AIGatewayError) {
+      return NextResponse.json({ error: error.message }, { status: error.statusCode });
+    }
     console.error('Chat API Error:', error);
     return errorResponse(error, 500);
   }

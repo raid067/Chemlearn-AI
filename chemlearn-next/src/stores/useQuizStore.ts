@@ -3,6 +3,7 @@ import { QuizQuestion } from '@/types/quiz';
 
 interface QuizState {
   // AI Quiz
+  activeQuizId: string | null;
   aiQuestions: QuizQuestion[];
   aiScore: number;
   aiAnswered: number;
@@ -15,6 +16,7 @@ interface QuizState {
   duelAnswered: number;
   duelQuestions: { q: string; options: string[]; ans: number }[];
   // Actions
+  setActiveQuizId: (id: string | null) => void;
   setAIQuestions: (q: QuizQuestion[]) => void;
   incrementAIScore: () => void;
   incrementAIAnswered: () => void;
@@ -35,6 +37,7 @@ interface QuizState {
 }
 
 export const useQuizStore = create<QuizState>((set) => ({
+  activeQuizId: null,
   aiQuestions: [],
   aiScore: 0,
   aiAnswered: 0,
@@ -46,10 +49,11 @@ export const useQuizStore = create<QuizState>((set) => ({
   duelScore: 0,
   duelAnswered: 0,
   duelQuestions: [],
+  setActiveQuizId: (id) => set({ activeQuizId: id }),
   setAIQuestions: (q) => set({ aiQuestions: q }),
   incrementAIScore: () => set((s) => ({ aiScore: s.aiScore + 1 })),
   incrementAIAnswered: () => set((s) => ({ aiAnswered: s.aiAnswered + 1 })),
-  resetAIQuiz: () => set({ aiQuestions: [], aiScore: 0, aiAnswered: 0 }),
+  resetAIQuiz: () => set({ activeQuizId: null, aiQuestions: [], aiScore: 0, aiAnswered: 0 }),
   openAIModal: () => set({ aiModalOpen: true }),
   closeAIModal: () => set({ aiModalOpen: false }),
   openDirectModal: () => set({ directModalOpen: true }),

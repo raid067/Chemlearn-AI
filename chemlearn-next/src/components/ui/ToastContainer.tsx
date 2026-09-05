@@ -1,16 +1,14 @@
 'use client';
 import { useUIStore } from '@/stores/useUIStore';
 import { X } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useSyncExternalStore } from 'react';
+
+const emptySubscribe = () => () => {};
 
 export default function ToastContainer() {
   const toasts = useUIStore(s => s.toasts);
   const removeToast = useUIStore(s => s.removeToast);
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  const mounted = useSyncExternalStore(emptySubscribe, () => true, () => false);
 
   if (!mounted) return null;
 

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { adminAuth, adminDb } from '@/lib/firebase-admin';
+import { requireTeacher, AuthError } from '@/lib/server/auth';
+import { adminDb } from '@/lib/firebase-admin';
 import { FieldValue } from 'firebase-admin/firestore';
 import { randomInt } from 'crypto';
 import { createClassSchema } from '@/lib/validations';
@@ -16,20 +17,8 @@ function generateInviteCode(length = 6) {
 
 export async function POST(req: NextRequest) {
   try {
-    const authHeader = req.headers.get('Authorization');
-    if (!authHeader?.startsWith('Bearer ')) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    const token = authHeader.split('Bearer ')[1];
-    const decodedToken = await adminAuth.verifyIdToken(token);
-    const uid = decodedToken.uid;
-
-    // Verify user is in teachers collection
-    const teacherDoc = await adminDb.collection('teachers').doc(uid).get();
-    if (!teacherDoc.exists) {
-      return NextResponse.json({ error: 'Forbidden: Not a teacher' }, { status: 403 });
-    }
+    const user = await requireTeacher(req);
+    const uid = user.uid;
 
     const body = await req.json();
     const validation = createClassSchema.safeParse(body);
@@ -50,6 +39,9 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ success: true, classId: classRef.id, inviteCode });
   } catch (error: unknown) {
+    if (error instanceof AuthError) {
+      return NextResponse.json({ error: error.message, code: error.code }, { status: error.statusCode });
+    }
     console.error('Create class error:', error);
     return errorResponse(error, 500);
   }

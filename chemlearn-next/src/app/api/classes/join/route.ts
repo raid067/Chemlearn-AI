@@ -1,19 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { adminAuth, adminDb } from '@/lib/firebase-admin';
+import { requireAuth, AuthError } from '@/lib/server/auth';
+import { adminDb } from '@/lib/firebase-admin';
 import { FieldValue } from 'firebase-admin/firestore';
+import { isRateLimited } from '@/lib/rate-limit';
 import { joinClassSchema } from '@/lib/validations';
 import { errorResponse } from '../../ai/_helpers';
 
 export async function POST(req: NextRequest) {
   try {
-    const authHeader = req.headers.get('Authorization');
-    if (!authHeader?.startsWith('Bearer ')) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const user = await requireAuth(req);
 
-    const token = authHeader.split('Bearer ')[1];
-    const decodedToken = await adminAuth.verifyIdToken(token);
-    const uid = decodedToken.uid;
+    if (isRateLimited('class-join', user.uid, 5, 60_000)) {
+      return NextResponse.json(
+        { error: 'Too many join attempts. Please wait a minute.' },
+        { status: 429 }
+      );
+    }
 
     const body = await req.json();
     const validation = joinClassSchema.safeParse(body);
@@ -36,16 +38,16 @@ export async function POST(req: NextRequest) {
     const classDoc = classesSnapshot.docs[0];
     const classData = classDoc.data();
     
-    if (classData.studentIds?.includes(uid)) {
+    if (classData.studentIds?.includes(user.uid)) {
       return NextResponse.json({ error: 'Already joined this class' }, { status: 400 });
     }
 
     // Atomically add student to the class and stamp teacherId onto the student doc
-    const studentRef = adminDb.collection('students').doc(uid);
+    const studentRef = adminDb.collection('students').doc(user.uid);
     const batch = adminDb.batch();
 
     batch.update(classDoc.ref, {
-      studentIds: FieldValue.arrayUnion(uid)
+      studentIds: FieldValue.arrayUnion(user.uid)
     });
 
     batch.set(studentRef, {
@@ -56,6 +58,9 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ success: true, className: classData.name });
   } catch (error: unknown) {
+    if (error instanceof AuthError) {
+      return NextResponse.json({ error: error.message, code: error.code }, { status: error.statusCode });
+    }
     console.error('Join class error:', error);
     return errorResponse(error, 500);
   }

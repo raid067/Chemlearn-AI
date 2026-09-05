@@ -1,7 +1,6 @@
 'use client';
 import { ExternalQuiz } from '@/types/quiz';
 import { TOPICS } from '@/lib/constants';
-import { ExternalLink } from 'lucide-react';
 
 export default function QuizCard({ quiz, index = 0 }: { quiz: ExternalQuiz, index?: number }) {
   const topicMeta = TOPICS.find(t => t.label === quiz.topic);

@@ -1,13 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { verifyAuth, errorResponse, generateGeminiJson } from '../_helpers';
+import { requireAuth } from '@/lib/server/auth';
+import { errorResponse, generateGeminiJson } from '../_helpers';
 import { isRateLimited } from '@/lib/rate-limit';
 import { aiQuizSchema } from '@/lib/validations';
+import { storeAuthoritativeQuiz } from '@/lib/server/quizzes';
 
 export async function POST(req: NextRequest) {
   try {
-    const uid = await verifyAuth(req);
+    const user = await requireAuth(req);
     
-    if (isRateLimited('ai-quiz', uid, 5, 60_000)) {
+    if (isRateLimited('ai-quiz', user.uid, 5, 60_000)) {
       return errorResponse('Too many quiz generation requests. Please wait a moment.', 429);
     }
 
@@ -30,13 +32,20 @@ Return the output ONLY as a valid JSON array of objects. Each object should have
 
     const rawQuestions = await generateGeminiJson(prompt);
     
-    const formattedQuestions = (Array.isArray(rawQuestions) ? rawQuestions : []).map((q: any) => 
-      type === 'MCQ' 
-        ? { type: 'MCQ', question: q.q, options: q.options, correctIndex: q.answer, explanation: q.explanation || "No explanation provided." }
-        : { type: 'Structured', question: q.question, expectedAnswer: q.expectedAnswer }
+    // Store authoritative questions with secret answers server-side
+    const { quizId, sanitizedQuestions } = await storeAuthoritativeQuiz(
+      user.uid,
+      topic,
+      difficulty,
+      type as 'MCQ' | 'Structured',
+      Array.isArray(rawQuestions) ? rawQuestions : []
     );
 
-    return NextResponse.json({ questions: formattedQuestions });
+    // Return sanitized questions without answer keys to prevent client-side leaks
+    return NextResponse.json({
+      quizId,
+      questions: sanitizedQuestions,
+    });
   } catch (error: unknown) {
     console.error('Quiz API Error:', error);
     return errorResponse(error, 500);

@@ -27,9 +27,41 @@ export default function TopicPage({ params }: { params: Promise<{ chapterId: str
     setCompleted(true);
     
     if (user) {
-      await useGamificationStore.getState().syncWithFirebase(user.uid, 'COMPLETE_LESSON');
+      try {
+        const token = await user.getIdToken();
+        const res = await fetch('/api/lessons/complete', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({
+            chapterId: unwrappedParams.chapterId,
+            topicId: unwrappedParams.topicId,
+          })
+        });
+        if (res.ok) {
+          const json = await res.json();
+          const { currentXp, currentLevel, xpAwarded, alreadyAwarded } = json.data;
+          useGamificationStore.setState({
+            xp: currentXp,
+            level: currentLevel,
+          });
+          if (!alreadyAwarded && xpAwarded > 0) {
+            import('@/stores/useUIStore').then(({ useUIStore }) => {
+              useUIStore.getState().showToast(
+                'Lesson Completed!',
+                `+${xpAwarded} XP earned for completing this topic`,
+                '🎓'
+              );
+            });
+          }
+        }
+      } catch (e) {
+        console.warn('Could not sync lesson completion:', e);
+      }
     } else {
-      await useGamificationStore.getState().addXP(25, 'Completed Lesson', 'COMPLETE_LESSON');
+      await useGamificationStore.getState().addXP(25, 'Completed Lesson');
     }
   };
 

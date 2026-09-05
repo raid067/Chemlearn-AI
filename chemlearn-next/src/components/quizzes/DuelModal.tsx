@@ -6,7 +6,7 @@ import { useQuizStore } from '@/stores/useQuizStore';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { Swords, Loader2, Play } from 'lucide-react';
 import { createMatch, joinMatch, subscribeToMatch, DuelState } from '@/lib/firebase/duel';
-
+import { generateMatchId } from '@/lib/utils';
 import { auth } from '@/lib/firebase';
 
 export default function DuelModal() {
@@ -32,13 +32,14 @@ export default function DuelModal() {
     setError('');
     try {
       const token = await auth.currentUser?.getIdToken();
+      const newMatchId = generateMatchId();
       const res = await fetch('/api/ai/duel', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify({ topic: 'Random SPM Chemistry' })
+        body: JSON.stringify({ topic: 'Random SPM Chemistry', matchId: newMatchId })
       });
       
       if (!res.ok) {
@@ -46,13 +47,14 @@ export default function DuelModal() {
         throw new Error(errorData.error || 'Failed to generate duel questions');
       }
       
-      const { questions } = await res.json();
+      const { questions, matchId: returnedMatchId } = await res.json();
       
       if (!questions || questions.length === 0) {
         throw new Error('No questions generated');
       }
 
-      const mId = await createMatch(user.uid, user.displayName || 'Player 1', questions);
+      const effectiveMatchId = returnedMatchId || newMatchId;
+      const mId = await createMatch(user.uid, user.displayName || 'Player 1', questions, effectiveMatchId);
       setMatchState({ matchId: mId } as DuelState); // Temporary state to trigger subscription
     } catch (err: any) {
       setError(err.message);
