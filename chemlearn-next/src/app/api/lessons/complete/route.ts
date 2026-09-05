@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireAuth, AuthError } from '@/lib/server/auth';
 import { awardXPEvent, updateAuthoritativeStreak } from '@/lib/server/gamification';
-import { isRateLimited } from '@/lib/rate-limit';
+import { isRateLimitedAsync } from '@/lib/rate-limit';
 import { CHAPTERS } from '@/lib/constants';
 import { errorResponse } from '../../ai/_helpers';
+import { parseSecureJson, RequestPayloadError, MAX_BODY_LIMITS } from '@/lib/server/request-guard';
 import { z } from 'zod';
 
 const lessonCompleteSchema = z.object({
@@ -16,14 +17,14 @@ export async function POST(req: NextRequest) {
     const user = await requireAuth(req);
 
     // Rate limit: 10 completions per minute per student
-    if (isRateLimited('lesson-complete', user.uid, 10, 60_000)) {
+    if (await isRateLimitedAsync('lesson-complete', user.uid, 10, 60_000)) {
       return NextResponse.json(
         { error: 'Too many lesson completion requests. Please wait a moment.' },
         { status: 429 }
       );
     }
 
-    const body = await req.json();
+    const body = await parseSecureJson(req, MAX_BODY_LIMITS.JSON_DEFAULT);
     const validation = lessonCompleteSchema.safeParse(body);
     if (!validation.success) {
       return errorResponse(validation.error.issues[0]?.message || 'Invalid lesson completion payload', 400);
@@ -60,6 +61,9 @@ export async function POST(req: NextRequest) {
   } catch (error: unknown) {
     if (error instanceof AuthError) {
       return NextResponse.json({ error: error.message }, { status: error.statusCode });
+    }
+    if (error instanceof RequestPayloadError) {
+      return NextResponse.json({ error: error.code, message: error.message }, { status: error.statusCode });
     }
     console.error('Lesson Complete API Error:', error);
     return errorResponse(error, 500);

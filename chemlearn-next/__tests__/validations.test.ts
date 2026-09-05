@@ -1,19 +1,12 @@
-﻿import {
+import {
   syncGamificationSchema,
-  aiChallengeSchema,
   aiChatSchema,
-  aiDuelSchema,
-  aiFlashcardsSchema,
-  aiGradeSchema,
-  aiInsightsSchema,
   aiMarkSchema,
-  aiNotesSchema,
   aiQuizSchema,
-  aiWorksheetSchema,
   createClassSchema,
-  joinClassSchema
+  joinClassSchema,
 } from '@/lib/validations';
-import { validateImagePayload, MAX_IMAGE_PAYLOAD_BYTES } from '@/lib/rate-limit';
+import { validateImagePayload } from '@/lib/rate-limit';
 
 describe('Zod Validation Schemas & Edge Cases', () => {
   describe('syncGamificationSchema', () => {

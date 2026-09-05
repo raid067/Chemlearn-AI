@@ -14,11 +14,19 @@ import { generateMatchId } from '../utils';
 
 const db = getFirestore(app);
 
+import type { Timestamp, FieldValue } from 'firebase/firestore';
+
+export interface DuelQuestion {
+  q: string;
+  options: string[];
+}
+
 export interface DuelPlayer {
   uid: string;
   displayName: string;
   score: number;
   finished: boolean;
+  answeredIndices?: number[];
 }
 
 export interface DuelState {
@@ -26,11 +34,18 @@ export interface DuelState {
   status: 'waiting' | 'playing' | 'finished';
   player1: DuelPlayer;
   player2?: DuelPlayer;
-  questions: any[];
-  createdAt: any;
+  questions: DuelQuestion[];
+  winnerUid?: string | null;
+  rewardStatus?: 'none' | 'pending' | 'awarded' | 'failed';
+  createdAt: Timestamp | FieldValue;
 }
 
-export const createMatch = async (uid: string, displayName: string, questions: any[], existingMatchId?: string) => {
+export const createMatch = async (
+  uid: string,
+  displayName: string,
+  questions: DuelQuestion[],
+  existingMatchId?: string
+): Promise<string> => {
   const matchId = existingMatchId || generateMatchId();
   const matchRef = doc(collection(db, 'duels'), matchId);
 

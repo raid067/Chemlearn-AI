@@ -2,7 +2,7 @@
 import { ChatMessage as ChatMessageType } from '@/types/chat';
 import { Bot, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import DOMPurify from 'dompurify';
+import { sanitizeHtml } from '@/lib/sanitize';
 import { marked } from 'marked';
 
 export default function ChatMessage({ message }: { message: ChatMessageType }) {
@@ -10,7 +10,7 @@ export default function ChatMessage({ message }: { message: ChatMessageType }) {
   
   // Basic markdown parsing for bold text and line breaks
   const rawHtml = marked.parse(message.content, { async: false }) as string;
-  const cleanHtml = DOMPurify.sanitize(rawHtml);
+  const cleanHtml = sanitizeHtml(rawHtml);
 
   return (
     <div className={cn("flex gap-4", isBot ? "flex-row" : "flex-row-reverse")}>

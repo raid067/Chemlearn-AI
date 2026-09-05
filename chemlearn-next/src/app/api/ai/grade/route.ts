@@ -1,30 +1,28 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireAuth, AuthError } from '@/lib/server/auth';
-import { errorResponse, generateGeminiText } from '../_helpers';
-import { isRateLimited } from '@/lib/rate-limit';
+import { errorResponse } from '../_helpers';
+import { isRateLimitedAsync } from '@/lib/rate-limit';
 import { aiGradeSchema } from '@/lib/validations';
 import { validateImageBase64, ImageValidationError } from '@/lib/server/image-validator';
-import { enforceAIQuota, SYSTEM_SAFETY_GUARDRAIL, AIGatewayError } from '@/lib/server/ai-gateway';
+import { secureGenerateAI, SYSTEM_SAFETY_GUARDRAIL, AIGatewayError } from '@/lib/server/ai-gateway';
+import { parseSecureJson, RequestPayloadError, MAX_BODY_LIMITS } from '@/lib/server/request-guard';
 import { Part } from '@google/generative-ai';
 
 export async function POST(req: NextRequest) {
   try {
     const user = await requireAuth(req);
 
-    if (isRateLimited('ai-grade', user.uid, 5, 60_000)) {
+    if (await isRateLimitedAsync('ai-grade', user.uid, 5, 60_000)) {
       return NextResponse.json({ error: 'Too many requests. Please wait a moment.' }, { status: 429 });
     }
 
-    const body = await req.json();
+    const body = await parseSecureJson(req, MAX_BODY_LIMITS.IMAGE_BASE64);
     const validation = aiGradeSchema.safeParse(body);
     if (!validation.success) {
       return errorResponse(validation.error.issues[0]?.message || 'Image data is required', 400);
     }
 
     const { imageBase64, imageMimeType } = validation.data;
-
-    // Check daily quota
-    await enforceAIQuota(user.uid, 'ai-grade', 25);
 
     // Verify magic bytes
     const validatedImage = validateImageBase64(imageBase64, imageMimeType);
@@ -43,12 +41,30 @@ You are a strict but fair chemistry teacher marking a student's homework. Carefu
       },
     ];
 
-    const feedback = await generateGeminiText(promptParts);
+    const feedback = await secureGenerateAI<string>({
+      uid: user.uid,
+      endpoint: 'ai-grade',
+      prompt: promptParts,
+      modelName: 'gemini-1.5-flash',
+      maxDailyQuota: 25,
+    });
 
     return NextResponse.json({ feedback });
   } catch (error: unknown) {
-    if (error instanceof AuthError || error instanceof ImageValidationError || error instanceof AIGatewayError) {
+    if (error instanceof AuthError || error instanceof ImageValidationError) {
       return NextResponse.json({ error: error.message }, { status: error.statusCode });
+    }
+    if (error instanceof AIGatewayError) {
+      return NextResponse.json(
+        { error: error.code, message: error.message },
+        { status: error.statusCode }
+      );
+    }
+    if (error instanceof RequestPayloadError) {
+      return NextResponse.json(
+        { error: error.code, message: error.message },
+        { status: error.statusCode }
+      );
     }
     console.error('Grade API Error:', error);
     return errorResponse(error, 500);

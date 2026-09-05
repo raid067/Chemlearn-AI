@@ -2,22 +2,23 @@ import { NextRequest, NextResponse } from 'next/server';
 import { requireAuth, AuthError } from '@/lib/server/auth';
 import { adminDb } from '@/lib/firebase-admin';
 import { FieldValue } from 'firebase-admin/firestore';
-import { isRateLimited } from '@/lib/rate-limit';
+import { isRateLimitedAsync } from '@/lib/rate-limit';
 import { joinClassSchema } from '@/lib/validations';
 import { errorResponse } from '../../ai/_helpers';
+import { parseSecureJson, RequestPayloadError, MAX_BODY_LIMITS } from '@/lib/server/request-guard';
 
 export async function POST(req: NextRequest) {
   try {
     const user = await requireAuth(req);
 
-    if (isRateLimited('class-join', user.uid, 5, 60_000)) {
+    if (await isRateLimitedAsync('class-join', user.uid, 5, 60_000)) {
       return NextResponse.json(
         { error: 'Too many join attempts. Please wait a minute.' },
         { status: 429 }
       );
     }
 
-    const body = await req.json();
+    const body = await parseSecureJson(req, MAX_BODY_LIMITS.JSON_DEFAULT);
     const validation = joinClassSchema.safeParse(body);
     if (!validation.success) {
       return errorResponse(validation.error.issues[0]?.message || 'Invalid invite code', 400);
@@ -60,6 +61,9 @@ export async function POST(req: NextRequest) {
   } catch (error: unknown) {
     if (error instanceof AuthError) {
       return NextResponse.json({ error: error.message, code: error.code }, { status: error.statusCode });
+    }
+    if (error instanceof RequestPayloadError) {
+      return NextResponse.json({ error: error.code, message: error.message }, { status: error.statusCode });
     }
     console.error('Join class error:', error);
     return errorResponse(error, 500);

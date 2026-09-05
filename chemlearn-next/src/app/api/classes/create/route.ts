@@ -5,6 +5,7 @@ import { FieldValue } from 'firebase-admin/firestore';
 import { randomInt } from 'crypto';
 import { createClassSchema } from '@/lib/validations';
 import { errorResponse } from '../../ai/_helpers';
+import { parseSecureJson, RequestPayloadError, MAX_BODY_LIMITS } from '@/lib/server/request-guard';
 
 function generateInviteCode(length = 6) {
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
@@ -20,7 +21,7 @@ export async function POST(req: NextRequest) {
     const user = await requireTeacher(req);
     const uid = user.uid;
 
-    const body = await req.json();
+    const body = await parseSecureJson(req, MAX_BODY_LIMITS.JSON_DEFAULT);
     const validation = createClassSchema.safeParse(body);
     if (!validation.success) {
       return errorResponse(validation.error.issues[0]?.message || 'Class name is required', 400);
@@ -41,6 +42,9 @@ export async function POST(req: NextRequest) {
   } catch (error: unknown) {
     if (error instanceof AuthError) {
       return NextResponse.json({ error: error.message, code: error.code }, { status: error.statusCode });
+    }
+    if (error instanceof RequestPayloadError) {
+      return NextResponse.json({ error: error.code, message: error.message }, { status: error.statusCode });
     }
     console.error('Create class error:', error);
     return errorResponse(error, 500);

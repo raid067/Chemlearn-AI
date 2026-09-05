@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireAuth, AuthError } from '@/lib/server/auth';
-import { errorResponse, genAI } from '../_helpers';
-import { isRateLimited } from '@/lib/rate-limit';
+import { errorResponse } from '../_helpers';
+import { isRateLimitedAsync } from '@/lib/rate-limit';
 import { aiChatSchema } from '@/lib/validations';
 import { validateImageBase64, ImageValidationError } from '@/lib/server/image-validator';
-import { enforceAIQuota, wrapUntrustedInput, SYSTEM_SAFETY_GUARDRAIL, AIGatewayError } from '@/lib/server/ai-gateway';
+import { secureGenerateAI, wrapUntrustedInput, SYSTEM_SAFETY_GUARDRAIL, AIGatewayError } from '@/lib/server/ai-gateway';
+import { parseSecureJson, RequestPayloadError, MAX_BODY_LIMITS } from '@/lib/server/request-guard';
 import { Part } from '@google/generative-ai';
 
 const SYSTEM_PROMPT = `${SYSTEM_SAFETY_GUARDRAIL}
@@ -35,11 +36,11 @@ export async function POST(req: NextRequest) {
   try {
     const user = await requireAuth(req);
 
-    if (isRateLimited('ai-chat', user.uid, 15, 60_000)) {
+    if (await isRateLimitedAsync('ai-chat', user.uid, 15, 60_000)) {
       return NextResponse.json({ error: 'Too many requests. Please wait a moment.' }, { status: 429 });
     }
 
-    const body = await req.json();
+    const body = await parseSecureJson(req, MAX_BODY_LIMITS.IMAGE_BASE64);
     const validation = aiChatSchema.safeParse(body);
     if (!validation.success) {
       return errorResponse(validation.error.issues[0]?.message || 'Question or image is required', 400);
@@ -47,10 +48,7 @@ export async function POST(req: NextRequest) {
 
     const { question, imageBase64, imageMimeType } = validation.data;
 
-    // Check daily quota
-    await enforceAIQuota(user.uid, 'ai-chat', 60);
-
-    const content: (string | Part)[] = [];
+    const content: (string | Part)[] = [SYSTEM_PROMPT];
 
     if (question) {
       // Delimit user input to stop prompt injection
@@ -69,15 +67,31 @@ export async function POST(req: NextRequest) {
     }
 
     const modelName = imageBase64 ? 'gemini-1.5-pro' : 'gemini-1.5-flash';
-    const model = genAI.getGenerativeModel({ model: modelName, systemInstruction: SYSTEM_PROMPT });
 
-    const result = await model.generateContent(content);
-    const response = result.response.text();
+    const response = await secureGenerateAI<string>({
+      uid: user.uid,
+      endpoint: 'ai-chat',
+      prompt: content,
+      modelName,
+      maxDailyQuota: 60,
+    });
 
     return NextResponse.json({ response });
   } catch (error: unknown) {
-    if (error instanceof AuthError || error instanceof ImageValidationError || error instanceof AIGatewayError) {
+    if (error instanceof AuthError || error instanceof ImageValidationError) {
       return NextResponse.json({ error: error.message }, { status: error.statusCode });
+    }
+    if (error instanceof AIGatewayError) {
+      return NextResponse.json(
+        { error: error.code, message: error.message },
+        { status: error.statusCode }
+      );
+    }
+    if (error instanceof RequestPayloadError) {
+      return NextResponse.json(
+        { error: error.code, message: error.message },
+        { status: error.statusCode }
+      );
     }
     console.error('Chat API Error:', error);
     return errorResponse(error, 500);

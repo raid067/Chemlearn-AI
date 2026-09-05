@@ -1,36 +1,34 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireAuth, AuthError } from '@/lib/server/auth';
-import { errorResponse, generateGeminiJson } from '../_helpers';
-import { isRateLimited } from '@/lib/rate-limit';
+import { errorResponse } from '../_helpers';
+import { isRateLimitedAsync } from '@/lib/rate-limit';
 import { aiDuelSchema } from '@/lib/validations';
 import { storeAuthoritativeDuel, ServerDuelQuestion } from '@/lib/server/duels';
 import { generateMatchId } from '@/lib/utils';
-import { enforceAIQuota, wrapUntrustedInput, SYSTEM_SAFETY_GUARDRAIL, AIGatewayError } from '@/lib/server/ai-gateway';
-import { z } from 'zod';
-
-const duelQuestionListSchema = z.array(
-  z.object({
-    q: z.string().trim().min(1),
-    options: z.array(z.string().trim().min(1)).length(4),
-    ans: z.number().int().min(0).max(3),
-  })
-);
+import {
+  secureGenerateAI,
+  wrapUntrustedInput,
+  SYSTEM_SAFETY_GUARDRAIL,
+  AIGatewayError,
+  generatedDuelListSchema,
+} from '@/lib/server/ai-gateway';
+import { parseSecureJson, RequestPayloadError, MAX_BODY_LIMITS } from '@/lib/server/request-guard';
 
 export async function POST(req: NextRequest) {
   try {
     const user = await requireAuth(req);
     
-    if (isRateLimited('ai-duel', user.uid, 5, 60_000)) {
+    if (await isRateLimitedAsync('ai-duel', user.uid, 5, 60_000)) {
       return errorResponse('Too many duel generation requests. Please wait a moment.', 429);
     }
 
-    // Check daily quota
-    await enforceAIQuota(user.uid, 'ai-duel', 30);
-    
     let body = {};
     try {
-      body = await req.json();
-    } catch {
+      body = await parseSecureJson(req, MAX_BODY_LIMITS.PROMPT);
+    } catch (e) {
+      if (e instanceof RequestPayloadError && e.statusCode === 413) {
+        throw e;
+      }
       // Empty body is allowed, defaults to 'General Chemistry'
     }
 
@@ -48,28 +46,19 @@ export async function POST(req: NextRequest) {
 Generate 5 multiple-choice questions (MCQ) for a real-time multiplayer Duel on the SPM Chemistry topic:
 ${safeTopic}
 
-Return the output ONLY as a valid JSON array of objects. Each object should have properties:
-- "q": string (the question)
-- "options": array of 4 strings
+Return the output ONLY as a valid JSON array of 5 objects. Each object should have properties:
+- "q": string (the question text)
+- "options": array of exactly 4 distinct strings
 - "ans": number (0-3 index of the correct option)
 No markdown blocks. Keep it engaging.`;
 
-    const rawQuestions = await generateGeminiJson(prompt);
-    const parsed = duelQuestionListSchema.safeParse(rawQuestions);
-    
-    const fullQuestions: ServerDuelQuestion[] = parsed.success && parsed.data.length > 0
-      ? parsed.data
-      : (Array.isArray(rawQuestions) ? rawQuestions : []).map((q: any) => ({
-          q: String(q.q || 'SPM Chemistry Question'),
-          options: Array.isArray(q.options) && q.options.length === 4
-            ? q.options.map(String)
-            : ['Option A', 'Option B', 'Option C', 'Option D'],
-          ans: typeof q.ans === 'number' && q.ans >= 0 && q.ans <= 3 ? q.ans : 0,
-        }));
-
-    if (fullQuestions.length === 0) {
-      return errorResponse('Failed to generate valid duel questions', 502);
-    }
+    const fullQuestions: ServerDuelQuestion[] = await secureGenerateAI({
+      uid: user.uid,
+      endpoint: 'ai-duel',
+      prompt,
+      schema: generatedDuelListSchema,
+      maxDailyQuota: 30,
+    });
 
     // Persist correct answers authoritatively on the server
     await storeAuthoritativeDuel(matchId, user.uid, fullQuestions);
@@ -82,8 +71,20 @@ No markdown blocks. Keep it engaging.`;
 
     return NextResponse.json({ matchId, questions });
   } catch (error: unknown) {
-    if (error instanceof AuthError || error instanceof AIGatewayError) {
+    if (error instanceof AuthError) {
       return NextResponse.json({ error: error.message }, { status: error.statusCode });
+    }
+    if (error instanceof AIGatewayError) {
+      return NextResponse.json(
+        { error: error.code, message: error.message },
+        { status: error.statusCode }
+      );
+    }
+    if (error instanceof RequestPayloadError) {
+      return NextResponse.json(
+        { error: error.code, message: error.message },
+        { status: error.statusCode }
+      );
     }
     console.error('Duel API Error:', error);
     return errorResponse(error, 500);

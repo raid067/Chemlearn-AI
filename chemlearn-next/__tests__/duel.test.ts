@@ -29,7 +29,7 @@ jest.mock('firebase/firestore', () => ({
   getFirestore: jest.fn(() => ({})),
 }));
 
-import { createMatch, joinMatch, updateScore, finishMatch, subscribeToMatch } from '@/lib/firebase/duel';
+import { createMatch, joinMatch, finishMatch } from '@/lib/firebase/duel';
 
 describe('Duel Multiplayer Engine (Concurrency & State Transitions)', () => {
   beforeEach(() => {
@@ -41,7 +41,9 @@ describe('Duel Multiplayer Engine (Concurrency & State Transitions)', () => {
     it('creates a new duel in waiting state with player 1 initialized', async () => {
       mockSetDoc.mockResolvedValueOnce(undefined);
 
-      const matchId = await createMatch('player1-uid', 'Alice', [{ q: 'Test question' }]);
+      const matchId = await createMatch('player1-uid', 'Alice', [
+        { q: 'Test question', options: ['A', 'B', 'C', 'D'] },
+      ]);
       expect(typeof matchId).toBe('string');
       expect(mockSetDoc).toHaveBeenCalledWith(
         'mock-duel-ref',

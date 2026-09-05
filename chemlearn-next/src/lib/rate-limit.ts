@@ -22,7 +22,7 @@ interface RateLimitEntry {
 const limiters = new Map<string, Map<string, RateLimitEntry>>();
 
 /**
- * Check if a request should be rate-limited.
+ * Check if a request should be rate-limited using synchronous in-memory storage.
  * @param key - A unique key for the rate limit bucket (e.g. route name)
  * @param uid - The user's UID
  * @param maxRequests - Maximum requests allowed in the window
@@ -54,6 +54,63 @@ export function isRateLimited(
   }
 
   return false;
+}
+
+/**
+ * Distributed rate limiter supporting Upstash Redis REST API when configured,
+ * with automatic fallback to the in-memory limiter.
+ * @returns true if the request should be BLOCKED, false if allowed
+ */
+export async function isRateLimitedAsync(
+  key: string,
+  uid: string,
+  maxRequests: number = 10,
+  windowMs: number = 60_000
+): Promise<boolean> {
+  const upstashUrl = process.env.UPSTASH_REDIS_REST_URL;
+  const upstashToken = process.env.UPSTASH_REDIS_REST_TOKEN;
+
+  if (!upstashUrl || !upstashToken) {
+    return isRateLimited(key, uid, maxRequests, windowMs);
+  }
+
+  try {
+    const redisKey = `ratelimit:${key}:${uid}`;
+    const response = await fetch(`${upstashUrl}/pipeline`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${upstashToken}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify([
+        ['INCR', redisKey],
+        ['PTTL', redisKey],
+      ]),
+      cache: 'no-store',
+    });
+
+    if (!response.ok) {
+      console.warn('[rate-limit] Upstash Redis request failed, using in-memory limiter');
+      return isRateLimited(key, uid, maxRequests, windowMs);
+    }
+
+    const data = (await response.json()) as Array<{ result: number }>;
+    const currentCount = Number(data[0]?.result) || 1;
+    const pttl = Number(data[1]?.result);
+
+    // If key had no TTL (PTTL returns -1), set its expiration to windowMs
+    if (pttl === -1 || pttl === -2) {
+      await fetch(`${upstashUrl}/pexpire/${encodeURIComponent(redisKey)}/${windowMs}`, {
+        headers: { Authorization: `Bearer ${upstashToken}` },
+        cache: 'no-store',
+      }).catch(() => {});
+    }
+
+    return currentCount > maxRequests;
+  } catch (err) {
+    console.warn('[rate-limit] Distributed limiter exception, using in-memory fallback:', err);
+    return isRateLimited(key, uid, maxRequests, windowMs);
+  }
 }
 
 /** Maximum allowed base64 payload size in bytes (5MB) */

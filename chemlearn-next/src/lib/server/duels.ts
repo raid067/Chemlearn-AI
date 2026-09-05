@@ -98,14 +98,17 @@ export async function submitDuelAnswer(
   return { correct: isCorrect, score: updatedScore };
 }
 
+export type DuelRewardStatus = 'none' | 'pending' | 'awarded' | 'failed';
+
 /**
  * Server-authoritative match finalization and winner XP reward.
+ * Implements durable reward states ('pending' -> 'awarded' / 'failed') with safe retry.
  * Moves XP awarding outside transaction to avoid nested transaction deadlock.
  */
 export async function finishDuelPlayer(
   matchId: string,
   uid: string
-): Promise<{ status: string; winnerUid: string | null; xpAwarded: number }> {
+): Promise<{ status: string; winnerUid: string | null; rewardStatus: DuelRewardStatus; xpAwarded: number }> {
   const duelRef = adminDb.collection('duels').doc(matchId);
 
   const txResult = await adminDb.runTransaction(async (transaction) => {
@@ -130,17 +133,28 @@ export async function finishDuelPlayer(
       [`${playerKey}.finished`]: true,
     };
 
-    let winnerUid: string | null = null;
+    let winnerUid: string | null = data.winnerUid || null;
+    let rewardStatus: DuelRewardStatus = data.rewardStatus || 'none';
 
     if (matchFinished) {
       updates.status = 'finished';
       const myScore = Number(data[playerKey]?.score) || 0;
       const opponentScore = Number(data[opponentKey]?.score) || 0;
 
-      if (myScore > opponentScore) {
-        winnerUid = uid;
-      } else if (opponentScore > myScore) {
-        winnerUid = data[opponentKey]?.uid || null;
+      if (!winnerUid) {
+        if (myScore > opponentScore) {
+          winnerUid = uid;
+        } else if (opponentScore > myScore) {
+          winnerUid = data[opponentKey]?.uid || null;
+        }
+      }
+
+      updates.winnerUid = winnerUid;
+
+      // Only transition to pending if not already awarded
+      if (rewardStatus !== 'awarded') {
+        rewardStatus = winnerUid ? 'pending' : 'none';
+        updates.rewardStatus = rewardStatus;
       }
     }
 
@@ -150,6 +164,7 @@ export async function finishDuelPlayer(
       status: matchFinished ? 'finished' : (data.status || 'playing'),
       winnerUid,
       matchFinished,
+      rewardStatus,
       p1Score: data.player1?.score,
       p2Score: data.player2?.score,
     };
@@ -157,7 +172,7 @@ export async function finishDuelPlayer(
 
   // Award winner 20 XP idempotently outside transaction to prevent nested transaction deadlock
   let xpAwarded = 0;
-  if (txResult.matchFinished && txResult.winnerUid) {
+  if (txResult.matchFinished && txResult.winnerUid && txResult.rewardStatus !== 'awarded') {
     try {
       const xpResult = await awardXPEvent(txResult.winnerUid, 'DUEL', matchId, 20, {
         matchId,
@@ -167,14 +182,26 @@ export async function finishDuelPlayer(
       if (txResult.winnerUid === uid) {
         xpAwarded = xpResult.xpAwarded;
       }
+
+      await duelRef.update({
+        rewardStatus: 'awarded',
+        rewardAwardedAt: FieldValue.serverTimestamp(),
+      });
+      txResult.rewardStatus = 'awarded';
     } catch (err) {
       console.error('[duels] Failed to award winner XP event:', err);
+      await duelRef.update({
+        rewardStatus: 'failed',
+        rewardError: err instanceof Error ? err.message : String(err),
+      }).catch(() => {});
+      txResult.rewardStatus = 'failed';
     }
   }
 
   return {
     status: txResult.status,
     winnerUid: txResult.winnerUid,
+    rewardStatus: txResult.rewardStatus,
     xpAwarded,
   };
 }

@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { auth } from '@/lib/firebase';
 import { Sparkles, Loader2, Download, FileText } from 'lucide-react';
-import DOMPurify from 'dompurify';
+import { sanitizeHtml } from '@/lib/sanitize';
 
 export default function AINotesGenerator() {
   const { user } = useAuthStore();
@@ -33,9 +33,10 @@ export default function AINotesGenerator() {
       if (!res.ok) throw new Error('Failed to generate notes');
       const data = await res.json();
       
-      setNotesHtml(DOMPurify.sanitize(data.notes));
-    } catch (err: any) {
-      setError(err.message || 'Generation failed');
+      setNotesHtml(sanitizeHtml(data.notes));
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Generation failed';
+      setError(msg);
     } finally {
       setLoading(false);
     }

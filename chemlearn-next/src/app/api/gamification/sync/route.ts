@@ -50,14 +50,19 @@ export async function GET(req: NextRequest) {
  * Deprecated client action claims are explicitly rejected to enforce server authority.
  * Clients must call verified operation endpoints (/api/lessons/complete, /api/quizzes/submit, etc.).
  */
+import { parseSecureJson, RequestPayloadError, MAX_BODY_LIMITS } from '@/lib/server/request-guard';
+
 export async function POST(req: NextRequest) {
   try {
     const user = await requireAuth(req);
 
     let body: Record<string, unknown> = {};
     try {
-      body = await req.json();
-    } catch {
+      body = await parseSecureJson(req, MAX_BODY_LIMITS.JSON_DEFAULT);
+    } catch (e) {
+      if (e instanceof RequestPayloadError && e.statusCode === 413) {
+        throw e;
+      }
       // Body may be empty if client is requesting a state refresh via POST
       body = {};
     }
@@ -94,6 +99,9 @@ export async function POST(req: NextRequest) {
   } catch (error: unknown) {
     if (error instanceof AuthError) {
       return NextResponse.json({ error: error.message, code: error.code }, { status: error.statusCode });
+    }
+    if (error instanceof RequestPayloadError) {
+      return NextResponse.json({ error: error.code, message: error.message }, { status: error.statusCode });
     }
     console.error('Gamification Sync API Error:', error);
     return NextResponse.json({ error: 'Failed to process gamification sync' }, { status: 500 });

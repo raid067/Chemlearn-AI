@@ -1,29 +1,26 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireAuth, AuthError } from '@/lib/server/auth';
-import { errorResponse, generateGeminiText } from '../_helpers';
-import { isRateLimited } from '@/lib/rate-limit';
+import { errorResponse } from '../_helpers';
+import { isRateLimitedAsync } from '@/lib/rate-limit';
 import { aiNotesSchema } from '@/lib/validations';
-import { enforceAIQuota, wrapUntrustedInput, SYSTEM_SAFETY_GUARDRAIL, AIGatewayError } from '@/lib/server/ai-gateway';
+import { secureGenerateAI, wrapUntrustedInput, SYSTEM_SAFETY_GUARDRAIL, AIGatewayError } from '@/lib/server/ai-gateway';
+import { parseSecureJson, RequestPayloadError, MAX_BODY_LIMITS } from '@/lib/server/request-guard';
 
 export async function POST(req: NextRequest) {
   try {
     const user = await requireAuth(req);
     
-    if (isRateLimited('ai-notes', user.uid, 5, 60_000)) {
+    if (await isRateLimitedAsync('ai-notes', user.uid, 5, 60_000)) {
       return errorResponse('Too many notes generation requests. Please wait a moment.', 429);
     }
     
-    const body = await req.json();
+    const body = await parseSecureJson(req, MAX_BODY_LIMITS.PROMPT);
     const validation = aiNotesSchema.safeParse(body);
     if (!validation.success) {
       return errorResponse(validation.error.issues[0]?.message || 'Topic is required', 400);
     }
 
     const { topic } = validation.data;
-
-    // Check daily quota
-    await enforceAIQuota(user.uid, 'ai-notes', 30);
-
     const safeTopic = wrapUntrustedInput(topic, 'TOPIC');
     const prompt = `${SYSTEM_SAFETY_GUARDRAIL}
 
@@ -32,12 +29,29 @@ ${safeTopic}
 
 Return ONLY raw HTML content (e.g. <h2>, <p>, <ul>, <li>) without any markdown code blocks (\`\`\`). Focus on key definitions, concepts, and chemical equations where relevant.`;
 
-    const notes = await generateGeminiText(prompt);
+    const notes = await secureGenerateAI<string>({
+      uid: user.uid,
+      endpoint: 'ai-notes',
+      prompt,
+      maxDailyQuota: 30,
+    });
 
     return NextResponse.json({ notes });
   } catch (error: unknown) {
-    if (error instanceof AuthError || error instanceof AIGatewayError) {
+    if (error instanceof AuthError) {
       return NextResponse.json({ error: error.message }, { status: error.statusCode });
+    }
+    if (error instanceof AIGatewayError) {
+      return NextResponse.json(
+        { error: error.code, message: error.message },
+        { status: error.statusCode }
+      );
+    }
+    if (error instanceof RequestPayloadError) {
+      return NextResponse.json(
+        { error: error.code, message: error.message },
+        { status: error.statusCode }
+      );
     }
     console.error('Notes API Error:', error);
     return errorResponse(error, 500);

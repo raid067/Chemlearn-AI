@@ -53,7 +53,6 @@ describe('Image Validator (Magic Bytes & Payload Inspection)', () => {
   });
 
   it('rejects oversized images exceeding size limit', () => {
-    const smallLimit = 10; // 10 bytes limit
     const raw = validPngBuffer.toString('base64'); // 10 bytes
     // Buffer is 10 bytes, if limit is 5 bytes:
     expect(() => validateImageBase64(raw, 'image/png', 5)).toThrow(/exceeds maximum limit/);

@@ -136,30 +136,39 @@ export function gradeStructuredDeterministic(
   const studentNumMatch = normStudent.match(/^([+-]?\d+(?:\.\d+)?)(?:\s*([a-z0-9/^-]+))?$/i);
   const expectedNumMatch = normExpected.match(/^([+-]?\d+(?:\.\d+)?)(?:\s*([a-z0-9/^-]+))?$/i);
 
-  if (studentNumMatch && expectedNumMatch) {
-    const studentVal = parseFloat(studentNumMatch[1]);
-    const expectedVal = parseFloat(expectedNumMatch[1]);
-    const studentUnit = studentNumMatch[2] || '';
-    const expectedUnit = expectedNumMatch[2] || '';
+  if (expectedNumMatch) {
+    if (studentNumMatch) {
+      const studentVal = parseFloat(studentNumMatch[1]);
+      const expectedVal = parseFloat(expectedNumMatch[1]);
+      const studentUnit = studentNumMatch[2] || '';
+      const expectedUnit = expectedNumMatch[2] || '';
 
-    const numMatch = Math.abs(studentVal - expectedVal) < 0.01;
-    if (numMatch) {
-      if (!expectedUnit || studentUnit === expectedUnit) {
-        return { score: maxMarks, isCorrect: true, feedback: 'Correct numerical value and units.' };
+      const numMatch = Math.abs(studentVal - expectedVal) < 0.01;
+      if (numMatch) {
+        if (!expectedUnit || studentUnit === expectedUnit) {
+          return { score: maxMarks, isCorrect: true, feedback: 'Correct numerical value and units.' };
+        } else {
+          const partial = Math.max(1, Math.floor(maxMarks / 2));
+          return {
+            score: partial,
+            isCorrect: partial === maxMarks,
+            feedback: `Correct numerical calculation, but missing or incorrect unit (expected: ${expectedUnit}).`,
+          };
+        }
       } else {
-        const partial = Math.max(1, Math.floor(maxMarks / 2));
+        // Numerical calculation mismatch: do NOT fall through to keyword matching!
         return {
-          score: partial,
-          isCorrect: partial === maxMarks,
-          feedback: `Correct numerical calculation, but missing or incorrect unit (expected: ${expectedUnit}).`,
+          score: 0,
+          isCorrect: false,
+          feedback: `Incorrect numerical value. Expected ${expectedVal}${expectedUnit ? ' ' + expectedUnit : ''}.`,
         };
       }
     } else {
-      // Numerical calculation mismatch: do NOT fall through to keyword matching!
+      // Expected is a numerical answer, but student provided non-numeric text
       return {
         score: 0,
         isCorrect: false,
-        feedback: `Incorrect numerical value. Expected ${expectedVal}${expectedUnit ? ' ' + expectedUnit : ''}.`,
+        feedback: `Expected a numerical answer (expected: ${expectedAnswer}).`,
       };
     }
   }
@@ -216,6 +225,25 @@ export function gradeStructuredDeterministic(
   };
 }
 
+export interface StructuredRubricEvaluation {
+  score: number;
+  maxScore: number;
+  correct: boolean;
+  reason: string;
+  matchedConcepts: string[];
+  missingConcepts: string[];
+  misconceptions: string[];
+  feedback: string;
+}
+
+export const structuredRubricSchema = z.object({
+  score: z.number(),
+  reason: z.string().default(''),
+  matchedConcepts: z.array(z.string()).default([]),
+  missingConcepts: z.array(z.string()).default([]),
+  misconceptions: z.array(z.string()).default([]),
+});
+
 /**
  * Safely grades a free-response answer using AI with strict schema validation and clamp.
  * Falls back to deterministic grading if AI invocation fails.
@@ -225,10 +253,19 @@ export async function gradeStructuredAnswerWithAI(
   expectedAnswer: string,
   studentAnswer: string,
   maxMarks = 2
-): Promise<{ score: number; maxScore: number; correct: boolean; feedback: string }> {
+): Promise<StructuredRubricEvaluation> {
   const normStudent = normalizeChemistryAnswer(studentAnswer);
   if (!normStudent) {
-    return { score: 0, maxScore: maxMarks, correct: false, feedback: 'No answer was provided.' };
+    return {
+      score: 0,
+      maxScore: maxMarks,
+      correct: false,
+      reason: 'No answer was provided.',
+      matchedConcepts: [],
+      missingConcepts: ['Complete answer'],
+      misconceptions: [],
+      feedback: 'No answer was provided.',
+    };
   }
 
   try {
@@ -239,29 +276,36 @@ Marking Rubric / Expected Answer: ${expectedAnswer}
 Student's Answer: ${studentAnswer}
 Maximum Marks: ${maxMarks}
 
+Evaluate the student's response thoroughly:
+1. Identify all matched chemistry concepts.
+2. Identify missing chemical concepts or key terminology.
+3. Identify misconceptions or factual errors.
+4. Award a score between 0 and ${maxMarks}. Score must NOT exceed ${maxMarks} or be less than 0.
+
 Return ONLY valid JSON matching this exact structure:
 {
   "score": <number between 0 and ${maxMarks}>,
-  "maxScore": ${maxMarks},
-  "correct": <boolean, true if full marks, false otherwise>,
-  "feedback": "<concise feedback on chemical correctness and SPM exam technique>"
+  "reason": "<detailed rationale for awarded mark>",
+  "matchedConcepts": ["<correct concept 1>", "<correct concept 2>"],
+  "missingConcepts": ["<missing required concept 1>"],
+  "misconceptions": ["<student misconception if any>"]
 }`;
 
     const rawJson = await generateGeminiJson(prompt);
-    const parsed = z.object({
-      score: z.number(),
-      maxScore: z.number().default(maxMarks),
-      correct: z.boolean(),
-      feedback: z.string().default(''),
-    }).safeParse(rawJson);
+    const parsed = structuredRubricSchema.safeParse(rawJson);
 
     if (parsed.success) {
       const clampedScore = Math.max(0, Math.min(maxMarks, Math.round(parsed.data.score)));
+      const feedback = parsed.data.reason || (clampedScore === maxMarks ? 'Accurate and comprehensive answer.' : 'Review key chemical concepts.');
       return {
         score: clampedScore,
         maxScore: maxMarks,
         correct: clampedScore === maxMarks,
-        feedback: parsed.data.feedback || (clampedScore > 0 ? 'Good attempt.' : 'Incorrect.'),
+        reason: parsed.data.reason,
+        matchedConcepts: parsed.data.matchedConcepts,
+        missingConcepts: parsed.data.missingConcepts,
+        misconceptions: parsed.data.misconceptions,
+        feedback,
       };
     }
   } catch (err) {
@@ -274,6 +318,10 @@ Return ONLY valid JSON matching this exact structure:
     score: fallback.score,
     maxScore: maxMarks,
     correct: fallback.isCorrect,
+    reason: fallback.feedback,
+    matchedConcepts: fallback.isCorrect ? ['Matched expected answer'] : [],
+    missingConcepts: fallback.isCorrect ? [] : ['Key chemical points'],
+    misconceptions: [],
     feedback: fallback.feedback,
   };
 }
@@ -315,24 +363,26 @@ export async function storeAuthoritativeQuiz(
   topic: string,
   difficulty: string,
   type: 'MCQ' | 'Structured',
-  rawQuestions: any[]
+  rawQuestions: (AuthoritativeMCQQuestion | AuthoritativeStructuredQuestion)[]
 ): Promise<{ quizId: string; sanitizedQuestions: ClientSanitizedQuestion[] }> {
   const quizId = `quiz_${Date.now()}_${randomBytes(4).toString('hex')}`;
   const quizRef = adminDb.collection('server_quizzes').doc(quizId);
 
-  const formattedQuestions = rawQuestions.map((q) => {
+  const formattedQuestions: (AuthoritativeMCQQuestion | AuthoritativeStructuredQuestion)[] = rawQuestions.map((q) => {
     if (type === 'MCQ') {
+      const mcq = q as AuthoritativeMCQQuestion;
       return {
-        q: q.q || q.question || 'Question',
-        options: Array.isArray(q.options) ? q.options : [],
-        answer: typeof q.answer === 'number' ? q.answer : (typeof q.correctIndex === 'number' ? q.correctIndex : 0),
-        explanation: q.explanation || 'No explanation provided.',
+        q: mcq.q,
+        options: Array.isArray(mcq.options) ? mcq.options : [],
+        answer: typeof mcq.answer === 'number' ? mcq.answer : 0,
+        explanation: mcq.explanation || 'No explanation provided.',
       };
     } else {
+      const struct = q as AuthoritativeStructuredQuestion;
       return {
-        question: q.question || q.q || 'Question',
-        marks: Number(q.marks) || 2,
-        expectedAnswer: q.expectedAnswer || 'Refer to marking scheme.',
+        question: struct.question,
+        marks: Number(struct.marks) || 2,
+        expectedAnswer: struct.expectedAnswer || 'Refer to marking scheme.',
       };
     }
   });
@@ -357,16 +407,16 @@ export async function storeAuthoritativeQuiz(
 export async function storeAuthoritativeChallenge(
   uid: string,
   topic: string,
-  rawQuestions: any[],
+  rawQuestions: AuthoritativeMCQQuestion[],
   challengeDate = getMalaysianDateString()
 ): Promise<{ challengeId: string; sanitizedQuestions: ClientSanitizedQuestion[] }> {
   const challengeId = `challenge_${challengeDate}_${randomBytes(4).toString('hex')}`;
   const challengeRef = adminDb.collection('server_quizzes').doc(challengeId);
 
-  const formattedQuestions = rawQuestions.map((q) => ({
-    q: q.q || q.question || 'Question',
+  const formattedQuestions: AuthoritativeMCQQuestion[] = rawQuestions.map((q) => ({
+    q: q.q,
     options: Array.isArray(q.options) ? q.options : [],
-    answer: typeof q.answer === 'number' ? q.answer : (typeof q.correctIndex === 'number' ? q.correctIndex : 0),
+    answer: typeof q.answer === 'number' ? q.answer : 0,
     explanation: q.explanation || 'Daily Challenge SPM Chemistry question.',
   }));
 

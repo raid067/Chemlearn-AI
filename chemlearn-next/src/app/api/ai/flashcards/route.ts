@@ -1,63 +1,67 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireAuth, AuthError } from '@/lib/server/auth';
-import { errorResponse, generateGeminiJson } from '../_helpers';
-import { isRateLimited } from '@/lib/rate-limit';
+import { errorResponse } from '../_helpers';
+import { isRateLimitedAsync } from '@/lib/rate-limit';
 import { aiFlashcardsSchema } from '@/lib/validations';
-import { enforceAIQuota, wrapUntrustedInput, SYSTEM_SAFETY_GUARDRAIL, AIGatewayError } from '@/lib/server/ai-gateway';
-import { z } from 'zod';
-
-const flashcardsOutputSchema = z.array(
-  z.object({
-    question: z.string().trim().min(1),
-    answer: z.string().trim().min(1),
-  })
-);
+import {
+  secureGenerateAI,
+  wrapUntrustedInput,
+  SYSTEM_SAFETY_GUARDRAIL,
+  AIGatewayError,
+  generatedFlashcardListSchema,
+} from '@/lib/server/ai-gateway';
+import { parseSecureJson, RequestPayloadError, MAX_BODY_LIMITS } from '@/lib/server/request-guard';
 
 export async function POST(req: NextRequest) {
   try {
     const user = await requireAuth(req);
     
-    if (isRateLimited('ai-flashcards', user.uid, 5, 60_000)) {
+    if (await isRateLimitedAsync('ai-flashcards', user.uid, 5, 60_000)) {
       return errorResponse('Too many flashcard generation requests. Please wait a moment.', 429);
     }
     
-    const body = await req.json();
+    const body = await parseSecureJson(req, MAX_BODY_LIMITS.PROMPT);
     const validation = aiFlashcardsSchema.safeParse(body);
     if (!validation.success) {
       return errorResponse(validation.error.issues[0]?.message || 'Topic is required', 400);
     }
 
     const { topic } = validation.data;
-
-    // Check daily quota
-    await enforceAIQuota(user.uid, 'ai-flashcards', 30);
-
     const safeTopic = wrapUntrustedInput(topic, 'TOPIC');
     const prompt = `${SYSTEM_SAFETY_GUARDRAIL}
 
 Generate 10 flashcards for SPM Chemistry on the requested topic:
 ${safeTopic}
 
-Return the output ONLY as a valid JSON array of objects. Each object should have properties: "question" (string) and "answer" (string). No markdown blocks.`;
+Return the output ONLY as a valid JSON array of 10 objects. Each object should have properties:
+- "question": string (the front concept prompt)
+- "answer": string (the concise accurate chemical explanation)
+No markdown blocks.`;
 
-    const rawOutput = await generateGeminiJson(prompt);
-    const parsed = flashcardsOutputSchema.safeParse(rawOutput);
-
-    const flashcards = parsed.success && parsed.data.length > 0
-      ? parsed.data
-      : Array.isArray(rawOutput)
-        ? rawOutput
-            .filter((card: any) => card && (card.question || card.q) && (card.answer || card.a))
-            .map((card: any) => ({
-              question: String(card.question || card.q),
-              answer: String(card.answer || card.a),
-            }))
-        : [];
+    const flashcards = await secureGenerateAI({
+      uid: user.uid,
+      endpoint: 'ai-flashcards',
+      prompt,
+      schema: generatedFlashcardListSchema,
+      maxDailyQuota: 30,
+    });
 
     return NextResponse.json({ flashcards });
   } catch (error: unknown) {
-    if (error instanceof AuthError || error instanceof AIGatewayError) {
+    if (error instanceof AuthError) {
       return NextResponse.json({ error: error.message }, { status: error.statusCode });
+    }
+    if (error instanceof AIGatewayError) {
+      return NextResponse.json(
+        { error: error.code, message: error.message },
+        { status: error.statusCode }
+      );
+    }
+    if (error instanceof RequestPayloadError) {
+      return NextResponse.json(
+        { error: error.code, message: error.message },
+        { status: error.statusCode }
+      );
     }
     console.error('Flashcards API Error:', error);
     return errorResponse(error, 500);

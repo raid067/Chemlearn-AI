@@ -5,7 +5,7 @@ import { useState, use } from 'react';
 import { CHAPTERS } from '@/lib/constants';
 import { ChevronLeft, BookOpen, CheckCircle, Sparkles } from 'lucide-react';
 import { marked } from 'marked';
-import DOMPurify from 'dompurify';
+import { sanitizeHtml } from '@/lib/sanitize';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { useGamificationStore } from '@/stores/useGamificationStore';
 
@@ -16,7 +16,7 @@ export default function TopicPage({ params }: { params: Promise<{ chapterId: str
   
   const { user } = useAuthStore();
   const [completed, setCompleted] = useState(false);
-  const htmlContent = topic ? DOMPurify.sanitize(marked.parse(topic.content) as string) : '';
+  const htmlContent = topic ? sanitizeHtml(marked.parse(topic.content) as string) : '';
 
   if (!chapter || !topic) {
     notFound();

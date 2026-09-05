@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { requireAuth, AuthError } from '@/lib/server/auth';
 import { gradeChallengeSubmission } from '@/lib/server/quizzes';
 import { errorResponse } from '../../ai/_helpers';
+import { parseSecureJson, RequestPayloadError, MAX_BODY_LIMITS } from '@/lib/server/request-guard';
 import { z } from 'zod';
 
 const challengeSubmitSchema = z.object({
@@ -15,7 +16,7 @@ export async function POST(req: NextRequest) {
   try {
     const user = await requireAuth(req);
 
-    const body = await req.json();
+    const body = await parseSecureJson(req, MAX_BODY_LIMITS.JSON_DEFAULT);
     const validation = challengeSubmitSchema.safeParse(body);
     if (!validation.success) {
       return errorResponse(validation.error.issues[0]?.message || 'Invalid challenge submission payload', 400);
@@ -41,6 +42,9 @@ export async function POST(req: NextRequest) {
   } catch (error: unknown) {
     if (error instanceof AuthError) {
       return NextResponse.json({ error: error.message }, { status: error.statusCode });
+    }
+    if (error instanceof RequestPayloadError) {
+      return NextResponse.json({ error: error.code, message: error.message }, { status: error.statusCode });
     }
     const msg = error instanceof Error ? error.message : 'Challenge submission failed';
     if (

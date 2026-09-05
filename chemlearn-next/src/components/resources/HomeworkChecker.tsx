@@ -3,7 +3,7 @@ import { useState, useRef } from 'react';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { auth } from '@/lib/firebase';
 import { Upload, Loader2, CheckCircle2 } from 'lucide-react';
-import DOMPurify from 'dompurify';
+import { sanitizeHtml } from '@/lib/sanitize';
 import { marked } from 'marked';
 
 export default function HomeworkChecker() {
@@ -45,9 +45,11 @@ export default function HomeworkChecker() {
       if (!res.ok) throw new Error('Grading failed');
       const data = await res.json();
       
-      setFeedback(DOMPurify.sanitize(marked.parse(data.feedback, { async: false }) as string));
-    } catch (err: any) {
-      setError(err.message || 'Analysis failed');
+      const parsedHtml = marked.parse(data.feedback, { async: false }) as string;
+      setFeedback(sanitizeHtml(parsedHtml));
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Analysis failed';
+      setError(msg);
     } finally {
       setLoading(false);
     }

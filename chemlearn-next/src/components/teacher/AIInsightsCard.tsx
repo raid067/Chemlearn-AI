@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { auth } from '@/lib/firebase';
 import { Bot, Loader2, FileLineChart } from 'lucide-react';
-import DOMPurify from 'dompurify';
+import { sanitizeHtml } from '@/lib/sanitize';
 
 export default function AIInsightsCard() {
   const [insights, setInsights] = useState('');
@@ -36,7 +36,7 @@ export default function AIInsightsCard() {
       
       <div className="p-6 flex-1 text-sm text-slate-600">
         {insights ? (
-          <div className="prose prose-sm" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(insights.replace(/\n/g, '<br/>')) }} />
+          <div className="prose prose-sm" dangerouslySetInnerHTML={{ __html: sanitizeHtml(insights.replace(/\n/g, '<br/>')) }} />
         ) : (
           <div className="text-center py-6">
             <FileLineChart className="w-12 h-12 text-slate-300 mx-auto mb-3" />

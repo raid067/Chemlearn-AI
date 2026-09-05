@@ -68,12 +68,14 @@ service cloud.firestore {
     // Chat History Whitelist and Bounds
     function validChatHistory() {
       let data = request.resource.data;
-      let allowedKeys = ['id', 'title', 'messages', 'question', 'answer', 'timestamp', 'createdAt', 'updatedAt'];
+      let allowedKeys = ['id', 'title', 'messages', 'question', 'answer', 'role', 'timestamp', 'createdAt', 'updatedAt'];
       return data.keys().hasOnly(allowedKeys)
+          && (!('role' in data) || data.role in ['user', 'assistant'])
           && (!('title' in data) || (data.title is string && data.title.size() <= 200))
           && (!('question' in data) || (data.question is string && data.question.size() <= 4000))
           && (!('answer' in data) || (data.answer is string && data.answer.size() <= 10000))
-          && (!('messages' in data) || (data.messages is list && data.messages.size() <= 100));
+          && (!('messages' in data) || (data.messages is list && data.messages.size() <= 100))
+          && (!data.keys().hasAny(['systemPrompt', 'systemInstruction', 'admin', 'xp', 'level', 'streak', 'quizScore']));
     }
 
     // ── Server-Only Collections (Admin SDK Exclusive) ─────────────────────────
@@ -184,8 +186,9 @@ service cloud.firestore {
           && (!('player2' in resource.data) || request.resource.data.player2 == resource.data.player2)
           && request.resource.data.player1.uid == resource.data.player1.uid
           && request.resource.data.player1.displayName == resource.data.player1.displayName
-          // Scores can ONLY be updated server-authoritatively
+          // Scores, rewards, and questions can ONLY be updated server-authoritatively
           && request.resource.data.player1.score == resource.data.player1.score
+          && (!affected.hasAny(['winnerUid', 'rewardStatus', 'questions']))
           && (request.resource.data.status == resource.data.status
               || (request.resource.data.status == 'finished'
                   && request.resource.data.player1.finished == true
@@ -201,8 +204,9 @@ service cloud.firestore {
           && request.resource.data.player1 == resource.data.player1
           && request.resource.data.player2.uid == resource.data.player2.uid
           && request.resource.data.player2.displayName == resource.data.player2.displayName
-          // Scores can ONLY be updated server-authoritatively
+          // Scores, rewards, and questions can ONLY be updated server-authoritatively
           && request.resource.data.player2.score == resource.data.player2.score
+          && (!affected.hasAny(['winnerUid', 'rewardStatus', 'questions']))
           && (request.resource.data.status == resource.data.status
               || (request.resource.data.status == 'finished'
                   && request.resource.data.player2.finished == true
