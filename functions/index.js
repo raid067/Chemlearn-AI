@@ -15,28 +15,12 @@ exports.onUserCreated = functions.auth.user().onCreate(async (user) => {
     const statsRef = db.doc(STATS_DOC_PATH);
 
     try {
-        await db.runTransaction(async (transaction) => {
-            const statsDoc = await transaction.get(statsRef);
-            
-            if (!statsDoc.exists) {
-                // Initialize the document if it doesn't exist
-                transaction.set(statsRef, {
-                    totalStudents: 1,
-                    totalQuizzesCompleted: 0,
-                    averageScore: 0,
-                    _sumScores: 0 // hidden aggregate field for calculating average
-                });
-            } else {
-                // Increment counter safely
-                const currentTotal = statsDoc.data().totalStudents || 0;
-                transaction.update(statsRef, {
-                    totalStudents: currentTotal + 1
-                });
-            }
-        });
+        await statsRef.set({
+            totalStudents: admin.firestore.FieldValue.increment(1)
+        }, { merge: true });
         console.log(`Successfully incremented totalStudents for new user: ${user.uid}`);
     } catch (error) {
-        console.error('Transaction failed onUserCreated:', error);
+        console.error('Increment failed onUserCreated:', error);
     }
 });
 

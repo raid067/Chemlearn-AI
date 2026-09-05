@@ -6,6 +6,7 @@ import {
   updateDoc,
   onSnapshot,
   getDoc,
+  runTransaction,
   serverTimestamp,
   getFirestore
 } from 'firebase/firestore';
@@ -45,30 +46,39 @@ export const createMatch = async (uid: string, displayName: string, questions: a
   return matchId;
 };
 
-export const joinMatch = async (matchId: string, uid: string, displayName: string) => {
+export const joinMatch = async (matchId: string, uid: string, displayName: string): Promise<DuelState> => {
   const matchRef = doc(db, 'duels', matchId);
-  const snap = await getDoc(matchRef);
 
-  if (!snap.exists()) {
-    throw new Error('Match not found');
-  }
+  return await runTransaction(db, async (transaction) => {
+    const snap = await transaction.get(matchRef);
 
-  const data = snap.data() as DuelState;
-  
-  if (data.status !== 'waiting') {
-    throw new Error('Match already started or finished');
-  }
+    if (!snap.exists()) {
+      throw new Error('Match not found');
+    }
 
-  if (data.player1.uid === uid) {
-    return data; // Rejoining own match
-  }
+    const data = snap.data() as DuelState;
+    
+    if (data.status !== 'waiting') {
+      throw new Error('Match already started or finished');
+    }
 
-  await updateDoc(matchRef, {
-    player2: { uid, displayName, score: 0, finished: false },
-    status: 'playing',
+    if (data.player1.uid === uid) {
+      return data; // Rejoining own match
+    }
+
+    const updatedState: DuelState = {
+      ...data,
+      player2: { uid, displayName, score: 0, finished: false },
+      status: 'playing',
+    };
+
+    transaction.update(matchRef, {
+      player2: { uid, displayName, score: 0, finished: false },
+      status: 'playing',
+    });
+
+    return updatedState;
   });
-
-  return (await getDoc(matchRef)).data() as DuelState;
 };
 
 export const updateScore = async (matchId: string, uid: string, score: number) => {
@@ -93,25 +103,36 @@ export const finishMatch = async (matchId: string, uid: string) => {
   const data = snap.data() as DuelState;
   
   if (data.player1.uid === uid) {
-    await updateDoc(matchRef, { 'player1.finished': true });
+    const opponentFinished = data.player2?.finished === true;
+    await updateDoc(matchRef, {
+      'player1.finished': true,
+      ...(opponentFinished ? { status: 'finished' } : {})
+    });
   } else if (data.player2?.uid === uid) {
-    await updateDoc(matchRef, { 'player2.finished': true });
-  }
-
-  // Check if both finished
-  const updatedSnap = await getDoc(matchRef);
-  const updatedData = updatedSnap.data() as DuelState;
-  
-  if (updatedData.player1.finished && updatedData.player2?.finished) {
-    await updateDoc(matchRef, { status: 'finished' });
+    const opponentFinished = data.player1.finished === true;
+    await updateDoc(matchRef, {
+      'player2.finished': true,
+      ...(opponentFinished ? { status: 'finished' } : {})
+    });
   }
 };
 
-export const subscribeToMatch = (matchId: string, callback: (data: DuelState) => void) => {
+export const subscribeToMatch = (
+  matchId: string, 
+  callback: (data: DuelState) => void,
+  onError?: (error: Error) => void
+) => {
   const matchRef = doc(db, 'duels', matchId);
-  return onSnapshot(matchRef, (doc) => {
-    if (doc.exists()) {
-      callback(doc.data() as DuelState);
+  return onSnapshot(
+    matchRef, 
+    (doc) => {
+      if (doc.exists()) {
+        callback(doc.data() as DuelState);
+      }
+    },
+    (err) => {
+      if (onError) onError(err);
+      else console.warn(`[Duel Listener] Match ${matchId} snapshot error:`, err.message);
     }
-  });
+  );
 };

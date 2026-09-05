@@ -31,9 +31,11 @@ export default function ClassSelector() {
       if (clsData.length > 0 && !useTeacherStore.getState().selectedClassId) {
         useTeacherStore.getState().setSelectedClassId(clsData[0].id);
       }
+    }, (err) => {
+      console.warn("[ClassSelector] Real-time classes listener error:", err.message);
     });
     return () => unsub();
-  }, [user, setClasses]); // Remove selectedClassId and setSelectedClassId from dependencies so it doesn't tear down on select
+  }, [user, setClasses]);
 
   const handleCreateClass = async (e: React.FormEvent) => {
     e.preventDefault();

@@ -3,76 +3,113 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // ─── Helper Functions ───────────────────────────────────────────
-    function isSignedIn() {
+    // ── Helper Functions ──────────────────────────────────────────────────────
+    function isAuthenticated() {
       return request.auth != null;
     }
 
-    function isOwner(uid) {
-      return isSignedIn() && request.auth.uid == uid;
+    function isAdmin() {
+      return isAuthenticated() && request.auth.token.admin == true;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
     }
 
     function isTeacherOfStudent(studentDoc) {
-      // Student doc must have a denormalized teacherIds array populated server-side
-      // when the student joins a teacher's class.
-      return isSignedIn()
+      return isAuthenticated()
           && 'teacherIds' in studentDoc.data
           && studentDoc.data.teacherIds is list
           && request.auth.uid in studentDoc.data.teacherIds;
     }
 
-    // ─── Students Collection ────────────────────────────────────────
-    match /students/{studentId} {
-      allow read: if isOwner(studentId)
-                  || isTeacherOfStudent(resource);
-
-      // Allow create with restricted initial values
-      allow create: if isOwner(studentId)
-                    && request.resource.data.xp == 0
-                    && request.resource.data.quizScore == 0
-                    && request.resource.data.streak == 0
-                    && request.resource.data.keys().hasAll(['email', 'displayName', 'xp', 'quizScore', 'streak']);
-
-      // Only server (admin SDK) updates XP/scores/level/role/teacherIds.
-      // Client can update non-sensitive profile fields only.
-      allow update: if isOwner(studentId)
-                    && (!request.resource.data.diff(resource.data).affectedKeys()
-                        .hasAny(['xp', 'quizScore', 'level', 'role', 'teacherIds']));
+    // Strict field whitelist + type guards prevent mass-assignment attacks
+    function validStudentCreate() {
+      let data = request.resource.data;
+      let allowedKeys = ['email', 'displayName', 'xp', 'quizScore', 'streak', 'createdAt', 'teacherIds'];
+      return data.keys().hasOnly(allowedKeys)
+          && data.email is string
+          && data.email.size() <= 150
+          && data.displayName is string
+          && data.displayName.size() <= 100
+          && data.xp == 0
+          && data.quizScore == 0
+          && data.streak == 0
+          && (!('teacherIds' in data) || (data.teacherIds is list && data.teacherIds.size() == 0));
     }
 
-    // ─── Teachers Collection ────────────────────────────────────────
-    match /teachers/{teacherId} {
-      allow read: if isOwner(teacherId);
+    // Updates: only safe client-visible fields; xp/quizScore/teacherIds only via server Admin SDK
+    function validStudentUpdate() {
+      let affectedKeys = request.resource.data.diff(resource.data).affectedKeys();
+      let allowedUpdateKeys = ['displayName', 'streak', 'lastSeen', 'updatedAt'];
+      return affectedKeys.hasOnly(allowedUpdateKeys)
+          && (!affectedKeys.hasAny(['displayName']) || (request.resource.data.displayName is string && request.resource.data.displayName.size() <= 100))
+          && (!affectedKeys.hasAny(['streak']) || (request.resource.data.streak is int && request.resource.data.streak >= 0 && request.resource.data.streak <= 10000))
+          && (!affectedKeys.hasAny(['xp', 'quizScore', 'level', 'role', 'teacherIds']));
+    }
+
+    // ── Admin System Stats ────────────────────────────────────────────────────
+    match /system_stats/{document=**} {
+      allow read: if isAdmin();
+      allow write: if false;
+    }
+
+    // ── Feedbacks ─────────────────────────────────────────────────────────────
+    match /feedbacks/{feedbackId} {
+      allow create: if isAuthenticated()
+                    && request.resource.data.uid == request.auth.uid
+                    && request.resource.data.keys().hasOnly(['uid', 'userName', 'text', 'rating', 'timestamp'])
+                    && request.resource.data.rating is int
+                    && request.resource.data.rating >= 1
+                    && request.resource.data.rating <= 5
+                    && request.resource.data.text is string
+                    && request.resource.data.text.size() <= 2000;
+      allow read, update, delete: if isAdmin();
+    }
+
+    // ── User Progress and Profile ─────────────────────────────────────────────
+    match /users/{userId} {
+      allow read: if isOwner(userId) || isAdmin();
+      allow write: if isOwner(userId)
+                   && request.resource.data.keys().size() <= 50
+                   && (!('role' in request.resource.data) || !('role' in resource.data) || request.resource.data.role == resource.data.role);
+
+      match /chatHistory/{chatId} {
+        allow read, write: if isOwner(userId);
+      }
+    }
+
+    // ── Students Collection ───────────────────────────────────────────────────
+    match /students/{userId} {
+      allow read: if isOwner(userId) || isTeacherOfStudent(resource) || isAdmin();
+      allow create: if isOwner(userId) && validStudentCreate();
+      allow update: if isOwner(userId) && validStudentUpdate();
+      allow delete: if isOwner(userId) || isAdmin();
+    }
+
+    // ── Classes Collection ───────────────────────────────────────────────────
+    match /classes/{classId} {
+      allow read: if isAuthenticated()
+                  && (resource.data.teacherId == request.auth.uid
+                      || request.auth.uid in resource.data.studentIds);
       allow write: if false; // Admin SDK only
     }
 
-    // ─── Classes Collection ─────────────────────────────────────────
-    match /classes/{classId} {
-      allow read: if isSignedIn()
-                  && (resource.data.teacherId == request.auth.uid
-                      || request.auth.uid in resource.data.studentIds);
-
-      allow write: if false; // Admin SDK only (via API routes)
-    }
-
-    // ─── Duels Collection ───────────────────────────────────────────
+    // ── Duels / Real-time Multiplayer ─────────────────────────────────────────
     match /duels/{matchId} {
-      // Allow reading waiting duels (to join) or matches user participates in
-      allow read: if isSignedIn()
+      allow read: if isAuthenticated()
                   && (resource.data.status == 'waiting'
                       || resource.data.player1.uid == request.auth.uid
                       || ('player2' in resource.data && resource.data.player2.uid == request.auth.uid));
 
-      // Allow creating a waiting duel where creator is player1
-      allow create: if isSignedIn()
+      allow create: if isAuthenticated()
                     && request.resource.data.player1.uid == request.auth.uid
                     && request.resource.data.status == 'waiting'
                     && !('player2' in request.resource.data)
                     && request.resource.data.player1.score == 0
                     && request.resource.data.player1.finished == false;
 
-      // Allow first-time join OR in-progress update by an authorized participant
-      allow update: if isSignedIn()
+      allow update: if isAuthenticated()
                     && (isJoiningDuel() || isParticipantUpdate());
     }
 
@@ -98,12 +135,9 @@ service cloud.firestore {
       let affected = request.resource.data.diff(resource.data).affectedKeys();
       return resource.data.player1.uid == request.auth.uid
           && affected.hasOnly(['player1', 'status'])
-          // Player 2 data must remain completely untouched
           && (!('player2' in resource.data) || request.resource.data.player2 == resource.data.player2)
-          // Player 1 identity immutable
           && request.resource.data.player1.uid == resource.data.player1.uid
           && request.resource.data.player1.displayName == resource.data.player1.displayName
-          // Status can only remain same or transition to finished if both players are finished
           && (request.resource.data.status == resource.data.status
               || (request.resource.data.status == 'finished'
                   && request.resource.data.player1.finished == true
@@ -116,21 +150,44 @@ service cloud.firestore {
       return 'player2' in resource.data
           && resource.data.player2.uid == request.auth.uid
           && affected.hasOnly(['player2', 'status'])
-          // Player 1 data must remain completely untouched
           && request.resource.data.player1 == resource.data.player1
-          // Player 2 identity immutable
           && request.resource.data.player2.uid == resource.data.player2.uid
           && request.resource.data.player2.displayName == resource.data.player2.displayName
-          // Status can only remain same or transition to finished if both players are finished
           && (request.resource.data.status == resource.data.status
               || (request.resource.data.status == 'finished'
                   && request.resource.data.player2.finished == true
                   && resource.data.player1.finished == true));
     }
 
-    // ─── Catch-all: Deny everything else ────────────────────────────
-    match /{document=**} {
-      allow read, write: if false;
+    // ── Public Content (curriculum data — read only) ──────────────────────────
+    match /lessons/{lessonId} {
+      allow read: if true;
+      allow write: if false;
     }
+
+    match /quizzes/{quizId} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    // ── Quiz Results ──────────────────────────────────────────────────────────
+    match /quiz_results/{resultId} {
+      allow create: if isAuthenticated()
+                    && request.resource.data.uid == request.auth.uid
+                    && request.resource.data.keys().hasOnly(['uid', 'score', 'quizId', 'timestamp', 'answers'])
+                    && request.resource.data.score is int
+                    && request.resource.data.score >= 0
+                    && request.resource.data.score <= 100;
+      allow read: if isAuthenticated()
+                  && (request.auth.uid == resource.data.uid || isAdmin());
+    }
+
+    // ── Teachers Collection ───────────────────────────────────────────────────
+    match /teachers/{teacherId} {
+      allow read: if isOwner(teacherId) || isAdmin();
+      allow write: if false; // Set only via Admin SDK
+    }
+
+    // Implicit DENY ALL for all unmatched paths (Firestore default)
   }
 }

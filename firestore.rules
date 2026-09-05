@@ -29,11 +29,13 @@ service cloud.firestore {
       let allowedKeys = ['email', 'displayName', 'xp', 'quizScore', 'streak', 'createdAt', 'teacherIds'];
       return data.keys().hasOnly(allowedKeys)
           && data.email is string
+          && data.email.size() <= 150
           && data.displayName is string
           && data.displayName.size() <= 100
           && data.xp == 0
           && data.quizScore == 0
-          && data.streak == 0;
+          && data.streak == 0
+          && (!('teacherIds' in data) || (data.teacherIds is list && data.teacherIds.size() == 0));
     }
 
     // Updates: only safe client-visible fields; xp/quizScore/teacherIds only via server Admin SDK
@@ -41,8 +43,8 @@ service cloud.firestore {
       let affectedKeys = request.resource.data.diff(resource.data).affectedKeys();
       let allowedUpdateKeys = ['displayName', 'streak', 'lastSeen', 'updatedAt'];
       return affectedKeys.hasOnly(allowedUpdateKeys)
-          && (!affectedKeys.hasAny(['displayName']) || request.resource.data.displayName is string)
-          && (!affectedKeys.hasAny(['displayName']) || request.resource.data.displayName.size() <= 100)
+          && (!affectedKeys.hasAny(['displayName']) || (request.resource.data.displayName is string && request.resource.data.displayName.size() <= 100))
+          && (!affectedKeys.hasAny(['streak']) || (request.resource.data.streak is int && request.resource.data.streak >= 0 && request.resource.data.streak <= 10000))
           && (!affectedKeys.hasAny(['xp', 'quizScore', 'level', 'role', 'teacherIds']));
     }
 
@@ -68,7 +70,9 @@ service cloud.firestore {
     // ── User Progress and Profile ─────────────────────────────────────────────
     match /users/{userId} {
       allow read: if isOwner(userId) || isAdmin();
-      allow write: if isOwner(userId);
+      allow write: if isOwner(userId)
+                   && request.resource.data.keys().size() <= 50
+                   && (!('role' in request.resource.data) || !('role' in resource.data) || request.resource.data.role == resource.data.role);
 
       match /chatHistory/{chatId} {
         allow read, write: if isOwner(userId);

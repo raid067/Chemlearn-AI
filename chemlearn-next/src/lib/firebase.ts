@@ -15,8 +15,20 @@ const firebaseConfig = {
 const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
 const auth = getAuth(app);
 
-// For Firestore and Functions, we recommend dynamic imports at the call site 
-// to prevent adding ~300KB to the initial bundle.
-// e.g. const { getFirestore } = await import('firebase/firestore'); const db = getFirestore(app);
+// Initialize Firebase App Check in the browser when key is provided
+if (typeof window !== 'undefined' && process.env.NEXT_PUBLIC_FIREBASE_APPCHECK_KEY) {
+  import('firebase/app-check').then(({ initializeAppCheck, ReCaptchaV3Provider }) => {
+    try {
+      initializeAppCheck(app, {
+        provider: new ReCaptchaV3Provider(process.env.NEXT_PUBLIC_FIREBASE_APPCHECK_KEY!),
+        isTokenAutoRefreshEnabled: true,
+      });
+    } catch (e) {
+      console.warn('[Firebase AppCheck] Initialization skipped:', e);
+    }
+  });
+}
 
+// For Firestore and Functions, dynamic imports at the call site are supported
+// to minimize initial client bundle weight (~300KB).
 export { app, auth };

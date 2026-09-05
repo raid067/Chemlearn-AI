@@ -67,15 +67,17 @@ export const useAuthStore = create<AuthState>((set) => ({
       if (user) {
         const tokenResult: IdTokenResult = await user.getIdTokenResult();
         
-        // Check if user is a teacher
-        let isTeacher = false;
-        try {
-          const { getDoc, doc, getFirestore } = await import('firebase/firestore');
-          const db = getFirestore(app);
-          const docSnap = await getDoc(doc(db, 'teachers', user.uid));
-          isTeacher = docSnap.exists();
-        } catch (e) {
-          console.error("Failed to check teacher status:", e);
+        // Check if user is a teacher (custom claims first to avoid unnecessary Firestore read)
+        let isTeacher = Boolean(tokenResult.claims?.teacher);
+        if (!isTeacher) {
+          try {
+            const { getDoc, doc, getFirestore } = await import('firebase/firestore');
+            const db = getFirestore(app);
+            const docSnap = await getDoc(doc(db, 'teachers', user.uid));
+            isTeacher = docSnap.exists();
+          } catch (e) {
+            console.warn("Failed to check teacher document status:", e);
+          }
         }
 
         set({ user, claims: tokenResult.claims as Record<string, unknown>, isTeacher, initialized: true });
@@ -87,11 +89,17 @@ export const useAuthStore = create<AuthState>((set) => ({
               unsubscribeDoc();
             }
             const db = getFirestore(app);
-            unsubscribeDoc = onSnapshot(doc(db, 'students', user.uid), (snap) => {
-              if (snap.exists()) {
-                useDashboardStore.getState().setStudentData(snap.data() as any);
+            unsubscribeDoc = onSnapshot(
+              doc(db, 'students', user.uid),
+              (snap) => {
+                if (snap.exists()) {
+                  useDashboardStore.getState().setStudentData(snap.data() as any);
+                }
+              },
+              (err) => {
+                console.warn("[Auth Listener] Student document snapshot unavailable:", err.message);
               }
-            });
+            );
           });
         });
       } else {
