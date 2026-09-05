@@ -15,11 +15,38 @@ export interface XPAwardResult {
 
 /**
  * Authoritative XP Level Thresholds (Levels 1 to 10)
+ * Level 1: 0 - 499
+ * Level 2: 500 - 1,199
+ * Level 3: 1,200 - 2,199
+ * Level 4: 2,200 - 3,499
+ * Level 5: 3,500 - 4,999
+ * Level 6: 5,000 - 6,799
+ * Level 7: 6,800 - 8,799
+ * Level 8: 8,800 - 10,999
+ * Level 9: 11,000 - 13,999
+ * Level 10: 14,000+
  */
+export const LEVEL_THRESHOLDS = [
+  { level: 10, minXp: 14000, title: 'Grand Chemist' },
+  { level: 9, minXp: 11000, title: 'Master Alchemist' },
+  { level: 8, minXp: 8800, title: 'Senior Researcher' },
+  { level: 7, minXp: 6800, title: 'Lead Chemist' },
+  { level: 6, minXp: 5000, title: 'Laboratory Analyst' },
+  { level: 5, minXp: 3500, title: 'Junior Investigator' },
+  { level: 4, minXp: 2200, title: 'Lab Specialist' },
+  { level: 3, minXp: 1200, title: 'Apprentice Chemist' },
+  { level: 2, minXp: 500, title: 'Curious Novice' },
+  { level: 1, minXp: 0, title: 'Science Enthusiast' },
+] as const;
+
 export const calculateLevel = (xp: number): number => {
-  if (xp >= 10000) return 10;
-  if (xp >= 5000) return 5;
-  if (xp >= 2500) return 4;
+  if (xp >= 14000) return 10;
+  if (xp >= 11000) return 9;
+  if (xp >= 8800) return 8;
+  if (xp >= 6800) return 7;
+  if (xp >= 5000) return 6;
+  if (xp >= 3500) return 5;
+  if (xp >= 2200) return 4;
   if (xp >= 1200) return 3;
   if (xp >= 500) return 2;
   return 1;

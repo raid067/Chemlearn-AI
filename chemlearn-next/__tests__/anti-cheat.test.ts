@@ -13,7 +13,7 @@ import {
   evaluateQuizAnswers,
   AuthoritativeMCQQuestion,
 } from '@/lib/server/quizzes';
-import { calculateLevel } from '@/lib/server/gamification';
+import { calculateLevel, LEVEL_THRESHOLDS } from '@/lib/server/gamification';
 
 describe('Anti-Cheat & Authoritative Evaluation Logic', () => {
   const sampleServerQuestions: AuthoritativeMCQQuestion[] = [
@@ -86,16 +86,54 @@ describe('Anti-Cheat & Authoritative Evaluation Logic', () => {
   });
 
   describe('calculateLevel', () => {
-    it('computes correct gamification levels based on authoritative thresholds', () => {
+    it('computes correct gamification levels across all 10 authoritative tiers', () => {
+      // Level 1: 0 - 499
       expect(calculateLevel(0)).toBe(1);
       expect(calculateLevel(499)).toBe(1);
+
+      // Level 2: 500 - 1,199
       expect(calculateLevel(500)).toBe(2);
       expect(calculateLevel(1199)).toBe(2);
+
+      // Level 3: 1,200 - 2,199
       expect(calculateLevel(1200)).toBe(3);
-      expect(calculateLevel(2500)).toBe(4);
-      expect(calculateLevel(5000)).toBe(5);
-      expect(calculateLevel(10000)).toBe(10);
+      expect(calculateLevel(2199)).toBe(3);
+
+      // Level 4: 2,200 - 3,499
+      expect(calculateLevel(2200)).toBe(4);
+      expect(calculateLevel(3499)).toBe(4);
+
+      // Level 5: 3,500 - 4,999
+      expect(calculateLevel(3500)).toBe(5);
+      expect(calculateLevel(4999)).toBe(5);
+
+      // Level 6: 5,000 - 6,799
+      expect(calculateLevel(5000)).toBe(6);
+      expect(calculateLevel(6799)).toBe(6);
+
+      // Level 7: 6,800 - 8,799
+      expect(calculateLevel(6800)).toBe(7);
+      expect(calculateLevel(8799)).toBe(7);
+
+      // Level 8: 8,800 - 10,999
+      expect(calculateLevel(8800)).toBe(8);
+      expect(calculateLevel(10999)).toBe(8);
+
+      // Level 9: 11,000 - 13,999
+      expect(calculateLevel(11000)).toBe(9);
+      expect(calculateLevel(13999)).toBe(9);
+
+      // Level 10: 14,000+
+      expect(calculateLevel(14000)).toBe(10);
       expect(calculateLevel(50000)).toBe(10);
+    });
+
+    it('exposes a monotonic 10-tier LEVEL_THRESHOLDS specification', () => {
+      expect(LEVEL_THRESHOLDS).toHaveLength(10);
+      for (let i = 0; i < LEVEL_THRESHOLDS.length - 1; i++) {
+        expect(LEVEL_THRESHOLDS[i].minXp).toBeGreaterThan(LEVEL_THRESHOLDS[i + 1].minXp);
+        expect(LEVEL_THRESHOLDS[i].level).toBe(LEVEL_THRESHOLDS[i + 1].level + 1);
+      }
     });
   });
 });

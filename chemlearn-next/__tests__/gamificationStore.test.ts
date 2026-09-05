@@ -73,25 +73,33 @@ describe('Gamification Store (State Machine & Level Boundaries)', () => {
 
     useGamificationStore.getState().dismissLevelUp();
 
-    // Crossing 2500 XP -> Level 4
-    await useGamificationStore.getState().addXP(1300, 'Hard lesson');
-    expect(useGamificationStore.getState().xp).toBe(2500);
+    // Crossing 2200 XP -> Level 4
+    await useGamificationStore.getState().addXP(1000, 'Hard lesson');
+    expect(useGamificationStore.getState().xp).toBe(2200);
     expect(useGamificationStore.getState().level).toBe(4);
     expect(useGamificationStore.getState().levelUpModalTrigger).toBe(true);
 
     useGamificationStore.getState().dismissLevelUp();
 
-    // Crossing 5000 XP -> Level 5
-    await useGamificationStore.getState().addXP(2500, 'Mastery review');
-    expect(useGamificationStore.getState().xp).toBe(5000);
+    // Crossing 3500 XP -> Level 5
+    await useGamificationStore.getState().addXP(1300, 'Mastery review');
+    expect(useGamificationStore.getState().xp).toBe(3500);
     expect(useGamificationStore.getState().level).toBe(5);
     expect(useGamificationStore.getState().levelUpModalTrigger).toBe(true);
 
     useGamificationStore.getState().dismissLevelUp();
 
-    // Crossing 10000 XP -> Level 10
-    await useGamificationStore.getState().addXP(5000, 'Grand Chemist');
-    expect(useGamificationStore.getState().xp).toBe(10000);
+    // Crossing 5000 XP -> Level 6
+    await useGamificationStore.getState().addXP(1500, 'Lab Specialist');
+    expect(useGamificationStore.getState().xp).toBe(5000);
+    expect(useGamificationStore.getState().level).toBe(6);
+    expect(useGamificationStore.getState().levelUpModalTrigger).toBe(true);
+
+    useGamificationStore.getState().dismissLevelUp();
+
+    // Crossing 14000 XP -> Level 10
+    await useGamificationStore.getState().addXP(9000, 'Grand Chemist');
+    expect(useGamificationStore.getState().xp).toBe(14000);
     expect(useGamificationStore.getState().level).toBe(10);
     expect(useGamificationStore.getState().levelUpModalTrigger).toBe(true);
   });

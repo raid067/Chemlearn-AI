@@ -22,14 +22,18 @@ interface GamificationState {
   incrementStreak: () => void;
   unlockBadge: (badge: Badge) => void;
   dismissLevelUp: () => void;
-  syncWithFirebase: (uid: string, action: GamificationAction) => Promise<{ xp: number; level: number } | null>;
+  syncWithFirebase: (uid: string) => Promise<{ xp: number; level: number } | null>;
 }
 
-// Logic for calculating the user's level based on XP thresholds
+// Logic for calculating the user's level based on authoritative XP thresholds (Levels 1 to 10)
 const calculateLevel = (xp: number) => {
-  if (xp >= 10000) return 10;
-  if (xp >= 5000) return 5;
-  if (xp >= 2500) return 4;
+  if (xp >= 14000) return 10;
+  if (xp >= 11000) return 9;
+  if (xp >= 8800) return 8;
+  if (xp >= 6800) return 7;
+  if (xp >= 5000) return 6;
+  if (xp >= 3500) return 5;
+  if (xp >= 2200) return 4;
   if (xp >= 1200) return 3;
   if (xp >= 500) return 2;
   return 1;
@@ -46,19 +50,6 @@ export const useGamificationStore = create<GamificationState>()(
 
       addXP: async (amount: number, reason: string, action?: GamificationAction) => {
         console.log(`[Gamification] Award XP requested (${amount} for: ${reason}, action: ${action || 'none'})`);
-
-        if (action) {
-          try {
-            const { auth } = await import('@/lib/firebase');
-            const uid = auth.currentUser?.uid;
-            if (uid) {
-              await get().syncWithFirebase(uid, action);
-              return;
-            }
-          } catch (e) {
-            console.warn('[Gamification] Could not get user auth for sync, falling back to local state:', e);
-          }
-        }
 
         // Local fallback for guest / unauthenticated session
         const { xp, level } = get();
@@ -86,52 +77,44 @@ export const useGamificationStore = create<GamificationState>()(
 
       dismissLevelUp: () => set({ levelUpModalTrigger: false }),
 
-      syncWithFirebase: async (uid: string, action: GamificationAction) => {
+      syncWithFirebase: async (uid: string) => {
         try {
           const { auth } = await import('@/lib/firebase');
           const token = await auth.currentUser?.getIdToken();
           if (!token) {
-            throw new Error("You are not signed in. Sign in to save your XP!");
+            return null;
           }
 
           const res = await fetch('/api/gamification/sync', {
-            method: 'POST',
+            method: 'GET',
             headers: {
-              'Content-Type': 'application/json',
               'Authorization': `Bearer ${token}`
-            },
-            body: JSON.stringify({ action })
+            }
           });
 
           const json = await res.json();
           if (!res.ok) {
-            throw new Error(json.error || "Server rejected XP update.");
+            throw new Error(json.error || "Server rejected state sync.");
           }
 
-          const serverData = json.data as { xp: number; level: number };
+          const serverData = json.data as { xp: number; level: number; streak?: number; badges?: Badge[] };
           const prevLevel = get().level;
-          const xpGained = serverData.xp - get().xp;
 
           set({
             xp: serverData.xp,
             level: serverData.level,
+            streak: serverData.streak ?? get().streak,
+            badges: serverData.badges ?? get().badges,
             levelUpModalTrigger: serverData.level > prevLevel
           });
 
-          const actionLabel = action.replace(/_/g, ' ').toLowerCase();
-          useUIStore.getState().showToast(
-            'XP Earned!',
-            `+${xpGained > 0 ? xpGained : ''} XP from ${actionLabel}`,
-            '⚡'
-          );
-
-          console.log(`[Gamification] Synced ${action} for ${uid}: XP=${serverData.xp}, Level=${serverData.level}`);
+          console.log(`[Gamification] Authoritatively refreshed for ${uid}: XP=${serverData.xp}, Level=${serverData.level}`);
           return serverData;
-        } catch (error: any) {
-          console.error(`[Gamification Error] Failed to sync ${action} for user ${uid}:`, error);
+        } catch (error: unknown) {
+          console.error(`[Gamification Error] Failed to sync profile for user ${uid}:`, error);
           useUIStore.getState().showToast(
-            'XP Sync Failed',
-            error?.message || 'Could not save progress to server',
+            'Sync Note',
+            'Could not refresh online progress from server',
             '⚠️'
           );
           return null;
