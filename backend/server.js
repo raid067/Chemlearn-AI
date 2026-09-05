@@ -13,8 +13,26 @@ admin.initializeApp({
 
 const app = express();
 
-app.use(cors());
-app.use(express.json());
+const allowedOrigins = [
+    "https://chemlearn-67.web.app",
+    "https://chemlearn-67.firebaseapp.com",
+    "http://localhost:3000",
+    "http://localhost:3001"
+];
+
+app.use(cors({
+    origin: function (origin, callback) {
+        // Allow requests with no origin (mobile apps, server-to-server) or from allowed origins
+        if (!origin || allowedOrigins.includes(origin)) {
+            callback(null, true);
+        } else {
+            callback(new Error("CORS policy violation: Unauthorized origin"));
+        }
+    },
+    methods: ["GET", "POST", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"]
+}));
+app.use(express.json({ limit: "1mb" }));
 
 const apiLimiter = rateLimit({
     windowMs: 1 * 60 * 1000, // 1 minute
@@ -105,17 +123,10 @@ app.post("/ask", async (req, res) => {
 
 
     } catch(error) {
-
-        console.log("===== BACKEND ERROR =====");
-        console.log(error.message);
-        console.log(error);
-
+        console.error("Backend error occurred:", error instanceof Error ? error.message : "Unknown error");
         res.status(500).json({
-
-            error: error.message
-
+            error: "An internal server error occurred. Please try again."
         });
-
     }
 
 });
