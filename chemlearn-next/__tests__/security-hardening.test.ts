@@ -216,4 +216,37 @@ describe('Security Hardening & Authoritative Grading Tests', () => {
       ).rejects.toThrow('This daily challenge expired on 2026-01-01');
     });
   });
+
+  describe('Multi-Layer Chemistry Grading Engine Enhancements', () => {
+    it('normalizes common British/American chemistry spelling variants', () => {
+      expect(normalizeChemistryAnswer('copper sulphate')).toBe('copper sulfate');
+      expect(normalizeChemistryAnswer('aluminum oxide')).toBe('aluminium oxide');
+      expect(normalizeChemistryAnswer('iron(ii) sulphide')).toBe('iron(ii) sulfide');
+    });
+
+    it('evaluates scientific notation and tolerances accurately', () => {
+      const rubric = '1.5 x 10^-3 mol/dm3';
+      const exactSci = gradeStructuredDeterministic('1.5e-3 mol/dm3', rubric, 2);
+      expect(exactSci.score).toBe(2);
+      expect(exactSci.isCorrect).toBe(true);
+
+      // Within tolerance (1.52e-3 vs 1.5e-3 is ~1.3% diff)
+      const withinTol = gradeStructuredDeterministic('1.52 x 10^-3 mol/dm3', rubric, 2);
+      expect(withinTol.score).toBe(2);
+      expect(withinTol.isCorrect).toBe(true);
+
+      // Wrong value
+      const wrongSci = gradeStructuredDeterministic('2.5 x 10^-3 mol/dm3', rubric, 2);
+      expect(wrongSci.score).toBe(0);
+      expect(wrongSci.isCorrect).toBe(false);
+    });
+
+    it('evaluates chemical equation permutations regardless of reactant/product order', () => {
+      const expected = '2H2 + O2 -> 2H2O';
+      const permuted = 'O2 + 2H2 -> 2H2O';
+      const res = gradeStructuredDeterministic(permuted, expected, 2);
+      expect(res.score).toBe(2);
+      expect(res.isCorrect).toBe(true);
+    });
+  });
 });

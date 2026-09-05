@@ -55,6 +55,7 @@ No markdown blocks. Keep it engaging.`;
     const fullQuestions: ServerDuelQuestion[] = await secureGenerateAI({
       uid: user.uid,
       endpoint: 'ai-duel',
+      taskType: 'duelGeneration',
       prompt,
       schema: generatedDuelListSchema,
       maxDailyQuota: 30,

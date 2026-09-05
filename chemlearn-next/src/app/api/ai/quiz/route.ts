@@ -63,6 +63,7 @@ No markdown blocks.`;
       validatedQuestions = await secureGenerateAI({
         uid: user.uid,
         endpoint: 'ai-quiz',
+        taskType: 'questionGeneration',
         prompt,
         schema: generatedMCQListSchema,
         maxDailyQuota: 30,
@@ -71,6 +72,7 @@ No markdown blocks.`;
       validatedQuestions = await secureGenerateAI({
         uid: user.uid,
         endpoint: 'ai-quiz',
+        taskType: 'questionGeneration',
         prompt,
         schema: generatedStructuredListSchema,
         maxDailyQuota: 30,

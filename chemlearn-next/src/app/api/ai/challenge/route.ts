@@ -54,6 +54,7 @@ No markdown code fences.`;
     const validQuestions = await secureGenerateAI({
       uid: user.uid,
       endpoint: 'ai-challenge',
+      taskType: 'questionGeneration',
       prompt,
       schema: generatedMCQListSchema,
       maxDailyQuota: 20,

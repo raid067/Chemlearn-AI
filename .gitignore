@@ -24,6 +24,8 @@ firebase-export-*/
 *.zip
 lighthouse-*.json
 *.audit.json
+test-results/
+playwright-report/
 
 # ── Node Modules ──────────────────────────────────────────────────────────────
 node_modules/

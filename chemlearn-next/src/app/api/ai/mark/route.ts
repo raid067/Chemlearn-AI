@@ -40,6 +40,7 @@ Provide a brief feedback and the score in the format "Score: X/3".`;
     const feedback = await secureGenerateAI<string>({
       uid: user.uid,
       endpoint: 'ai-mark',
+      taskType: 'grading',
       prompt,
       maxDailyQuota: 50,
     });

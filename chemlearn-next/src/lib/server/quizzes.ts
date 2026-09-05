@@ -75,38 +75,139 @@ const SCRIPT_CHAR_MAP: Record<string, string> = {
 };
 
 /**
+ * Standardizes common British/American chemistry spelling variants in SPM Chemistry.
+ */
+export function normalizeChemistrySpellings(str: string): string {
+  return str
+    .replace(/\bsulph(ate|ide|ite|ur|uric|urous)\b/gi, 'sulf$1')
+    .replace(/\balumin(i)?um\b/gi, 'aluminium')
+    .replace(/\bcolour\b/gi, 'color')
+    .replace(/\bionise\b/gi, 'ionize')
+    .replace(/\bionisation\b/gi, 'ionization');
+}
+
+/**
  * Normalizes chemistry answers for fair, deterministic matching:
  * - strips trailing punctuation
- * - collapses whitespace
- * - lowercases
+ * - collapses whitespace & lowercases
  * - standardizes Unicode subscripts (H₂O -> h2o) and superscript notations (Fe²⁺ -> fe2+)
- * - normalizes common chemistry units (mol/dm3, g/cm3, cm3)
+ * - normalizes charge notation: Fe+2 -> fe2+, SO4-2 -> so4 2-
+ * - standardizes chemistry units (mol/dm3, g/cm3, cm3, kJ/mol, g/mol)
+ * - standardizes state symbols (s), (l), (g), (aq)
  */
 export function normalizeChemistryAnswer(raw: string): string {
   if (!raw || typeof raw !== 'string') return '';
-  const str = raw
+  let str = raw
     .trim()
     .toLowerCase()
     .replace(/[.,;:!?]+$/g, '')
     .replace(/[⁰¹²³⁴⁵⁶⁷⁸⁹⁺⁻₊₋₀₁₂₃₄₅₆₇₈₉]/g, (ch) => SCRIPT_CHAR_MAP[ch] || ch)
     .replace(/[\u2080-\u2089]/g, (ch) => String(ch.charCodeAt(0) - 0x2080));
 
-  return str
+  str = normalizeChemistrySpellings(str);
+
+  // Standardize chemistry units first (before any charge normalization)
+  str = str
     .replace(/\s*mol\s*(?:\/|\s*per\s*|\s*)\s*dm\s*[-^]?\s*3/g, ' mol/dm3')
     .replace(/\s*g\s*(?:\/|\s*per\s*|\s*)\s*cm\s*[-^]?\s*3/g, ' g/cm3')
+    .replace(/\s*kj\s*(?:\/|\s*per\s*|\s*)\s*mol\s*[-^]?\s*1?/g, ' kj/mol')
+    .replace(/\s*g\s*(?:\/|\s*per\s*|\s*)\s*mol\s*[-^]?\s*1?/g, ' g/mol')
     .replace(/(?<!\/)\s*cm\s*[-^]?\s*3/g, ' cm3')
+    .replace(/(?<!\/)\s*dm\s*[-^]?\s*3/g, ' dm3');
+
+  // Standardize state symbols
+  str = str
+    .replace(/\s*\(\s*s\s*\)/g, ' (s)')
+    .replace(/\s*\(\s*l\s*\)/g, ' (l)')
+    .replace(/\s*\(\s*g\s*\)/g, ' (g)')
+    .replace(/\s*\(\s*aq\s*\)/g, ' (aq)');
+
+  // Standardize reaction arrows
+  str = str
+    .replace(/\s*(?:-->|->|—>|→|⇒|⇌)\s*/g, ' -> ');
+
+  // Standardize ion charges only for chemical formulas containing letters (e.g. fe+2 -> fe2+, so4-2 -> so4 2-)
+  str = str
+    .replace(/\b([a-z]{1,4}\d*)\+([1-4])\b/g, '$1$2+')
+    .replace(/\b([a-z]{1,4}\d*)-([1-4])\b/g, '$1$2-');
+
+  return str
     .replace(/\s+/g, ' ')
     .trim();
 }
 
 /**
+ * Parses scientific notation and regular numerical chemistry answers.
+ * Handles: "1.5e-3", "1.5 x 10^-3", "1.5 * 10^-3", "-0.045 mol/dm3", etc.
+ */
+export function parseScientificNumber(raw: string): { value: number; unit: string } | null {
+  const cleaned = raw.trim().toLowerCase();
+
+  // Exclude chemical equations and multi-term reactions
+  if (cleaned.includes('->') || cleaned.includes('=') || cleaned.includes(' + ')) {
+    return null;
+  }
+
+  // Match: scientific notation (e.g. 1.5 x 10^-3, 1.5e-3) with optional unit
+  const sciMatch = cleaned.match(
+    /^([+-]?\d+(?:\.\d+)?)\s*(?:[x*×]\s*10\s*(?:\^|\*\*)?\s*([+-]?\d+)|e([+-]?\d+))(?:\s*(.+))?$/i
+  );
+
+  if (sciMatch) {
+    const base = parseFloat(sciMatch[1]);
+    const exponent = parseFloat(sciMatch[2] || sciMatch[3]);
+    const val = base * Math.pow(10, exponent);
+    const unit = (sciMatch[4] || '').trim();
+    if (!isNaN(val)) return { value: val, unit };
+  }
+
+  // Match: standard floating point number with optional unit
+  const numMatch = cleaned.match(/^([+-]?\d+(?:\.\d+)?)(?:\s+([a-z0-9/°^ -]+))?$/i);
+  if (numMatch) {
+    const val = parseFloat(numMatch[1]);
+    const unit = (numMatch[2] || '').trim();
+    if (!isNaN(val)) return { value: val, unit };
+  }
+
+  return null;
+}
+
+/**
+ * Compares two chemical equations by comparing reactants and products independently
+ * regardless of the order terms are written on each side.
+ */
+export function compareChemicalEquations(student: string, expected: string): boolean {
+  if (!student.includes('->') || !expected.includes('->')) return false;
+
+  const [studentReactants, studentProducts] = student.split('->').map((s) => s.trim());
+  const [expectedReactants, expectedProducts] = expected.split('->').map((s) => s.trim());
+
+  if (!studentReactants || !studentProducts || !expectedReactants || !expectedProducts) {
+    return false;
+  }
+
+  const sortSide = (side: string) =>
+    side
+      .split('+')
+      .map((item) => item.replace(/\s*\([a-z]+\)/g, '').trim())
+      .sort()
+      .join('+');
+
+  return (
+    sortSide(studentReactants) === sortSide(expectedReactants) &&
+    sortSide(studentProducts) === sortSide(expectedProducts)
+  );
+}
+
+/**
  * Deterministically grades a structured question answer against an authoritative expected answer/rubric.
  * Supports:
- * - Exact normalized match
- * - Alternative acceptable answers separated by '/', '|', or ' or '
- * - Numerical matching with or without standard units
- * - Keyword/concept matching with proportional partial marks
- * - Never awards marks for mere non-empty or irrelevant input
+ * - Layer 1: Exact normalized match
+ * - Layer 2: Chemical alternative separation ('/', '|', or ' or ') & spelling normalization
+ * - Layer 3: Scientific notation, numerical tolerances (within 2%), and units validation
+ * - Layer 4: Chemistry equation & formula parsing
+ * - Layer 5: Keyword/concept matching with proportional partial marks
+ * - Layer 6: Safe fail-closed scoring (never awards marks for non-answers or invalid numbers)
  */
 export function gradeStructuredDeterministic(
   studentAnswer: string,
@@ -120,12 +221,12 @@ export function gradeStructuredDeterministic(
 
   const normExpected = normalizeChemistryAnswer(expectedAnswer);
 
-  // 1. Exact normalized match
+  // 1. Layer 1: Exact normalized match
   if (normStudent === normExpected) {
     return { score: maxMarks, isCorrect: true, feedback: 'Correct!' };
   }
 
-  // 2. Acceptable alternatives (split by '/', '|', or ' or ')
+  // 2. Layer 2: Acceptable alternatives (split by '/', '|', or ' or ')
   const alternatives = expectedAnswer
     .split(/\s*(?:\/|\||\bor\b)\s*/i)
     .map(normalizeChemistryAnswer)
@@ -137,52 +238,61 @@ export function gradeStructuredDeterministic(
     }
   }
 
-  // 3. Numerical matching (e.g. expected: "2.5 mol/dm3" or "2.5")
-  const studentNumMatch = normStudent.match(/^([+-]?\d+(?:\.\d+)?)(?:\s*([a-z0-9/^-]+))?$/i);
-  const expectedNumMatch = normExpected.match(/^([+-]?\d+(?:\.\d+)?)(?:\s*([a-z0-9/^-]+))?$/i);
+  // 3. Layer 3: Numerical & Scientific Notation matching
+  const expectedNum = parseScientificNumber(normExpected);
+  const studentNum = parseScientificNumber(normStudent);
 
-  if (expectedNumMatch) {
-    if (studentNumMatch) {
-      const studentVal = parseFloat(studentNumMatch[1]);
-      const expectedVal = parseFloat(expectedNumMatch[1]);
-      const studentUnit = studentNumMatch[2] || '';
-      const expectedUnit = expectedNumMatch[2] || '';
+  if (expectedNum) {
+    if (studentNum) {
+      const relDiff =
+        Math.abs(studentNum.value - expectedNum.value) /
+        Math.max(Math.abs(expectedNum.value), 1e-9);
+      const isNumCorrect = relDiff <= 0.02 || Math.abs(studentNum.value - expectedNum.value) < 1e-5;
 
-      const numMatch = Math.abs(studentVal - expectedVal) < 0.01;
-      if (numMatch) {
-        if (!expectedUnit || studentUnit === expectedUnit) {
+      if (isNumCorrect) {
+        const expectedUnitNorm = normalizeChemistryAnswer(expectedNum.unit);
+        const studentUnitNorm = normalizeChemistryAnswer(studentNum.unit);
+
+        if (!expectedUnitNorm || studentUnitNorm === expectedUnitNorm) {
           return { score: maxMarks, isCorrect: true, feedback: 'Correct numerical value and units.' };
         } else {
           const partial = Math.max(1, Math.floor(maxMarks / 2));
           return {
             score: partial,
             isCorrect: partial === maxMarks,
-            feedback: `Correct numerical calculation, but missing or incorrect unit (expected: ${expectedUnit}).`,
+            feedback: `Correct numerical calculation, but missing or incorrect unit (expected: ${expectedNum.unit || 'dimensionless'}).`,
           };
         }
       } else {
-        // Numerical calculation mismatch: do NOT fall through to keyword matching!
+        // Numerical calculation mismatch: NEVER fall through to keyword matching!
         return {
           score: 0,
           isCorrect: false,
-          feedback: `Incorrect numerical value. Expected ${expectedVal}${expectedUnit ? ' ' + expectedUnit : ''}.`,
+          feedback: `Incorrect numerical value. Expected ${expectedNum.value}${expectedNum.unit ? ' ' + expectedNum.unit : ''}.`,
         };
       }
     } else {
-      // Expected is a numerical answer, but student provided non-numeric text
+      // Expected numerical answer but received text
       return {
         score: 0,
         isCorrect: false,
-        feedback: `Expected a numerical answer (expected: ${expectedAnswer}).`,
+        feedback: `Expected a numerical answer with units (expected: ${expectedAnswer}).`,
       };
     }
   }
 
+  // 4. Layer 4: Chemical Equation matching (permutations of reactants and products)
+  if (normExpected.includes('->') && normStudent.includes('->')) {
+    if (compareChemicalEquations(normStudent, normExpected)) {
+      return { score: maxMarks, isCorrect: true, feedback: 'Correct balanced chemical equation!' };
+    }
+  }
 
-  // 4. Keyword & Concept matching for descriptive chemistry questions
+  // 5. Layer 5: Keyword & Concept matching for descriptive chemistry questions
   const stopWords = new Set([
     'the', 'and', 'for', 'that', 'this', 'with', 'from', 'have', 'has', 'are', 'was',
-    'were', 'will', 'which', 'when', 'into', 'than', 'then', 'because', 'what'
+    'were', 'will', 'which', 'when', 'into', 'than', 'then', 'because', 'what', 'does',
+    'form', 'formed', 'when', 'gives', 'produce', 'produces'
   ]);
 
   const expectedKeywords = Array.from(

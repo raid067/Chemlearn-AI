@@ -66,13 +66,11 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    const modelName = imageBase64 ? 'gemini-1.5-pro' : 'gemini-1.5-flash';
-
     const response = await secureGenerateAI<string>({
       uid: user.uid,
       endpoint: 'ai-chat',
+      taskType: imageBase64 ? 'tutorVision' : 'tutor',
       prompt: content,
-      modelName,
       maxDailyQuota: 60,
     });
 

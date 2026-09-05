@@ -32,6 +32,7 @@ Give me 3 actionable teaching strategies or interventions to help improve studen
     const insights = await secureGenerateAI<string>({
       uid: user.uid,
       endpoint: 'ai-insights',
+      taskType: 'insights',
       prompt,
       maxDailyQuota: 30,
     });

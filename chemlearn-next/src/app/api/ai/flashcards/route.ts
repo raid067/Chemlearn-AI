@@ -41,6 +41,7 @@ No markdown blocks.`;
     const flashcards = await secureGenerateAI({
       uid: user.uid,
       endpoint: 'ai-flashcards',
+      taskType: 'flashcards',
       prompt,
       schema: generatedFlashcardListSchema,
       maxDailyQuota: 30,

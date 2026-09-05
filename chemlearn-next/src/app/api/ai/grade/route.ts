@@ -44,8 +44,8 @@ You are a strict but fair chemistry teacher marking a student's homework. Carefu
     const feedback = await secureGenerateAI<string>({
       uid: user.uid,
       endpoint: 'ai-grade',
+      taskType: 'grading',
       prompt: promptParts,
-      modelName: 'gemini-1.5-flash',
       maxDailyQuota: 25,
     });
 

@@ -93,6 +93,11 @@ export async function awardXPEvent(
   amount: number,
   metadata: Record<string, unknown> = {}
 ): Promise<XPAwardResult> {
+  // Anti-cheat: validate allowable XP amount per event (1 to 200 XP)
+  if (typeof amount !== 'number' || isNaN(amount) || amount <= 0 || amount > 200) {
+    throw new Error(`Invalid XP award amount: ${amount}. Allowable range is 1-200 XP.`);
+  }
+
   // Deterministic event key prevents duplicate awards
   const sanitizedEntity = entityId.replace(/[^a-zA-Z0-9_-]/g, '_');
   const eventId = `${uid}_${type.toLowerCase()}_${sanitizedEntity}`;

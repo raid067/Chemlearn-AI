@@ -65,6 +65,16 @@ export async function submitDuelAnswer(
       throw new Error('Match is not active');
     }
 
+    // Check match age/timeout (15 minutes maximum per duel session)
+    if (data.createdAt) {
+      const createdMillis = typeof (data.createdAt as { toMillis?: () => number }).toMillis === 'function'
+        ? (data.createdAt as { toMillis: () => number }).toMillis()
+        : new Date(data.createdAt as string).getTime();
+      if (!isNaN(createdMillis) && Date.now() - createdMillis > 15 * 60 * 1000) {
+        throw new Error('Match has timed out');
+      }
+    }
+
     const isPlayer1 = data.player1?.uid === uid;
     const isPlayer2 = data.player2?.uid === uid;
 
@@ -125,6 +135,18 @@ export async function finishDuelPlayer(
 
     const playerKey = isPlayer1 ? 'player1' : 'player2';
     const opponentKey = isPlayer1 ? 'player2' : 'player1';
+
+    // Idempotent guard: if this player is already marked finished, return current state
+    if (data[playerKey]?.finished) {
+      return {
+        status: data.status || 'playing',
+        winnerUid: data.winnerUid || null,
+        matchFinished: Boolean(data[opponentKey]?.finished),
+        rewardStatus: (data.rewardStatus as DuelRewardStatus) || 'none',
+        p1Score: data.player1?.score,
+        p2Score: data.player2?.score,
+      };
+    }
 
     const opponentFinished = Boolean(data[opponentKey]?.finished);
     const matchFinished = opponentFinished;

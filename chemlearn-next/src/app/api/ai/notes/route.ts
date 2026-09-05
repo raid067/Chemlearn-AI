@@ -32,6 +32,7 @@ Return ONLY raw HTML content (e.g. <h2>, <p>, <ul>, <li>) without any markdown c
     const notes = await secureGenerateAI<string>({
       uid: user.uid,
       endpoint: 'ai-notes',
+      taskType: 'notes',
       prompt,
       maxDailyQuota: 30,
     });

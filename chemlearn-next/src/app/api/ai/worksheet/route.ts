@@ -32,6 +32,7 @@ Provide the questions followed by the expected marking scheme.`;
     const worksheet = await secureGenerateAI<string>({
       uid: user.uid,
       endpoint: 'ai-worksheet',
+      taskType: 'worksheet',
       prompt,
       maxDailyQuota: 25,
     });

@@ -4,8 +4,8 @@ import {
   doc,
   setDoc,
   updateDoc,
-  onSnapshot,
   getDoc,
+  onSnapshot,
   runTransaction,
   serverTimestamp,
   getFirestore
@@ -96,38 +96,24 @@ export const joinMatch = async (matchId: string, uid: string, displayName: strin
   });
 };
 
-export const updateScore = async (matchId: string, uid: string, score: number) => {
+export const finishMatch = async (matchId: string, uid: string): Promise<void> => {
   const matchRef = doc(db, 'duels', matchId);
   const snap = await getDoc(matchRef);
   if (!snap.exists()) return;
 
   const data = snap.data() as DuelState;
-  
-  if (data.player1.uid === uid) {
-    await updateDoc(matchRef, { 'player1.score': score });
-  } else if (data.player2?.uid === uid) {
-    await updateDoc(matchRef, { 'player2.score': score });
-  }
-};
 
-export const finishMatch = async (matchId: string, uid: string) => {
-  const matchRef = doc(db, 'duels', matchId);
-  const snap = await getDoc(matchRef);
-  if (!snap.exists()) return;
-
-  const data = snap.data() as DuelState;
-  
   if (data.player1.uid === uid) {
     const opponentFinished = data.player2?.finished === true;
     await updateDoc(matchRef, {
       'player1.finished': true,
-      ...(opponentFinished ? { status: 'finished' } : {})
+      ...(opponentFinished ? { status: 'finished' } : {}),
     });
   } else if (data.player2?.uid === uid) {
     const opponentFinished = data.player1.finished === true;
     await updateDoc(matchRef, {
       'player2.finished': true,
-      ...(opponentFinished ? { status: 'finished' } : {})
+      ...(opponentFinished ? { status: 'finished' } : {}),
     });
   }
 };
