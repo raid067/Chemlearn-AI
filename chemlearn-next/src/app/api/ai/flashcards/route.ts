@@ -4,6 +4,14 @@ import { errorResponse, generateGeminiJson } from '../_helpers';
 import { isRateLimited } from '@/lib/rate-limit';
 import { aiFlashcardsSchema } from '@/lib/validations';
 import { enforceAIQuota, wrapUntrustedInput, SYSTEM_SAFETY_GUARDRAIL, AIGatewayError } from '@/lib/server/ai-gateway';
+import { z } from 'zod';
+
+const flashcardsOutputSchema = z.array(
+  z.object({
+    question: z.string().trim().min(1),
+    answer: z.string().trim().min(1),
+  })
+);
 
 export async function POST(req: NextRequest) {
   try {
@@ -32,7 +40,19 @@ ${safeTopic}
 
 Return the output ONLY as a valid JSON array of objects. Each object should have properties: "question" (string) and "answer" (string). No markdown blocks.`;
 
-    const flashcards = await generateGeminiJson(prompt);
+    const rawOutput = await generateGeminiJson(prompt);
+    const parsed = flashcardsOutputSchema.safeParse(rawOutput);
+
+    const flashcards = parsed.success && parsed.data.length > 0
+      ? parsed.data
+      : Array.isArray(rawOutput)
+        ? rawOutput
+            .filter((card: any) => card && (card.question || card.q) && (card.answer || card.a))
+            .map((card: any) => ({
+              question: String(card.question || card.q),
+              answer: String(card.answer || card.a),
+            }))
+        : [];
 
     return NextResponse.json({ flashcards });
   } catch (error: unknown) {
@@ -43,3 +63,4 @@ Return the output ONLY as a valid JSON array of objects. Each object should have
     return errorResponse(error, 500);
   }
 }
+

@@ -1,7 +1,9 @@
 import { adminDb } from '@/lib/firebase-admin';
 import { FieldValue } from 'firebase-admin/firestore';
 import { randomBytes } from 'crypto';
-import { awardXPEvent, updateAuthoritativeStreak } from './gamification';
+import { awardXPEvent, updateAuthoritativeStreak, getMalaysianDateString } from './gamification';
+import { generateGeminiJson } from './gemini';
+import { z } from 'zod';
 
 export interface AuthoritativeMCQQuestion {
   q: string;
@@ -22,6 +24,9 @@ export interface AuthoritativeQuizDoc {
   topic: string;
   difficulty: string;
   type: 'MCQ' | 'Structured';
+  isDailyChallenge?: boolean;
+  challengeDate?: string;
+  enabled?: boolean;
   questions: (AuthoritativeMCQQuestion | AuthoritativeStructuredQuestion)[];
   createdAt: FirebaseFirestore.FieldValue | FirebaseFirestore.Timestamp;
 }
@@ -54,6 +59,223 @@ export interface QuizGradingResponse {
   currentXp: number;
   currentLevel: number;
   levelUp: boolean;
+}
+
+const SCRIPT_CHAR_MAP: Record<string, string> = {
+  '⁰': '0', '¹': '1', '²': '2', '³': '3', '⁴': '4',
+  '⁵': '5', '⁶': '6', '⁷': '7', '⁸': '8', '⁹': '9',
+  '⁺': '+', '⁻': '-', '₊': '+', '₋': '-',
+  '₀': '0', '₁': '1', '₂': '2', '₃': '3', '₄': '4',
+  '₅': '5', '₆': '6', '₇': '7', '₈': '8', '₉': '9',
+};
+
+/**
+ * Normalizes chemistry answers for fair, deterministic matching:
+ * - strips trailing punctuation
+ * - collapses whitespace
+ * - lowercases
+ * - standardizes Unicode subscripts (H₂O -> h2o) and superscript notations (Fe²⁺ -> fe2+)
+ * - normalizes common chemistry units (mol/dm3, g/cm3, cm3)
+ */
+export function normalizeChemistryAnswer(raw: string): string {
+  if (!raw || typeof raw !== 'string') return '';
+  const str = raw
+    .trim()
+    .toLowerCase()
+    .replace(/[.,;:!?]+$/g, '')
+    .replace(/[⁰¹²³⁴⁵⁶⁷⁸⁹⁺⁻₊₋₀₁₂₃₄₅₆₇₈₉]/g, (ch) => SCRIPT_CHAR_MAP[ch] || ch)
+    .replace(/[\u2080-\u2089]/g, (ch) => String(ch.charCodeAt(0) - 0x2080));
+
+  return str
+    .replace(/\s*mol\s*(?:\/|\s*per\s*|\s*)\s*dm\s*[-^]?\s*3/g, ' mol/dm3')
+    .replace(/\s*g\s*(?:\/|\s*per\s*|\s*)\s*cm\s*[-^]?\s*3/g, ' g/cm3')
+    .replace(/(?<!\/)\s*cm\s*[-^]?\s*3/g, ' cm3')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+/**
+ * Deterministically grades a structured question answer against an authoritative expected answer/rubric.
+ * Supports:
+ * - Exact normalized match
+ * - Alternative acceptable answers separated by '/', '|', or ' or '
+ * - Numerical matching with or without standard units
+ * - Keyword/concept matching with proportional partial marks
+ * - Never awards marks for mere non-empty or irrelevant input
+ */
+export function gradeStructuredDeterministic(
+  studentAnswer: string,
+  expectedAnswer: string,
+  maxMarks = 2
+): { score: number; isCorrect: boolean; feedback: string } {
+  const normStudent = normalizeChemistryAnswer(studentAnswer);
+  if (!normStudent) {
+    return { score: 0, isCorrect: false, feedback: 'No answer was provided.' };
+  }
+
+  const normExpected = normalizeChemistryAnswer(expectedAnswer);
+
+  // 1. Exact normalized match
+  if (normStudent === normExpected) {
+    return { score: maxMarks, isCorrect: true, feedback: 'Correct!' };
+  }
+
+  // 2. Acceptable alternatives (split by '/', '|', or ' or ')
+  const alternatives = expectedAnswer
+    .split(/\s*(?:\/|\||\bor\b)\s*/i)
+    .map(normalizeChemistryAnswer)
+    .filter(Boolean);
+
+  for (const alt of alternatives) {
+    if (normStudent === alt) {
+      return { score: maxMarks, isCorrect: true, feedback: 'Correct!' };
+    }
+  }
+
+  // 3. Numerical matching (e.g. expected: "2.5 mol/dm3" or "2.5")
+  const studentNumMatch = normStudent.match(/^([+-]?\d+(?:\.\d+)?)(?:\s*([a-z0-9/^-]+))?$/i);
+  const expectedNumMatch = normExpected.match(/^([+-]?\d+(?:\.\d+)?)(?:\s*([a-z0-9/^-]+))?$/i);
+
+  if (studentNumMatch && expectedNumMatch) {
+    const studentVal = parseFloat(studentNumMatch[1]);
+    const expectedVal = parseFloat(expectedNumMatch[1]);
+    const studentUnit = studentNumMatch[2] || '';
+    const expectedUnit = expectedNumMatch[2] || '';
+
+    const numMatch = Math.abs(studentVal - expectedVal) < 0.01;
+    if (numMatch) {
+      if (!expectedUnit || studentUnit === expectedUnit) {
+        return { score: maxMarks, isCorrect: true, feedback: 'Correct numerical value and units.' };
+      } else {
+        const partial = Math.max(1, Math.floor(maxMarks / 2));
+        return {
+          score: partial,
+          isCorrect: partial === maxMarks,
+          feedback: `Correct numerical calculation, but missing or incorrect unit (expected: ${expectedUnit}).`,
+        };
+      }
+    } else {
+      // Numerical calculation mismatch: do NOT fall through to keyword matching!
+      return {
+        score: 0,
+        isCorrect: false,
+        feedback: `Incorrect numerical value. Expected ${expectedVal}${expectedUnit ? ' ' + expectedUnit : ''}.`,
+      };
+    }
+  }
+
+
+  // 4. Keyword & Concept matching for descriptive chemistry questions
+  const stopWords = new Set([
+    'the', 'and', 'for', 'that', 'this', 'with', 'from', 'have', 'has', 'are', 'was',
+    'were', 'will', 'which', 'when', 'into', 'than', 'then', 'because', 'what'
+  ]);
+
+  const expectedKeywords = Array.from(
+    new Set(
+      normExpected
+        .replace(/[^a-z0-9\s]/g, ' ')
+        .split(/\s+/)
+        .filter((w) => w.length >= 3 && !stopWords.has(w))
+    )
+  );
+
+  if (expectedKeywords.length > 0) {
+    const studentWords = new Set(
+      normStudent
+        .replace(/[^a-z0-9\s]/g, ' ')
+        .split(/\s+/)
+        .filter((w) => w.length >= 3)
+    );
+
+    let matchCount = 0;
+    for (const kw of expectedKeywords) {
+      if (studentWords.has(kw) || normStudent.includes(kw)) {
+        matchCount++;
+      }
+    }
+
+    const ratio = matchCount / expectedKeywords.length;
+
+    if (ratio >= 0.75) {
+      return { score: maxMarks, isCorrect: true, feedback: 'Accurate and comprehensive answer.' };
+    } else if (ratio >= 0.4) {
+      const partial = Math.max(1, Math.floor(maxMarks * ratio));
+      return {
+        score: Math.min(maxMarks, partial),
+        isCorrect: false,
+        feedback: `Partially correct. Key concepts identified (${matchCount}/${expectedKeywords.length}).`,
+      };
+    }
+  }
+
+  return {
+    score: 0,
+    isCorrect: false,
+    feedback: `Incorrect. Expected answer: ${expectedAnswer}`,
+  };
+}
+
+/**
+ * Safely grades a free-response answer using AI with strict schema validation and clamp.
+ * Falls back to deterministic grading if AI invocation fails.
+ */
+export async function gradeStructuredAnswerWithAI(
+  question: string,
+  expectedAnswer: string,
+  studentAnswer: string,
+  maxMarks = 2
+): Promise<{ score: number; maxScore: number; correct: boolean; feedback: string }> {
+  const normStudent = normalizeChemistryAnswer(studentAnswer);
+  if (!normStudent) {
+    return { score: 0, maxScore: maxMarks, correct: false, feedback: 'No answer was provided.' };
+  }
+
+  try {
+    const prompt = `You are a strict SPM Chemistry grading examiner.
+Mark the student's answer against the rubric/expected answer.
+Question: ${question}
+Marking Rubric / Expected Answer: ${expectedAnswer}
+Student's Answer: ${studentAnswer}
+Maximum Marks: ${maxMarks}
+
+Return ONLY valid JSON matching this exact structure:
+{
+  "score": <number between 0 and ${maxMarks}>,
+  "maxScore": ${maxMarks},
+  "correct": <boolean, true if full marks, false otherwise>,
+  "feedback": "<concise feedback on chemical correctness and SPM exam technique>"
+}`;
+
+    const rawJson = await generateGeminiJson(prompt);
+    const parsed = z.object({
+      score: z.number(),
+      maxScore: z.number().default(maxMarks),
+      correct: z.boolean(),
+      feedback: z.string().default(''),
+    }).safeParse(rawJson);
+
+    if (parsed.success) {
+      const clampedScore = Math.max(0, Math.min(maxMarks, Math.round(parsed.data.score)));
+      return {
+        score: clampedScore,
+        maxScore: maxMarks,
+        correct: clampedScore === maxMarks,
+        feedback: parsed.data.feedback || (clampedScore > 0 ? 'Good attempt.' : 'Incorrect.'),
+      };
+    }
+  } catch (err) {
+    console.warn('[quizzes] AI grading failed, falling back to deterministic evaluation:', err);
+  }
+
+  // Guaranteed deterministic fallback
+  const fallback = gradeStructuredDeterministic(studentAnswer, expectedAnswer, maxMarks);
+  return {
+    score: fallback.score,
+    maxScore: maxMarks,
+    correct: fallback.isCorrect,
+    feedback: fallback.feedback,
+  };
 }
 
 /**
@@ -130,6 +352,42 @@ export async function storeAuthoritativeQuiz(
 }
 
 /**
+ * Saves an authoritative Daily Challenge with explicit challengeDate, daily tag, and user binding.
+ */
+export async function storeAuthoritativeChallenge(
+  uid: string,
+  topic: string,
+  rawQuestions: any[],
+  challengeDate = getMalaysianDateString()
+): Promise<{ challengeId: string; sanitizedQuestions: ClientSanitizedQuestion[] }> {
+  const challengeId = `challenge_${challengeDate}_${randomBytes(4).toString('hex')}`;
+  const challengeRef = adminDb.collection('server_quizzes').doc(challengeId);
+
+  const formattedQuestions = rawQuestions.map((q) => ({
+    q: q.q || q.question || 'Question',
+    options: Array.isArray(q.options) ? q.options : [],
+    answer: typeof q.answer === 'number' ? q.answer : (typeof q.correctIndex === 'number' ? q.correctIndex : 0),
+    explanation: q.explanation || 'Daily Challenge SPM Chemistry question.',
+  }));
+
+  await challengeRef.set({
+    quizId: challengeId,
+    uid,
+    topic: `Daily Challenge: ${topic}`,
+    difficulty: 'Medium',
+    type: 'MCQ',
+    isDailyChallenge: true,
+    challengeDate,
+    enabled: true,
+    questions: formattedQuestions,
+    createdAt: FieldValue.serverTimestamp(),
+  });
+
+  const sanitizedQuestions = sanitizeQuestionsForClient(formattedQuestions, 'MCQ');
+  return { challengeId, sanitizedQuestions };
+}
+
+/**
  * Pure evaluation function for grading quiz answers against authoritative question bank.
  */
 export function evaluateQuizAnswers(
@@ -166,21 +424,30 @@ export function evaluateQuizAnswers(
       });
     } else {
       const structured = q as AuthoritativeStructuredQuestion;
-      const isProvided = typeof studentAnswer === 'string' && studentAnswer.trim().length > 0;
-      if (isProvided) score++;
+      const maxMarks = structured.marks || 2;
+      const grading = gradeStructuredDeterministic(
+        typeof studentAnswer === 'string' ? studentAnswer : String(studentAnswer || ''),
+        structured.expectedAnswer,
+        maxMarks
+      );
+
+      score += grading.score;
 
       breakdown.push({
         questionIndex: i,
         question: structured.question,
-        selectedOption: studentAnswer || '',
+        selectedOption: studentAnswer !== undefined ? String(studentAnswer) : '',
         expectedAnswer: structured.expectedAnswer,
-        isCorrect: isProvided,
-        explanation: `Expected: ${structured.expectedAnswer}`,
+        isCorrect: grading.isCorrect,
+        explanation: grading.feedback || `Expected: ${structured.expectedAnswer}`,
       });
     }
   }
 
-  const percentage = total > 0 ? Math.round((score / total) * 100) : 0;
+  const maxPossible = type === 'MCQ'
+    ? total
+    : questions.reduce((sum, q) => sum + ((q as AuthoritativeStructuredQuestion).marks || 2), 0);
+  const percentage = maxPossible > 0 ? Math.round((score / maxPossible) * 100) : 0;
   return { score, percentage, total, breakdown };
 }
 
@@ -243,3 +510,83 @@ export async function gradeQuizSubmission(
     levelUp: xpResult.levelUp,
   };
 }
+
+/**
+ * Authoritatively grades a Daily Challenge submission.
+ * Enforces:
+ * 1. The challenge exists and has isDailyChallenge === true
+ * 2. User ownership: challenge was created for this user
+ * 3. Challenge date matches today in Asia/Kuala_Lumpur
+ * 4. Awards daily challenge XP (10 XP) idempotently per Malaysian day
+ * 5. Updates authoritative streak
+ */
+export async function gradeChallengeSubmission(
+  challengeId: string,
+  uid: string,
+  answers: Record<number | string, number | string>
+): Promise<QuizGradingResponse> {
+  const quizSnap = await adminDb.collection('server_quizzes').doc(challengeId).get();
+  if (!quizSnap.exists) {
+    throw new Error('Daily challenge not found or expired.');
+  }
+
+  const quizData = quizSnap.data() as AuthoritativeQuizDoc & {
+    isDailyChallenge?: boolean;
+    challengeDate?: string;
+  };
+
+  if (!quizData.isDailyChallenge) {
+    throw new Error('Invalid challenge: the requested quiz is not a daily challenge.');
+  }
+
+  if (quizData.uid && quizData.uid !== uid) {
+    throw new Error('Unauthorized: this daily challenge belongs to another user.');
+  }
+
+  const todayStr = getMalaysianDateString();
+  if (quizData.challengeDate && quizData.challengeDate !== todayStr) {
+    throw new Error(`This daily challenge expired on ${quizData.challengeDate}. Please generate today's challenge.`);
+  }
+
+  const questions = quizData.questions || [];
+  const { score, percentage, total, breakdown } = evaluateQuizAnswers(questions, quizData.type, answers);
+
+  // Authoritatively record result in quiz_results via Admin SDK
+  const resultRef = adminDb.collection('quiz_results').doc();
+  await resultRef.set({
+    uid,
+    quizId: challengeId,
+    score,
+    total,
+    percentage,
+    topic: quizData.topic,
+    isDailyChallenge: true,
+    challengeDate: todayStr,
+    timestamp: FieldValue.serverTimestamp(),
+    answers,
+  });
+
+  // Award daily challenge bonus XP with deterministic daily event ID (10 XP per day)
+  const challengeXP = await awardXPEvent(uid, 'CHALLENGE', todayStr, 10, {
+    challengeId,
+    score,
+    total,
+    date: todayStr,
+  });
+
+  // Authoritatively update daily streak
+  await updateAuthoritativeStreak(uid);
+
+  return {
+    quizId: challengeId,
+    score,
+    total,
+    percentage,
+    breakdown,
+    xpAwarded: challengeXP.xpAwarded,
+    currentXp: challengeXP.currentXp,
+    currentLevel: challengeXP.currentLevel,
+    levelUp: challengeXP.levelUp,
+  };
+}
+

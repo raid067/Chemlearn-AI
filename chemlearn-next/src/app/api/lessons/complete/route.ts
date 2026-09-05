@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { requireAuth } from '@/lib/server/auth';
+import { requireAuth, AuthError } from '@/lib/server/auth';
 import { awardXPEvent, updateAuthoritativeStreak } from '@/lib/server/gamification';
+import { isRateLimited } from '@/lib/rate-limit';
 import { CHAPTERS } from '@/lib/constants';
 import { errorResponse } from '../../ai/_helpers';
 import { z } from 'zod';
@@ -13,6 +14,14 @@ const lessonCompleteSchema = z.object({
 export async function POST(req: NextRequest) {
   try {
     const user = await requireAuth(req);
+
+    // Rate limit: 10 completions per minute per student
+    if (isRateLimited('lesson-complete', user.uid, 10, 60_000)) {
+      return NextResponse.json(
+        { error: 'Too many lesson completion requests. Please wait a moment.' },
+        { status: 429 }
+      );
+    }
 
     const body = await req.json();
     const validation = lessonCompleteSchema.safeParse(body);
@@ -49,7 +58,11 @@ export async function POST(req: NextRequest) {
       data: result,
     });
   } catch (error: unknown) {
+    if (error instanceof AuthError) {
+      return NextResponse.json({ error: error.message }, { status: error.statusCode });
+    }
     console.error('Lesson Complete API Error:', error);
     return errorResponse(error, 500);
   }
 }
+

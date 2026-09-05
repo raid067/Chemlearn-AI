@@ -65,6 +65,17 @@ service cloud.firestore {
           && (!affected.hasAny(['role', 'admin', 'xp', 'level', 'streak', 'email', 'uid']));
     }
 
+    // Chat History Whitelist and Bounds
+    function validChatHistory() {
+      let data = request.resource.data;
+      let allowedKeys = ['id', 'title', 'messages', 'question', 'answer', 'timestamp', 'createdAt', 'updatedAt'];
+      return data.keys().hasOnly(allowedKeys)
+          && (!('title' in data) || (data.title is string && data.title.size() <= 200))
+          && (!('question' in data) || (data.question is string && data.question.size() <= 4000))
+          && (!('answer' in data) || (data.answer is string && data.answer.size() <= 10000))
+          && (!('messages' in data) || (data.messages is list && data.messages.size() <= 100));
+    }
+
     // ── Server-Only Collections (Admin SDK Exclusive) ─────────────────────────
     match /server_quizzes/{document=**} {
       allow read, write: if false;
@@ -109,7 +120,8 @@ service cloud.firestore {
       allow delete: if isAdmin();
 
       match /chatHistory/{chatId} {
-        allow read, write: if isOwner(userId);
+        allow read, delete: if isOwner(userId);
+        allow create, update: if isOwner(userId) && validChatHistory();
       }
     }
 

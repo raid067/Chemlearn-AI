@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { requireAuth } from '@/lib/server/auth';
-import { gradeQuizSubmission } from '@/lib/server/quizzes';
-import { awardXPEvent, getMalaysianDateString, updateAuthoritativeStreak } from '@/lib/server/gamification';
+import { requireAuth, AuthError } from '@/lib/server/auth';
+import { gradeChallengeSubmission } from '@/lib/server/quizzes';
 import { errorResponse } from '../../ai/_helpers';
 import { z } from 'zod';
 
@@ -24,19 +23,8 @@ export async function POST(req: NextRequest) {
 
     const { challengeId, answers } = validation.data;
 
-    // Grade answers authoritatively against server_quizzes
-    const grading = await gradeQuizSubmission(challengeId, user.uid, answers);
-
-    // Award daily challenge bonus XP with deterministic daily event ID (10 XP per day)
-    const myDateStr = getMalaysianDateString();
-    const challengeXP = await awardXPEvent(user.uid, 'CHALLENGE', myDateStr, 10, {
-      challengeId,
-      score: grading.score,
-      total: grading.total,
-      date: myDateStr,
-    });
-
-    await updateAuthoritativeStreak(user.uid);
+    // Grade daily challenge authoritatively (validates isDailyChallenge, user ownership, and today's date)
+    const grading = await gradeChallengeSubmission(challengeId, user.uid, answers);
 
     return NextResponse.json({
       success: true,
@@ -45,14 +33,26 @@ export async function POST(req: NextRequest) {
         total: grading.total,
         percentage: grading.percentage,
         breakdown: grading.breakdown,
-        xpAwarded: challengeXP.xpAwarded,
-        currentXp: challengeXP.currentXp,
-        currentLevel: challengeXP.currentLevel,
-        alreadyAwarded: challengeXP.alreadyAwarded,
+        xpAwarded: grading.xpAwarded,
+        currentXp: grading.currentXp,
+        currentLevel: grading.currentLevel,
       },
     });
   } catch (error: unknown) {
+    if (error instanceof AuthError) {
+      return NextResponse.json({ error: error.message }, { status: error.statusCode });
+    }
+    const msg = error instanceof Error ? error.message : 'Challenge submission failed';
+    if (
+      msg.includes('Invalid challenge') ||
+      msg.includes('expired') ||
+      msg.includes('Unauthorized') ||
+      msg.includes('not found')
+    ) {
+      return errorResponse(msg, 400);
+    }
     console.error('Challenge Submit API Error:', error);
     return errorResponse(error, 500);
   }
 }
+
