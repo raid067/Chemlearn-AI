@@ -108,6 +108,10 @@ service cloud.firestore {
       allow read, write: if false;
     }
 
+    match /idempotency_records/{document=**} {
+      allow read, write: if false;
+    }
+
     // ── Admin System Stats ────────────────────────────────────────────────────
     match /system_stats/{document=**} {
       allow read: if isAdmin();

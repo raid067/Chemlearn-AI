@@ -18,6 +18,7 @@ describe('Firestore Security Rules & Permission Enforcement', () => {
       expect(rulesContent).toContain('match /server_duels/{document=**}');
       expect(rulesContent).toContain('match /xp_events/{document=**}');
       expect(rulesContent).toContain('match /ai_usage/{document=**}');
+      expect(rulesContent).toContain('match /idempotency_records/{document=**}');
 
       // Must explicitly deny client read/write
       const serverQuizzesBlock = rulesContent.match(/match \/server_quizzes\/\{document=\*\*\}\s*\{\s*allow read, write:\s*if false;\s*\}/);
@@ -28,6 +29,9 @@ describe('Firestore Security Rules & Permission Enforcement', () => {
 
       const xpEventsBlock = rulesContent.match(/match \/xp_events\/\{document=\*\*\}\s*\{\s*allow read, write:\s*if false;\s*\}/);
       expect(xpEventsBlock).not.toBeNull();
+
+      const idempotencyBlock = rulesContent.match(/match \/idempotency_records\/\{document=\*\*\}\s*\{\s*allow read, write:\s*if false;\s*\}/);
+      expect(idempotencyBlock).not.toBeNull();
     });
 
     it('restricts system_stats read access to admin tokens only', () => {
@@ -37,6 +41,11 @@ describe('Firestore Security Rules & Permission Enforcement', () => {
 
     it('explicitly forbids client modification of duel winnerUid, questions, and rewardStatus', () => {
       expect(rulesContent).toContain("!affected.hasAny(['winnerUid', 'rewardStatus', 'questions'])");
+    });
+
+    it('prohibits client modification of player score in duels', () => {
+      expect(rulesContent).toContain("request.resource.data.player1.score == resource.data.player1.score");
+      expect(rulesContent).toContain("request.resource.data.player2.score == resource.data.player2.score");
     });
 
     it('prohibits system, developer, and admin roles in chat messages and history', () => {

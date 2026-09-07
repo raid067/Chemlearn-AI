@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { requireAuth } from '@/lib/server/auth';
+import { requireAuth, AuthError } from '@/lib/server/auth';
 import { gradeQuizSubmission } from '@/lib/server/quizzes';
 import { errorResponse } from '../../ai/_helpers';
 import { parseSecureJson, RequestPayloadError, MAX_BODY_LIMITS } from '@/lib/server/request-guard';
@@ -27,6 +27,9 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ success: true, data: result });
   } catch (error: unknown) {
+    if (error instanceof AuthError) {
+      return NextResponse.json({ error: error.message, code: error.code }, { status: error.statusCode });
+    }
     if (error instanceof RequestPayloadError) {
       return NextResponse.json({ error: error.code, message: error.message }, { status: error.statusCode });
     }

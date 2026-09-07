@@ -4,15 +4,81 @@ import { GoogleGenerativeAI, Part, GenerationConfig } from '@google/generative-a
 export const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || 'dummy_key');
 
 /**
- * Authoritative Centralized Gemini Model Catalog
- * Primary: Modern Gemini 3.8/3.5 models with automatic fallback.
+ * Authoritative Model Capability Architecture (Phase 1)
+ * Formalizes feature and parameter compatibility across modern Gemini 3.8/3.5 and fallback models.
+ */
+export interface ModelCapability {
+  model: string;
+  supportsTemperature: boolean;
+  supportsTopP: boolean;
+  supportsTopK: boolean;
+  supportsMaxOutputTokens: boolean;
+  supportsJson: boolean;
+  supportsVision: boolean;
+  supportsSystemInstruction: boolean;
+}
+
+export const MODEL_CAPABILITIES: Record<'primary' | 'light' | 'fallback', ModelCapability> = {
+  primary: {
+    model: process.env.GEMINI_MODEL_DEFAULT || 'gemini-3.8-flash',
+    supportsTemperature: true,
+    supportsTopP: true,
+    supportsTopK: true,
+    supportsMaxOutputTokens: true,
+    supportsJson: true,
+    supportsVision: true,
+    supportsSystemInstruction: true,
+  },
+  light: {
+    model: process.env.GEMINI_MODEL_LIGHT || 'gemini-3.5-flash-lite',
+    supportsTemperature: true,
+    supportsTopP: true,
+    supportsTopK: true,
+    supportsMaxOutputTokens: true,
+    supportsJson: true,
+    supportsVision: true,
+    supportsSystemInstruction: true,
+  },
+  fallback: {
+    model: process.env.GEMINI_MODEL_FALLBACK || 'gemini-2.5-flash',
+    supportsTemperature: true,
+    supportsTopP: true,
+    supportsTopK: true,
+    supportsMaxOutputTokens: true,
+    supportsJson: true,
+    supportsVision: true,
+    supportsSystemInstruction: true,
+  },
+} as const;
+
+/**
+ * Authoritative Centralized Gemini Model Catalog derived from MODEL_CAPABILITIES
  */
 export const GEMINI_MODELS = {
-  DEFAULT: process.env.GEMINI_MODEL_DEFAULT || 'gemini-3.8-flash',
-  LIGHT: process.env.GEMINI_MODEL_LIGHT || 'gemini-3.5-flash-lite',
-  VISION: process.env.GEMINI_MODEL_VISION || 'gemini-3.8-flash',
-  FALLBACK: process.env.GEMINI_MODEL_FALLBACK || 'gemini-2.5-flash',
+  DEFAULT: MODEL_CAPABILITIES.primary.model,
+  LIGHT: MODEL_CAPABILITIES.light.model,
+  VISION: MODEL_CAPABILITIES.primary.model,
+  FALLBACK: MODEL_CAPABILITIES.fallback.model,
 } as const;
+
+/**
+ * Resolves capability profile for a given model string.
+ */
+export function getModelCapability(modelName: string): ModelCapability {
+  for (const cap of Object.values(MODEL_CAPABILITIES)) {
+    if (cap.model === modelName) return cap;
+  }
+  return {
+    model: modelName,
+    supportsTemperature: true,
+    supportsTopP: true,
+    supportsTopK: false,
+    supportsMaxOutputTokens: true,
+    supportsJson: true,
+    supportsVision: true,
+    supportsSystemInstruction: true,
+  };
+}
 
 export interface GeminiCallOptions {
   modelName?: string;
@@ -47,13 +113,13 @@ export function isTransientGeminiError(error: unknown): boolean {
   if (status === 429 || status === 503 || status === 500 || status === 504) return true;
   if (msg.includes('resource_exhausted') || msg.includes('quota') || msg.includes('rate limit')) return true;
   if (msg.includes('unavailable') || msg.includes('overloaded') || msg.includes('server error') || msg.includes('internal error')) return true;
-  if (msg.includes('timeout') || msg.includes('econnreset') || msg.includes('socket hang up') || msg.includes('fetch failed')) return true;
+  if (msg.includes('timeout') || msg.includes('timed out') || msg.includes('econnreset') || msg.includes('socket hang up') || msg.includes('fetch failed')) return true;
 
   return false;
 }
 
 /**
- * Generates text from Gemini with built-in timeout, model fallback, and exponential retry backoff.
+ * Generates text from Gemini with built-in timeout, model fallback, capability conditioning, and exponential retry backoff.
  */
 export async function generateGeminiText(
   prompt: string | (string | Part)[],
@@ -66,21 +132,32 @@ export async function generateGeminiText(
   const timeoutMs = opts.timeoutMs ?? 15000;
   const maxRetries = opts.maxRetries ?? 2;
 
-  const generationConfig: GenerationConfig = {};
-  if (opts.temperature !== undefined) generationConfig.temperature = opts.temperature;
-  if (opts.topP !== undefined) generationConfig.topP = opts.topP;
-  if (opts.topK !== undefined) generationConfig.topK = opts.topK;
-  if (opts.maxOutputTokens !== undefined) generationConfig.maxOutputTokens = opts.maxOutputTokens;
-  if (opts.responseMimeType) generationConfig.responseMimeType = opts.responseMimeType;
-
   let lastError: unknown;
 
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
     try {
+      const cap = getModelCapability(currentModel);
+
+      // Check vision compatibility if multimodal parts are supplied
+      if (Array.isArray(prompt)) {
+        const hasVisionPart = prompt.some((p) => typeof p !== 'string' && 'inlineData' in p);
+        if (hasVisionPart && !cap.supportsVision) {
+          throw new Error(`Model ${currentModel} does not support multimodal vision inputs.`);
+        }
+      }
+
+      // Conditionally configure parameters based on capability profile
+      const generationConfig: GenerationConfig = {};
+      if (cap.supportsTemperature && opts.temperature !== undefined) generationConfig.temperature = opts.temperature;
+      if (cap.supportsTopP && opts.topP !== undefined) generationConfig.topP = opts.topP;
+      if (cap.supportsTopK && opts.topK !== undefined) generationConfig.topK = opts.topK;
+      if (cap.supportsMaxOutputTokens && opts.maxOutputTokens !== undefined) generationConfig.maxOutputTokens = opts.maxOutputTokens;
+      if (cap.supportsJson && opts.responseMimeType) generationConfig.responseMimeType = opts.responseMimeType;
+
       const model = genAI.getGenerativeModel({
         model: currentModel,
         ...(Object.keys(generationConfig).length > 0 ? { generationConfig } : {}),
-        ...(opts.systemInstruction ? { systemInstruction: opts.systemInstruction } : {}),
+        ...(cap.supportsSystemInstruction && opts.systemInstruction ? { systemInstruction: opts.systemInstruction } : {}),
       });
 
       // Enforce timeout guard

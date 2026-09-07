@@ -20,8 +20,8 @@ const navHtml = `
             <a href="teacher.html">Educator Portal</a>
         </div>
         <div class="right-auth-links">
-            <div class="login-btn" id="openLoginBtn">Login</div>
-            <button class="signup-btn" id="openSignupBtn">Sign Up</button>
+            <button type="button" class="transparent-btn login-btn" id="openLoginBtn">Login</button>
+            <button type="button" class="signup-btn" id="openSignupBtn">Sign Up</button>
         </div>
     </nav>
 `;

@@ -44,12 +44,20 @@ export default function Navbar() {
             Sign Out
           </button>
         ) : (
-          <button
-            onClick={() => { setAuthMode('signin'); openModal('auth'); }}
-            className="hidden md:inline-flex items-center justify-center rounded-xl text-sm font-bold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-purple bg-brand-purple text-white shadow-lg shadow-brand-purple/20 hover:bg-brand-purple/90 h-10 px-6"
-          >
-            Sign In
-          </button>
+          <div className="hidden md:flex items-center gap-4">
+            <button
+              onClick={() => { setAuthMode('signin'); openModal('auth'); }}
+              className="text-slate-600 hover:text-brand-purple text-sm font-semibold transition-colors cursor-pointer bg-transparent border-0 p-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-purple rounded-lg px-3 py-2"
+            >
+              Login
+            </button>
+            <button
+              onClick={() => { setAuthMode('signup'); openModal('auth'); }}
+              className="inline-flex items-center justify-center rounded-full text-sm font-semibold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-purple bg-[#c084fc] hover:bg-brand-purple text-white shadow-sm hover:shadow-md hover:-translate-y-0.5 h-10 px-6 cursor-pointer"
+            >
+              Sign Up
+            </button>
+          </div>
         )}
         <button aria-label="Open main menu" onClick={toggleMobileMenu} className="md:hidden p-2 rounded-lg hover:bg-slate-100 transition-colors text-slate-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-purple">
           <Menu className="h-6 w-6" />

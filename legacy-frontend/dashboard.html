@@ -112,6 +112,145 @@
             border-radius: 2px;
         }
 
+        /* --- SKELETON LOADING SCREEN OVERLAY --- */
+        #custom-loader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: #fdfcff;
+            z-index: 99999; 
+            overflow-y: auto;
+            transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.4s;
+        }
+
+        #custom-loader.fade-out {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+
+        .skeleton-page-container {
+            width: 100%;
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 0 24px 60px 24px;
+        }
+
+        .skeleton-box {
+            background: linear-gradient(90deg, #f1f5f9 0%, #e2e8f0 50%, #f1f5f9 100%);
+            background-size: 200% 100%;
+            animation: skeleton-shimmer 1.5s ease-in-out infinite;
+            border-radius: 8px;
+        }
+
+        @keyframes skeleton-shimmer {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        .skeleton-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 76px;
+            border-bottom: 1px solid rgba(241, 240, 247, 0.8);
+            margin-bottom: 40px;
+        }
+
+        .skeleton-nav-links {
+            display: flex;
+            gap: 28px;
+        }
+
+        .skeleton-auth {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .skeleton-hero {
+            margin-bottom: 40px;
+        }
+
+        .skeleton-stats-row {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 24px;
+            margin-bottom: 40px;
+        }
+
+        .skeleton-stat-card {
+            background: #ffffff;
+            border-radius: 20px;
+            border: 1px solid #f1f0f7;
+            padding: 24px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02);
+        }
+
+        .skeleton-dashboard-main {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 28px;
+        }
+
+        @media (max-width: 900px) {
+            .skeleton-nav-links { display: none; }
+            .skeleton-stats-row { grid-template-columns: repeat(2, 1fr); }
+            .skeleton-dashboard-main { grid-template-columns: 1fr; }
+        }
+
+        .right-auth-links {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+        }
+
+        .transparent-btn {
+            background: transparent !important;
+            border: none !important;
+            outline: none !important;
+            box-shadow: none !important;
+            padding: 0 !important;
+        }
+
+        .login-btn {
+            text-decoration: none;
+            color: #64748b;
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: color 0.2s;
+            background: transparent;
+            border: none;
+            outline: none;
+            padding: 0;
+            font-family: inherit;
+        }
+
+        .login-btn:hover {
+            color: var(--accent-purple);
+        }
+
+        .signup-btn {
+            text-decoration: none;
+            background: #c084fc;
+            color: #ffffff;
+            padding: 8px 20px;
+            border-radius: 18px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            transition: all 0.2s ease;
+            border: none;
+            cursor: pointer;
+        }
+
+        .signup-btn:hover {
+            background: #b85ee6;
+            transform: translateY(-1px);
+        }
+
         .nav-right {
             display: flex;
             align-items: center;
@@ -1320,6 +1459,71 @@
 </head>
 
 <body>
+
+    <div id="custom-loader">
+        <div class="skeleton-page-container">
+            <!-- Skeleton Navbar -->
+            <div class="skeleton-nav">
+                <div class="skeleton-box" style="width: 140px; height: 32px; border-radius: 8px;"></div>
+                <div class="skeleton-nav-links">
+                    <div class="skeleton-box" style="width: 60px; height: 20px;"></div>
+                    <div class="skeleton-box" style="width: 70px; height: 20px;"></div>
+                    <div class="skeleton-box" style="width: 70px; height: 20px;"></div>
+                    <div class="skeleton-box" style="width: 80px; height: 20px;"></div>
+                    <div class="skeleton-box" style="width: 90px; height: 20px;"></div>
+                    <div class="skeleton-box" style="width: 80px; height: 20px;"></div>
+                </div>
+                <div class="skeleton-auth">
+                    <div class="skeleton-box" style="width: 50px; height: 24px;"></div>
+                    <div class="skeleton-box" style="width: 85px; height: 36px; border-radius: 18px;"></div>
+                </div>
+            </div>
+
+            <!-- Skeleton Hero/User Greeting -->
+            <div class="skeleton-hero">
+                <div class="skeleton-box" style="width: 280px; height: 36px; margin-bottom: 12px; border-radius: 8px;"></div>
+                <div class="skeleton-box" style="width: 440px; height: 18px; border-radius: 6px;"></div>
+            </div>
+
+            <!-- Skeleton Stats Row -->
+            <div class="skeleton-stats-row">
+                <div class="skeleton-stat-card">
+                    <div class="skeleton-box" style="width: 40px; height: 40px; border-radius: 12px; margin-bottom: 16px;"></div>
+                    <div class="skeleton-box" style="width: 60px; height: 28px; margin-bottom: 8px;"></div>
+                    <div class="skeleton-box" style="width: 90px; height: 16px;"></div>
+                </div>
+                <div class="skeleton-stat-card">
+                    <div class="skeleton-box" style="width: 40px; height: 40px; border-radius: 12px; margin-bottom: 16px;"></div>
+                    <div class="skeleton-box" style="width: 60px; height: 28px; margin-bottom: 8px;"></div>
+                    <div class="skeleton-box" style="width: 90px; height: 16px;"></div>
+                </div>
+                <div class="skeleton-stat-card">
+                    <div class="skeleton-box" style="width: 40px; height: 40px; border-radius: 12px; margin-bottom: 16px;"></div>
+                    <div class="skeleton-box" style="width: 60px; height: 28px; margin-bottom: 8px;"></div>
+                    <div class="skeleton-box" style="width: 90px; height: 16px;"></div>
+                </div>
+                <div class="skeleton-stat-card">
+                    <div class="skeleton-box" style="width: 40px; height: 40px; border-radius: 12px; margin-bottom: 16px;"></div>
+                    <div class="skeleton-box" style="width: 60px; height: 28px; margin-bottom: 8px;"></div>
+                    <div class="skeleton-box" style="width: 90px; height: 16px;"></div>
+                </div>
+            </div>
+
+            <!-- Skeleton Main Dashboard Area -->
+            <div class="skeleton-dashboard-main">
+                <div class="skeleton-stat-card" style="min-height: 280px; display: flex; flex-direction: column; gap: 16px;">
+                    <div class="skeleton-box" style="width: 160px; height: 24px;"></div>
+                    <div class="skeleton-box" style="width: 100%; height: 200px; border-radius: 12px;"></div>
+                </div>
+                <div class="skeleton-stat-card" style="min-height: 280px; display: flex; flex-direction: column; gap: 16px;">
+                    <div class="skeleton-box" style="width: 140px; height: 24px;"></div>
+                    <div class="skeleton-box" style="width: 100%; height: 50px; border-radius: 10px;"></div>
+                    <div class="skeleton-box" style="width: 100%; height: 50px; border-radius: 10px;"></div>
+                    <div class="skeleton-box" style="width: 100%; height: 50px; border-radius: 10px;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <nav class="global-navbar">
         <a href="index.html" class="brand-logo">
@@ -2598,6 +2802,13 @@
                     window.location.href = 'index.html#signup';
                 });
             }
+
+            window.addEventListener('load', () => {
+                const loader = document.getElementById('custom-loader');
+                if (loader) {
+                    loader.classList.add('fade-out');
+                }
+            });
         });
     </script>
 

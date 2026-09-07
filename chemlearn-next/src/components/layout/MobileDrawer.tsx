@@ -49,12 +49,20 @@ export default function MobileDrawer() {
               Sign Out
             </button>
           ) : (
-            <button
-              onClick={() => { closeMobileMenu(); setAuthMode('signin'); openModal('auth'); }}
-              className="w-full rounded-lg bg-brand-purple py-3 font-medium text-white shadow-md hover:bg-brand-purple/90"
-            >
-              Sign In
-            </button>
+            <div className="flex flex-col gap-3">
+              <button
+                onClick={() => { closeMobileMenu(); setAuthMode('signin'); openModal('auth'); }}
+                className="w-full rounded-xl border border-slate-200 py-3 font-semibold text-slate-700 hover:bg-slate-50 transition-colors"
+              >
+                Login
+              </button>
+              <button
+                onClick={() => { closeMobileMenu(); setAuthMode('signup'); openModal('auth'); }}
+                className="w-full rounded-full bg-[#c084fc] hover:bg-brand-purple py-3 font-semibold text-white shadow-md transition-all text-center"
+              >
+                Sign Up
+              </button>
+            </div>
           )}
         </div>
       </div>
