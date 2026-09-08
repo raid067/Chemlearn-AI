@@ -93,7 +93,7 @@ const RESOURCES_DATA: ResourceItem[] = [
     title: 'Modern Glass Guide',
     description: 'Learn about glass composition, properties, and types including fused silica, soda-lime, borosilicate, and lead crystal glass, with practical applications in science and industry.',
     buttons: [
-      { label: 'Download Comic', url: '/downloads/comic-glass.pdf', type: 'pdf' },
+      { label: 'Download Comic', url: '/downloads/comic-glass.jpg', type: 'image' },
     ],
   },
   {

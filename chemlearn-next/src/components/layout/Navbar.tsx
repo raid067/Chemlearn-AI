@@ -17,21 +17,26 @@ export default function Navbar() {
   return (
     <header className="sticky top-0 z-40 w-full backdrop-blur-md bg-white/70 border-b border-border/40">
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-        <div className="flex items-center gap-6">
+        <div className="flex items-center gap-8 h-full">
           <ChemLearnLogo textClassName="text-brand-purple" />
-          <nav className="hidden md:flex items-center gap-1">
-            {NAV_LINKS.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                className={cn(
-                  'px-3 py-2 rounded-md text-sm font-medium transition-colors hover:text-brand-purple hover:bg-brand-purple/10',
-                  pathname === link.href ? 'text-brand-purple bg-brand-purple/10' : 'text-slate-600'
-                )}
-              >
-                {link.label}
-              </Link>
-            ))}
+          <nav className="hidden md:flex items-center gap-8 h-full">
+            {NAV_LINKS.map((link) => {
+              const isActive = pathname === link.href || (link.href !== '/' && pathname?.startsWith(link.href));
+              return (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className={cn(
+                    'h-full flex items-center relative text-[0.95rem] font-medium transition-colors hover:text-brand-purple',
+                    isActive
+                      ? 'text-brand-purple font-semibold after:content-[""] after:absolute after:bottom-0 after:left-0 after:w-full after:h-[2.5px] after:bg-[#b85ee6] after:rounded-full'
+                      : 'text-slate-600'
+                  )}
+                >
+                  {link.label}
+                </Link>
+              );
+            })}
           </nav>
         </div>
         
