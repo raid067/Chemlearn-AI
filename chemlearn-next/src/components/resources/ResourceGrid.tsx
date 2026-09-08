@@ -159,6 +159,7 @@ const RESOURCES_DATA: ResourceItem[] = [
     title: 'Composite Materials Blueprint',
     description: 'Detailed structural profiles of composite materials, matrix vs reinforcement phases, and superior hybrid properties.',
     buttons: [
+      { label: 'Download Blueprint Note', url: '/downloads/blueprint-composites.jpg', type: 'image' },
       { label: 'Download Notes (Malay)', url: '/downloads/notes-composites-ms.jpg', type: 'image' },
       { label: 'Download Notes (English)', url: '/downloads/notes-composites-en.jpg', type: 'image' },
     ],
