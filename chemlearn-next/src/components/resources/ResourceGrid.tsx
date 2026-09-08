@@ -145,6 +145,7 @@ const RESOURCES_DATA: ResourceItem[] = [
     description: 'Explore traditional and advanced ceramics, high-temperature superconductors, and structural applications across modern technology.',
     buttons: [
       { label: 'Download Infographic Note', url: '/downloads/infographic-ceramics.jpg', type: 'image' },
+      { label: 'Download Notes (Part 2)', url: '/downloads/notes-ceramics-p2.jpg', type: 'image' },
     ],
   },
 
@@ -171,7 +172,8 @@ const RESOURCES_DATA: ResourceItem[] = [
     title: 'Mastering Composites',
     description: 'Explore fiber-reinforced polymers, reinforced concrete, and advanced superconductors with real-world applications.',
     buttons: [
-      { label: 'Download Comic', url: '/downloads/comic-composites.pdf', type: 'pdf' },
+      { label: 'Download Infographic Note', url: '/downloads/infographic-composites.jpg', type: 'image' },
+      { label: 'Download Comic', url: '/downloads/comic-composites.jpg', type: 'image' },
     ],
   },
 ];
