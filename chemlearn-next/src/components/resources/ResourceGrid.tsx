@@ -54,7 +54,7 @@ const RESOURCES_DATA: ResourceItem[] = [
     title: 'Mastering Metal Alloys',
     description: 'Learn how alloys are created, explore well-known alloy examples, understand their atomic structures, investigate their unique properties, and discover their practical applications in everyday life and modern industries.',
     buttons: [
-      { label: 'Download Comic', url: '/downloads/comic-alloys.pdf', type: 'pdf' },
+      { label: 'Download Comic', url: '/downloads/comic-alloys.jpg', type: 'image' },
     ],
   },
   {
