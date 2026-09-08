@@ -1,16 +1,25 @@
 import Link from 'next/link';
 import { CHAPTERS } from '@/lib/constants';
+import MediaLearningCenter from '@/components/lessons/MediaLearningCenter';
 
 export default function CurriculumHub() {
   return (
-    <div className="min-h-screen bg-slate-50 pt-24 pb-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-4xl mx-auto">
+    <div className="min-h-screen bg-slate-50 pt-20 pb-16 px-4 sm:px-6 lg:px-8">
+      {/* Interactive Media Learning Center identical to screenshot */}
+      <MediaLearningCenter />
+
+      {/* Curriculum Chapters Breakdown */}
+      <div className="max-w-6xl mx-auto mt-16 pt-12 border-t border-slate-200">
         <header className="mb-10 text-center">
-          <h1 className="text-4xl font-bold text-slate-900 mb-4">Chemistry Curriculum</h1>
-          <p className="text-lg text-slate-600">Master SPM Chemistry through bite-sized, interactive lessons.</p>
+          <h2 className="text-3xl font-extrabold text-slate-900 mb-3 tracking-tight">
+            Complete Chemistry Curriculum Modules
+          </h2>
+          <p className="text-base sm:text-lg text-slate-600">
+            Master SPM Chemistry through bite-sized, interactive lessons and 3D simulations.
+          </p>
         </header>
 
-        <div className="grid gap-6">
+        <div className="grid gap-6 max-w-4xl mx-auto">
           {CHAPTERS.map((chapter) => (
             <Link key={chapter.id} href={`/lessons/${chapter.id}`} className="block group">
               <div 
@@ -20,7 +29,7 @@ export default function CurriculumHub() {
                 <div className="flex items-center gap-4 mb-4">
                   <span className="text-4xl">{chapter.emoji}</span>
                   <div>
-                    <h2 className="text-2xl font-bold" style={{ color: chapter.color }}>{chapter.title}</h2>
+                    <h3 className="text-2xl font-bold" style={{ color: chapter.color }}>{chapter.title}</h3>
                     <p className="text-slate-600 font-medium">{chapter.topics.length} Topics</p>
                   </div>
                 </div>
