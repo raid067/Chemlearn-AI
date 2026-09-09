@@ -9,7 +9,7 @@ import { getFirestore, doc, onSnapshot, collection, query, orderBy, limit } from
 // The Firebase web SDK config (apiKey, appId) is NOT a secret.
 // Real security is enforced exclusively by firestore.rules checking request.auth.token.admin == true.
 const firebaseConfig = {
-    apiKey: "YOUR_FIREBASE_API_KEY",
+    apiKey: "AIzaSyBcAA7uU-bKuFkBtpqLCFyB4b4PsZWlHzw",
     authDomain: "chemlearn-67.firebaseapp.com",
     projectId: "chemlearn-67",
     storageBucket: "chemlearn-67.firebasestorage.app",
