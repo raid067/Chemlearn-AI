@@ -16,7 +16,7 @@ const QUIZ_DATA: import('@/types/quiz').ExternalQuiz[] = [
     title: "Alloy Knowledge Check⚡",
     description: "Discover how alloys are made and why they outperform pure metals in industries.",
     platform: "wayground",
-    url: "https://wayground.com/admin/assessment/6a201c79dafa64bc6c8030ff?source=lesson_share",
+    url: "https://wayground.com/assessment/6a201c79dafa64bc6c8030ff?source=lesson_share",
     topic: "8.1 Alloys",
     emoji: "⚡"
   },
@@ -40,7 +40,7 @@ const QUIZ_DATA: import('@/types/quiz').ExternalQuiz[] = [
     title: "Glass Composition Challenge🧪",
     description: "Discover different types of glass and their unique properties, uses, and advantages today.",
     platform: "wayground",
-    url: "https://wayground.com/admin/quiz/6a1fb1a434e091a01d7a65dc",
+    url: "https://wayground.com/quiz/6a1fb1a434e091a01d7a65dc",
     topic: "8.2 Glass",
     emoji: "🧪"
   },
@@ -64,7 +64,7 @@ const QUIZ_DATA: import('@/types/quiz').ExternalQuiz[] = [
     title: "Ceramics Master Quiz🏆",
     description: "Challenge yourself with questions covering ceramic composition, properties, and industrial uses effectively.",
     platform: "wayground",
-    url: "https://wayground.com/admin/quiz/6a200355d035b7da125d9316",
+    url: "https://wayground.com/quiz/6a200355d035b7da125d9316",
     topic: "8.3 Ceramics",
     emoji: "🏆"
   },
@@ -88,7 +88,7 @@ const QUIZ_DATA: import('@/types/quiz').ExternalQuiz[] = [
     title: "Composite Materials Challenge💡",
     description: "Strengthen your knowledge of composites through engaging questions and practical real-world examples.",
     platform: "wayground",
-    url: "https://wayground.com/admin/assessment/6a202ca7005da20de47aed2b?source=lesson_share",
+    url: "https://wayground.com/assessment/6a202ca7005da20de47aed2b?source=lesson_share",
     topic: "8.4 Composites",
     emoji: "💡"
   },
