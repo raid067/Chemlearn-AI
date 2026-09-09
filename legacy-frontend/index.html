@@ -116,6 +116,7 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap"
         rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.8/purify.min.js" defer></script>
 
     <style>
         .sr-only {
@@ -2984,7 +2985,11 @@
             }
             if (inList) result.push('</ul>');
             if (inOl) result.push('</ol>');
-            return result.join('');
+            const outputHtml = result.join('');
+            if (typeof DOMPurify !== 'undefined' && DOMPurify.sanitize) {
+                return DOMPurify.sanitize(outputHtml);
+            }
+            return outputHtml;
         }
 
         // Comprehensive SPM Chemistry Knowledge & Reasoning Engine
