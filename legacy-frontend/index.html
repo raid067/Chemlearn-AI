@@ -2611,21 +2611,9 @@
             const popup = document.getElementById("reviewPopup");
             if (popup) popup.style.display = "none";
         }
+        window.closeReviewPopup = closeReviewPopup;
         const closeReviewPopupBtn = document.getElementById("closeReviewPopupBtn");
         if (closeReviewPopupBtn) closeReviewPopupBtn.addEventListener('click', closeReviewPopup);
-
-        const instantReviewForm = document.getElementById('instantReviewForm');
-        if (instantReviewForm) {
-            instantReviewForm.addEventListener('submit', function (e) {
-                e.preventDefault();
-                const name = document.getElementById('revName').value;
-                const stars = document.getElementById('revStars').value;
-                const text = document.getElementById('revText').value;
-                localStorage.setItem("reviewSubmitted", "true");
-                alert("Thank you for your feedback, " + (name || "student") + "!");
-                closeReviewPopup();
-            });
-        }
     </script>
 
     <script type="module">
@@ -2684,6 +2672,61 @@
 
         window.auth = auth;
         window.signOut = signOut;
+
+        // --- INSTANT REVIEW / FEEDBACK SUBMISSION TO FIRESTORE ---
+        const instantReviewForm = document.getElementById('instantReviewForm');
+        if (instantReviewForm) {
+            instantReviewForm.addEventListener('submit', async function (e) {
+                e.preventDefault();
+                const nameInput = document.getElementById('revName');
+                const starsInput = document.getElementById('revStars');
+                const textInput = document.getElementById('revText');
+                const submitBtn = instantReviewForm.querySelector('button[type="submit"]');
+
+                const name = (nameInput ? nameInput.value : '').trim() || 'Student';
+                const stars = parseInt(starsInput ? starsInput.value : '5', 10) || 5;
+                const text = (textInput ? textInput.value : '').trim();
+
+                if (!text) {
+                    alert('Please enter your review comments before submitting.');
+                    return;
+                }
+
+                if (submitBtn) {
+                    submitBtn.disabled = true;
+                    submitBtn.textContent = 'Submitting...';
+                }
+
+                try {
+                    await addDoc(collection(db, 'feedbacks'), {
+                        uid: auth.currentUser ? auth.currentUser.uid : 'anonymous',
+                        userName: name.substring(0, 100),
+                        rating: stars,
+                        text: text.substring(0, 2000),
+                        timestamp: serverTimestamp()
+                    });
+
+                    localStorage.setItem("reviewSubmitted", "true");
+                    alert("Thank you for your feedback, " + name + "!");
+                    if (typeof window.closeReviewPopup === 'function') {
+                        window.closeReviewPopup();
+                    }
+                    instantReviewForm.reset();
+                } catch (err) {
+                    console.error("Failed to save feedback to Firestore:", err);
+                    localStorage.setItem("reviewSubmitted", "true");
+                    alert("Thank you for your feedback!");
+                    if (typeof window.closeReviewPopup === 'function') {
+                        window.closeReviewPopup();
+                    }
+                } finally {
+                    if (submitBtn) {
+                        submitBtn.disabled = false;
+                        submitBtn.textContent = 'Submit Review';
+                    }
+                }
+            });
+        }
 
         // --- AUTH MODAL CONTROLLERS ---
         window.openModal = function(mode) {
@@ -2856,6 +2899,7 @@
                             email: user.email,
                             displayName: name || "SPM Student",
                             level: "Form 4",
+                            xp: 0,
                             quizScore: 0,
                             streak: 1,
                             createdAt: serverTimestamp()

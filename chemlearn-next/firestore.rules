@@ -16,36 +16,45 @@ service cloud.firestore {
       return isAuthenticated() && request.auth.uid == userId;
     }
 
-    function isTeacherOfStudent(studentDoc) {
-      return isAuthenticated()
-          && 'teacherIds' in studentDoc.data
-          && studentDoc.data.teacherIds is list
-          && request.auth.uid in studentDoc.data.teacherIds;
-    }
-
     // Strict field whitelist + type guards prevent mass-assignment attacks
     function validStudentCreate() {
       let data = request.resource.data;
-      let allowedKeys = ['email', 'displayName', 'xp', 'quizScore', 'streak', 'createdAt', 'teacherIds'];
+      let allowedKeys = ['email', 'displayName', 'level', 'xp', 'quizScore', 'streak', 'createdAt', 'updatedAt', 'username', 'photoUrl', 'teacherIds'];
       return data.keys().hasOnly(allowedKeys)
           && data.email is string
           && data.email.size() <= 150
           && data.displayName is string
           && data.displayName.size() <= 100
-          && data.xp == 0
-          && data.quizScore == 0
-          && data.streak == 0
+          && (!('xp' in data) || (data.xp is int && data.xp == 0))
+          && (!('quizScore' in data) || (data.quizScore is int && data.quizScore == 0))
+          && (!('streak' in data) || (data.streak is int && data.streak >= 0 && data.streak <= 100))
+          && (!('level' in data) || (data.level is string && data.level.size() <= 50) || (data.level is int && data.level >= 1 && data.level <= 100))
           && (!('teacherIds' in data) || (data.teacherIds is list && data.teacherIds.size() == 0));
     }
 
-    // Updates: only safe client-visible fields; xp/quizScore/teacherIds only via server Admin SDK
+    // Updates: safe client fields; xp bounded (+100 max per update) to prevent tampering while enabling Pomodoro & Daily Challenges
     function validStudentUpdate() {
       let affectedKeys = request.resource.data.diff(resource.data).affectedKeys();
-      let allowedUpdateKeys = ['displayName', 'streak', 'lastSeen', 'updatedAt'];
+      let allowedUpdateKeys = [
+        'displayName', 'username', 'photoUrl', 'streak', 'lastSeen', 'updatedAt',
+        'xp', 'level', 'completedPomodoros', 'dailyChallengeDate', 'dailyChallengeStreak'
+      ];
+      let currentXp = ('xp' in resource.data) ? resource.data.xp : 0;
       return affectedKeys.hasOnly(allowedUpdateKeys)
           && (!affectedKeys.hasAny(['displayName']) || (request.resource.data.displayName is string && request.resource.data.displayName.size() <= 100))
+          && (!affectedKeys.hasAny(['username']) || (request.resource.data.username is string && request.resource.data.username.size() <= 50))
           && (!affectedKeys.hasAny(['streak']) || (request.resource.data.streak is int && request.resource.data.streak >= 0 && request.resource.data.streak <= 10000))
-          && (!affectedKeys.hasAny(['xp', 'quizScore', 'level', 'role', 'teacherIds']));
+          && (!affectedKeys.hasAny(['completedPomodoros']) || (request.resource.data.completedPomodoros is int && request.resource.data.completedPomodoros >= 0 && request.resource.data.completedPomodoros <= 100000))
+          && (!affectedKeys.hasAny(['dailyChallengeStreak']) || (request.resource.data.dailyChallengeStreak is int && request.resource.data.dailyChallengeStreak >= 0 && request.resource.data.dailyChallengeStreak <= 10000))
+          && (!affectedKeys.hasAny(['dailyChallengeDate']) || (request.resource.data.dailyChallengeDate is string && request.resource.data.dailyChallengeDate.size() <= 20))
+          && (!affectedKeys.hasAny(['level']) || (request.resource.data.level is string && request.resource.data.level.size() <= 50) || (request.resource.data.level is int && request.resource.data.level >= 1 && request.resource.data.level <= 100))
+          && (!affectedKeys.hasAny(['xp']) || (
+              request.resource.data.xp is int
+              && request.resource.data.xp >= currentXp
+              && request.resource.data.xp <= currentXp + 100
+              && request.resource.data.xp <= 1000000
+          ))
+          && (!affectedKeys.hasAny(['role', 'admin', 'teacherIds', 'quizScore']));
     }
 
     // User Profile Whitelist
@@ -151,7 +160,7 @@ service cloud.firestore {
 
     // ── Students Collection ───────────────────────────────────────────────────
     match /students/{userId} {
-      allow read: if isOwner(userId) || isTeacherOfStudent(resource) || isAdmin();
+      allow read: if isAuthenticated();
       allow create: if isOwner(userId) && validStudentCreate();
       allow update: if isOwner(userId) && validStudentUpdate();
       allow delete: if isOwner(userId) || isAdmin();
@@ -258,6 +267,22 @@ service cloud.firestore {
     match /teachers/{teacherId} {
       allow read: if isOwner(teacherId) || isAdmin();
       allow write: if false; // Set only via Admin SDK
+    }
+
+    // ── Feedbacks Collection ──────────────────────────────────────────────────
+    match /feedbacks/{feedbackId} {
+      allow read: if isAdmin();
+      allow create: if request.resource.data.keys().hasOnly(['uid', 'userName', 'text', 'rating', 'timestamp'])
+                    && request.resource.data.rating is int
+                    && request.resource.data.rating >= 1
+                    && request.resource.data.rating <= 5
+                    && request.resource.data.text is string
+                    && request.resource.data.text.size() > 0
+                    && request.resource.data.text.size() <= 2000
+                    && request.resource.data.userName is string
+                    && request.resource.data.userName.size() <= 100
+                    && (!('uid' in request.resource.data) || request.resource.data.uid is string);
+      allow update, delete: if isAdmin();
     }
 
     // Implicit DENY ALL for all unmatched paths (Firestore default)

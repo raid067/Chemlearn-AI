@@ -316,8 +316,9 @@
         <div class="panel" style="display: flex; flex-direction: column;">
             <h2>Titration Curve</h2>
             <div class="chart-container">
-                <canvas id="titrationChart"></canvas>
+                <canvas id="titrationChart" role="img" aria-label="Acid-Base Titration Curve Graph"></canvas>
             </div>
+            <div id="a11y-live-status" role="region" aria-live="polite" class="sr-only" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);margin:-1px;padding:0;border:0;"></div>
             
             <div class="formula-box">
                 <strong>Equivalence Point Stoichiometry:</strong><br>

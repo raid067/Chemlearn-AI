@@ -262,9 +262,11 @@
         </aside>
 
         <div class="canvas-container" id="canvasContainer">
-            <canvas id="simCanvas"></canvas>
+            <canvas id="simCanvas" role="img" aria-label="Interactive 2D physics simulation of metallic atomic lattice and layer shearing"></canvas>
         </div>
     </div>
+
+    <div id="a11y-live-status" role="region" aria-live="polite" class="sr-only" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);margin:-1px;padding:0;border:0;"></div>
 
     <div class="banner" id="explanationBanner" role="status" aria-live="polite">
         ✅ Regular arrangement of same-size metallic atoms. Layers can slide past each other easily under stress — this is why pure metals are malleable and ductile.

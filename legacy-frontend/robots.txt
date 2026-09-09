@@ -12,9 +12,7 @@ Allow: /privacy-policy.html
 Allow: /terms-of-service.html
 Allow: /thank-you.html
 
-# Disallow administrative, internal, and private script routes
-Disallow: /admin.html
-Disallow: /admin
+# Disallow internal and private script routes
 Disallow: /scripts/
 Disallow: /scratch/
 Disallow: /_next/
