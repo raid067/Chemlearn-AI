@@ -203,6 +203,8 @@
             padding: 2rem;
             width: 100%;
         }
+        .grid-container,
+        #quizzesGrid,
         .quiz-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
@@ -219,26 +221,46 @@
             text-decoration: none;
             display: flex;
             flex-direction: column;
-            transition: transform 0.2s, box-shadow 0.2s;
+            transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+            cursor: pointer;
+            outline: none;
         }
-        .quiz-card:hover {
+        .quiz-card:hover,
+        .quiz-card:focus-visible {
             transform: translateY(-4px);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.06);
-            border-color: rgba(139, 92, 246, 0.2);
+            box-shadow: 0 12px 32px rgba(109, 40, 217, 0.08);
+            border-color: rgba(139, 92, 246, 0.3);
         }
+        .card-tag,
         .topic-pill {
             display: inline-block;
-            background: var(--bg-alloys);
-            color: var(--color-alloys);
-            font-size: 0.7rem;
+            font-size: 0.75rem;
             font-weight: 800;
-            padding: 0.5rem 1rem;
+            padding: 0.45rem 1rem;
             border-radius: 8px;
             text-transform: uppercase;
             letter-spacing: 0.05em;
             margin-bottom: 1.5rem;
             align-self: flex-start;
+            width: fit-content;
         }
+        .tag-alloys {
+            background: var(--bg-alloys);
+            color: var(--color-alloys);
+        }
+        .tag-glass {
+            background: var(--bg-glass);
+            color: var(--color-glass);
+        }
+        .tag-ceramics {
+            background: var(--bg-ceramics);
+            color: var(--color-ceramics);
+        }
+        .tag-composites {
+            background: var(--bg-composites);
+            color: var(--color-composites);
+        }
+        .card-title,
         .quiz-title {
             font-size: 1.25rem;
             font-weight: 800;
@@ -246,6 +268,7 @@
             margin-bottom: 0.75rem;
             line-height: 1.4;
         }
+        .card-description,
         .quiz-desc {
             color: var(--text-muted);
             font-size: 0.95rem;
@@ -570,60 +593,95 @@
         
         <div class="filter-dock">
             <button class="pill-btn active" data-target="all" onclick="filterQuizzes('all', this)">🎵 All Topics</button>
-            <button class="pill-btn" data-target="6.1 Acids" onclick="filterQuizzes('6.1 Acids', this)">🧪 6.1 Acids & Alkalis</button>
-            <button class="pill-btn" data-target="6.2 pH" onclick="filterQuizzes('6.2 pH', this)">🧪 6.2 pH Value</button>
-            <button class="pill-btn" data-target="8.1 Alloys" onclick="filterQuizzes('8.1 Alloys', this)">🔬 8.1 Alloys</button>
-            <button class="pill-btn" data-target="8.2 Glass" onclick="filterQuizzes('8.2 Glass', this)">🧪 8.2 Glass</button>
-            <button class="pill-btn" data-target="8.3 Ceramics" onclick="filterQuizzes('8.3 Ceramics', this)">🏺 8.3 Ceramics</button>
-            <button class="pill-btn" data-target="8.4 Composites" onclick="filterQuizzes('8.4 Composites', this)">🧱 8.4 Composites</button>
+            <button class="pill-btn" data-target="alloys" onclick="filterQuizzes('alloys', this)">🔬 8.1 Alloys</button>
+            <button class="pill-btn" data-target="glass" onclick="filterQuizzes('glass', this)">🧪 8.2 Glass</button>
+            <button class="pill-btn" data-target="ceramics" onclick="filterQuizzes('ceramics', this)">🏺 8.3 Ceramics</button>
+            <button class="pill-btn" data-target="composites" onclick="filterQuizzes('composites', this)">🧱 8.4 Composites</button>
         </div>
     </section>
 
     <div class="quizzes-container">
-        <div class="quiz-grid">
-            <a href="https://zep.us/play/2eg9Xq" target="_blank" class="quiz-card" data-topic="8.1 Alloys">
-                <span class="topic-pill">8.1 ALLOYS</span>
-                <h3 class="quiz-title">Alloy Interactive Game 🎮</h3>
-                <p class="quiz-desc">Play the interactive ZEP alloy game and test your knowledge in a fun way.</p>
-            </a>
-            <a href="https://kahoot.it/challenge/06692994" target="_blank" class="quiz-card" data-topic="8.1 Alloys">
-                <span class="topic-pill">8.1 ALLOYS</span>
-                <h3 class="quiz-title">Alloy Knowledge Check ⚡</h3>
-                <p class="quiz-desc">Discover how alloys are made and why they outperform pure metals in industries.</p>
-            </a>
-            <a href="https://app.wayground.io/play/54" target="_blank" class="quiz-card" data-topic="8.1 Alloys">
-                <span class="topic-pill">8.1 ALLOYS</span>
-                <h3 class="quiz-title">The Alloy Challenge 💣</h3>
-                <p class="quiz-desc">Compete in quizzes and puzzles to match alloys with their components, properties, and applications.</p>
-            </a>
-            
-            <a href="https://kahoot.it/challenge/06692994" target="_blank" class="quiz-card" data-topic="8.2 Glass">
-                <span class="topic-pill" style="background:#ecfdf5;color:#059669;">8.2 GLASS</span>
-                <h3 class="quiz-title">Glass Fundamentals 🔍</h3>
-                <p class="quiz-desc">Learn about the types of glass and their specific industrial uses.</p>
-            </a>
-            <a href="https://app.wayground.io/play/54" target="_blank" class="quiz-card" data-topic="8.3 Ceramics">
-                <span class="topic-pill" style="background:#fef3c7;color:#d97706;">8.3 CERAMICS</span>
-                <h3 class="quiz-title">Ceramics Overview 🏺</h3>
-                <p class="quiz-desc">Explore traditional and advanced ceramics and their unique properties.</p>
-            </a>
-            <a href="https://zep.us/play/8rP1oO" target="_blank" class="quiz-card" data-topic="8.4 Composites">
-                <span class="topic-pill" style="background:#eff6ff;color:#2563eb;">8.4 COMPOSITES</span>
-                <h3 class="quiz-title">Composites Deep Dive 🏗️</h3>
-                <p class="quiz-desc">Understand how composite materials are formed by combining different substances.</p>
-            </a>
-
-            <a href="lessons.html" class="quiz-card" data-topic="6.1 Acids" title="Review Chapter 6.1 in Lessons">
-                <span class="topic-pill" style="background:#fee2e2;color:#ef4444;">6.1 ACIDS & ALKALIS</span>
-                <h3 class="quiz-title">Role of Water Quiz 💧</h3>
-                <p class="quiz-desc">Test your understanding of why water is essential for acids to show their properties.</p>
-            </a>
-            <a href="experiments/titration-sim.html" class="quiz-card" data-topic="6.2 pH" title="Practice with Titration & pH Simulator">
-                <span class="topic-pill" style="background:#fee2e2;color:#ef4444;">6.2 pH VALUE</span>
-                <h3 class="quiz-title">pH Scale Mastery 🧪</h3>
-                <p class="quiz-desc">Calculate pH values and determine the concentration of hydrogen ions.</p>
-            </a>
+        <div class="grid-container" id="quizzesGrid">
+        
+        <div class="quiz-card" data-topic="alloys" tabindex="0" role="button"
+            onclick="window.open('https://quiz.zep.us/en/play/3PlvVn', '_blank')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}">
+            <div class="card-tag tag-alloys">8.1 Alloys</div>
+            <h3 class="card-title">Alloy Interactive Game🎮</h3>
+            <p class="card-description">Play the interactive ZEP alloy game and test your knowledge in a fun way.</p>
         </div>
+        
+        <div class="quiz-card" data-topic="alloys" tabindex="0" role="button"
+            onclick="window.open('https://wayground.com/admin/assessment/6a201c79dafa64bc6c8030ff?source=lesson_share', '_blank')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}">
+            <div class="card-tag tag-alloys">8.1 Alloys</div>
+            <h3 class="card-title">Alloy Knowledge Check⚡</h3>
+            <p class="card-description">Discover how alloys are made and why they outperform pure metals in industries.</p>
+        </div>
+        <div class="quiz-card" data-topic="alloys" tabindex="0" role="button"
+            onclick="window.open('https://create.kahoot.it/share/alloy-chapter-8-chemistry-form-4/de80f811-f0c0-4af9-9b67-8299d81f9a3d', '_blank')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}">
+            <div class="card-tag tag-alloys">8.1 Alloys</div>
+            <h3 class="card-title">The Alloy Challenge💣</h3>
+            <p class="card-description">Compete in quizzes and puzzles to match alloys with their components, properties, and applications.</p>
+        </div>
+
+        <div class="quiz-card" data-topic="glass" tabindex="0" role="button"
+            onclick="window.open('https://quiz.zep.us/en/play/N3LxKB', '_blank')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}">
+            <div class="card-tag tag-glass">8.2 Glass</div>
+            <h3 class="card-title">Glass Learning Adventure🚀</h3>
+            <p class="card-description">Explore the science behind glass production, properties, and everyday industrial applications effectively.</p>
+        </div>
+        <div class="quiz-card" data-topic="glass" tabindex="0" role="button"
+            onclick="window.open('https://wayground.com/admin/quiz/6a1fb1a434e091a01d7a65dc', '_blank')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}">
+            <div class="card-tag tag-glass">8.2 Glass</div>
+            <h3 class="card-title">Glass Composition Challenge🧪</h3>
+            <p class="card-description">Discover different types of glass and their unique properties, uses, and advantages today.</p>
+        </div>
+        <div class="quiz-card" data-topic="glass" tabindex="0" role="button"
+            onclick="window.open('https://create.kahoot.it/share/composition-of-glasses-and-its-uses-quiz/0de2a22e-dbdc-4dde-ab6b-0eebf251ec36', '_blank')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}">
+            <div class="card-tag tag-glass">8.2 Glass</div>
+            <h3 class="card-title">Understanding Modern Glass🔭</h3>
+            <p class="card-description">Discover different glass types and their importance in everyday products and innovations.</p>
+        </div>
+
+        <div class="quiz-card" data-topic="ceramics" tabindex="0" role="button"
+            onclick="window.open('https://quiz.zep.us/en/play/gGaYva', '_blank')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}">
+            <div class="card-tag tag-ceramics">8.3 Ceramics</div>
+            <h3 class="card-title">Ceramics Game Adventure🌟</h3>
+            <p class="card-description">Discover the unique characteristics of ceramics and their importance in everyday applications.</p>
+        </div>
+        <div class="quiz-card" data-topic="ceramics" tabindex="0" role="button"
+            onclick="window.open('https://wayground.com/admin/quiz/6a200355d035b7da125d9316', '_blank')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}">
+            <div class="card-tag tag-ceramics">8.3 Ceramics</div>
+            <h3 class="card-title">Ceramics Master Quiz🏆</h3>
+            <p class="card-description">Challenge yourself with questions covering ceramic composition, properties, and industrial uses effectively.</p>
+        </div>
+        <div class="quiz-card" data-topic="ceramics" tabindex="0" role="button"
+            onclick="window.open('https://create.kahoot.it/share/ceramics/b06df91c-9b6b-497f-84e3-ac22827666e0', '_blank')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}">
+            <div class="card-tag tag-ceramics">8.3 Ceramics</div>
+            <h3 class="card-title">Ceramics Discovery Game🏺</h3>
+            <p class="card-description">Learn about ceramic materials, their uses, and manufacturing processes through interactive gameplay.</p>
+        </div>
+
+        <div class="quiz-card" data-topic="composites" tabindex="0" role="button"
+            onclick="window.open('https://quiz.zep.us/en/play/lp3vWq', '_blank')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}">
+            <div class="card-tag tag-composites">8.4 Composites</div>
+            <h3 class="card-title">Composite Knowledge Quest⚗️</h3>
+            <p class="card-description">Test your understanding of composite structures, applications, and advantages through interactive challenges.</p>
+        </div>
+        <div class="quiz-card" data-topic="composites" tabindex="0" role="button"
+            onclick="window.open('https://wayground.com/admin/assessment/6a202ca7005da20de47aed2b?source=lesson_share', '_blank')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}">
+            <div class="card-tag tag-composites">8.4 Composites</div>
+            <h3 class="card-title">Composite Materials Challenge💡</h3>
+            <p class="card-description">Strengthen your knowledge of composites through engaging questions and practical real-world examples.</p>
+        </div>
+        <div class="quiz-card" data-topic="composites" tabindex="0" role="button"
+            onclick="window.open('https://kahoot.it/solo?quizId=dabc1a27-04b8-4967-b60f-4f37f163e2a5', '_blank')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}">
+            <div class="card-tag tag-composites">8.4 Composites</div>
+            <h3 class="card-title">Composite Trivia Challenge🎯</h3>
+            <p class="card-description">Compete with your classmates to solve questions, puzzles, and tasks about composite materials and their applications.</p>
+        </div>
+
+        </div>
+    </div>
 
     <footer class="footer-wrapper" aria-label="Main Footer">
         <div class="footer-grid-row">
@@ -688,8 +746,10 @@
 
             // Filter Quiz Cards
             const quizCards = document.querySelectorAll('.quiz-card');
+            const target = (topic || '').toLowerCase();
             quizCards.forEach(card => {
-                if (topic === 'all' || card.getAttribute('data-topic') === topic) {
+                const cardTopic = (card.getAttribute('data-topic') || '').toLowerCase();
+                if (target === 'all' || cardTopic === target || cardTopic.includes(target) || target.includes(cardTopic)) {
                     card.style.display = 'flex';
                 } else {
                     card.style.display = 'none';
