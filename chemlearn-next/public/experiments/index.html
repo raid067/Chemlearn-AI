@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive SPM Chemistry Virtual Labs & Simulations | ChemLearn AI</title>
+    <meta name="description" content="Explore our suite of interactive SPM chemistry laboratory modules: qualitative salt analysis, alloy physics, acid-base titration, and AI essay grading.">
+    <link rel="canonical" href="https://chemlearn-67.web.app/experiments/">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --purple: #6d28d9; --purple-light: #ede9fe;
+            --text-dark: #1e1b4b; --text-muted: #64748b;
+            --border: #e2e8f0; --bg: #faf8ff; --white: #fff;
+        }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { font-family:'Plus Jakarta Sans',sans-serif; background:var(--bg); color:var(--text-dark); }
+        header { background:var(--white); border-bottom:1px solid var(--border); padding:16px 5%; display:flex; align-items:center; gap:12px; }
+        header h1 { font-size:1.1rem; font-weight:700; }
+        header p { font-size:0.8rem; color:var(--text-muted); }
+        .back-btn { margin-left:auto; padding:8px 16px; border:1px solid var(--border); background:transparent; border-radius:8px; cursor:pointer; font-family:inherit; font-size:0.875rem; font-weight:600; text-decoration:none; color:var(--text-dark); }
+        main { max-width:1100px; margin:40px auto; padding:0 24px; }
+        h2 { font-size:2rem; font-weight:800; margin-bottom:8px; }
+        .subtitle { color:var(--text-muted); margin-bottom:36px; font-size:1.05rem; }
+        .modules-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(320px,1fr)); gap:24px; }
+        .module-card { background:var(--white); border:1px solid var(--border); border-radius:20px; padding:28px; text-decoration:none; color:inherit; display:flex; flex-direction:column; gap:12px; transition:all 0.2s; box-shadow:0 4px 20px rgba(0,0,0,0.03); }
+        .module-card:hover { transform:translateY(-4px); box-shadow:0 12px 40px rgba(109,40,217,0.12); border-color:#c4b5fd; }
+        .card-badge { display:inline-flex; align-items:center; gap:6px; padding:4px 12px; border-radius:999px; font-size:0.75rem; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; width:fit-content; }
+        .badge-ch6 { background:#ecfdf5; color:#065f46; }
+        .badge-ch8 { background:#ede9fe; color:#4c1d95; }
+        .badge-both { background:#eff6ff; color:#1e40af; }
+        .card-icon { font-size:2.2rem; }
+        .card-title { font-size:1.15rem; font-weight:800; }
+        .card-desc { font-size:0.875rem; color:var(--text-muted); line-height:1.6; }
+        .card-tags { display:flex; gap:6px; flex-wrap:wrap; }
+        .tag { padding:3px 8px; background:var(--bg); border:1px solid var(--border); border-radius:6px; font-size:0.75rem; color:var(--text-muted); font-weight:600; }
+        .card-arrow { margin-top:auto; display:flex; justify-content:flex-end; color:var(--purple); font-size:1.3rem; }
+    </style>
+</head>
+<body>
+<header role="banner">
+    <svg width="32" height="36" viewBox="0 0 22 26" fill="none">
+        <path d="M2 2H20M2 24H20M3.5 2C3.5 2 5 10.5 11 13C5 15.5 3.5 24 3.5 24M18.5 2C18.5 2 17 10.5 11 13C17 15.5 18.5 24 18.5 24" stroke="#6d28d9" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    <div><h1>Advanced Interactive Modules</h1><p>KSSM SPM Chemistry — Chapters 6 &amp; 8</p></div>
+    <a href="../experiment.html" class="back-btn">← Back to Lab</a>
+</header>
+<main>
+    <h2>Interactive Learning Modules</h2>
+    <p class="subtitle">Five curriculum-aligned simulations and tools. Each module targets specific SPM exam skills.</p>
+    <div class="modules-grid" role="list">
+        <a href="qualitative-sim.html" class="module-card" role="listitem">
+            <span class="card-badge badge-ch6">Chapter 6</span>
+            <div class="card-icon">🧪</div>
+            <div class="card-title">Qualitative Salt Analysis Simulator</div>
+            <div class="card-desc">Identify unknown salts by adding reagents and observing precipitate colours. NaOH dropwise/excess, NH₃(aq), and confirmatory anion tests. Full scoring with ionic equation validation.</div>
+            <div class="card-tags"><span class="tag">Interactive</span><span class="tag">Cations</span><span class="tag">Anions</span><span class="tag">Ionic Equations</span></div>
+            <div class="card-arrow">→</div>
+        </a>
+        <a href="essay-grader.html" class="module-card" role="listitem">
+            <span class="card-badge badge-both">Ch 6 &amp; 8</span>
+            <div class="card-icon">✏️</div>
+            <div class="card-title">SPM Essay Keyword Grader</div>
+            <div class="card-desc">Write your SPM Section B essay answers and get instant rubric-matched scoring. Detects missing keywords, flags misconceptions, annotates your text, and gives examiner feedback.</div>
+            <div class="card-tags"><span class="tag">AI Grading</span><span class="tag">Rubric</span><span class="tag">Keywords</span><span class="tag">Section B</span></div>
+            <div class="card-arrow">→</div>
+        </a>
+        <a href="titration-sim.html" class="module-card" role="listitem">
+            <span class="card-badge badge-ch6">Chapter 6</span>
+            <div class="card-icon">📈</div>
+            <div class="card-title">Acid-Base Titration Visualizer</div>
+            <div class="card-desc">Real-time titration curve plotter with exact pH calculations. Supports strong/strong and weak/strong acid-base pairs. Animated burette, indicator colour changes, and equivalence point detection.</div>
+            <div class="card-tags"><span class="tag">Chart.js</span><span class="tag">pH Engine</span><span class="tag">Henderson-Hasselbalch</span></div>
+            <div class="card-arrow">→</div>
+        </a>
+        <a href="alloy-sim.html" class="module-card" role="listitem">
+            <span class="card-badge badge-ch8">Chapter 8</span>
+            <div class="card-icon">⚙️</div>
+            <div class="card-title">Alloy vs Pure Metal Shear Stress Modeler</div>
+            <div class="card-desc">Canvas 2D physics simulation showing atomic lattice slip planes. Compare pure aluminium (ductile layer slippage) vs Duralumin (foreign atoms block slippage). Includes force gauge and SPM explanation banners.</div>
+            <div class="card-tags"><span class="tag">Canvas 2D</span><span class="tag">Physics</span><span class="tag">Lattice</span><span class="tag">Alloys</span></div>
+            <div class="card-arrow">→</div>
+        </a>
+        <a href="srs-flashcards.html" class="module-card" role="listitem">
+            <span class="card-badge badge-ch8">Chapter 8</span>
+            <div class="card-icon">🗃️</div>
+            <div class="card-title">SM-2 Spaced Repetition Flashcards</div>
+            <div class="card-desc">40-card mastery deck for Glass, Ceramics, Alloys, and Composites. SM-2 algorithm schedules reviews. 3D card flip UI, keyboard shortcuts, streak counter, offline IndexedDB sync, and Firebase persistence.</div>
+            <div class="card-tags"><span class="tag">SM-2 Algorithm</span><span class="tag">IndexedDB</span><span class="tag">Firebase</span><span class="tag">Gamified</span></div>
+            <div class="card-arrow">→</div>
+        </a>
+    </div>
+</main>
+</body>
+</html>

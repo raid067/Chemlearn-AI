@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChemLearn SRS — Chapter 8 Flashcards</title>
+    <style>
+        :root {
+            --primary: #6a1b9a;
+            --primary-light: #9c27b0;
+            --primary-dark: #4a148c;
+            --secondary: #e1bee7;
+            --bg: #f3e5f5;
+            --text: #333;
+            --text-light: #fff;
+            --success: #4caf50;
+            --warning: #ff9800;
+            --danger: #f44336;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        header {
+            background-color: var(--primary);
+            color: var(--text-light);
+            padding: 1.5rem;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 2rem 1rem;
+            max-width: 800px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        /* Screens */
+        .screen { display: none; width: 100%; flex-direction: column; align-items: center; }
+        .screen.active { display: flex; }
+
+        /* Dashboard */
+        .dashboard-stats {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            width: 100%;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .stats-bar {
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            margin: 1rem 0;
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+
+        .level-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--warning), #ffc107);
+            color: white;
+            padding: 0.5rem 1.5rem;
+            border-radius: 20px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin: 1rem 0;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+
+        .streak { font-size: 1.2rem; color: var(--primary-dark); font-weight: bold; margin-bottom: 1rem; }
+
+        .btn {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 8px;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin: 0.5rem;
+        }
+
+        .btn:hover { background-color: var(--primary-light); transform: translateY(-2px); }
+        .btn:disabled { background-color: #ccc; cursor: not-allowed; transform: none; }
+        .btn-outline { background-color: transparent; border: 2px solid var(--primary); color: var(--primary); }
+        .btn-outline:hover { background-color: var(--secondary); }
+
+        /* Distribution Chart */
+        .dist-chart {
+            display: flex;
+            height: 30px;
+            width: 100%;
+            border-radius: 15px;
+            overflow: hidden;
+            margin: 1.5rem 0;
+            background: #eee;
+        }
+        .dist-bar { height: 100%; transition: width 0.5s ease; display: flex; align-items: center; justify-content: center; color: white; font-size: 0.8rem; font-weight: bold; }
+        .bar-new { background-color: var(--danger); }
+        .bar-learning { background-color: var(--warning); }
+        .bar-mastered { background-color: var(--success); }
+
+        /* Flashcard Review */
+        .progress-text { font-size: 1.1rem; font-weight: bold; color: var(--primary-dark); margin-bottom: 1rem; }
+        
+        .scene {
+            width: 100%;
+            max-width: 600px;
+            height: 400px;
+            perspective: 1000px;
+            margin-bottom: 2rem;
+            cursor: pointer;
+        }
+
+        .card {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transition: transform 600ms cubic-bezier(0.4, 0, 0.2, 1);
+            transform-style: preserve-3d;
+        }
+
+        .card.is-flipped { transform: rotateY(180deg); }
+
+        .card-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            border-radius: 16px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+            text-align: center;
+            font-size: 1.5rem;
+            overflow-y: auto;
+        }
+
+        .card-front {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+        }
+
+        .card-back {
+            background: white;
+            color: var(--text);
+            transform: rotateY(180deg);
+            border: 2px solid var(--primary-light);
+            font-size: 1.3rem;
+            line-height: 1.5;
+        }
+
+        .controls { display: flex; flex-direction: column; align-items: center; width: 100%; gap: 1rem; }
+        
+        .rating-btns { display: none; width: 100%; max-width: 600px; gap: 0.5rem; justify-content: space-between; }
+        .rating-btns.visible { display: flex; flex-wrap: wrap; }
+        
+        .rate-btn {
+            flex: 1;
+            padding: 1rem;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            color: white;
+            transition: transform 0.2s;
+            min-width: 120px;
+            margin: 0.25rem;
+        }
+        .rate-btn:hover { transform: scale(1.05); }
+        .rate-0 { background-color: var(--danger); }
+        .rate-3 { background-color: var(--warning); }
+        .rate-4 { background-color: #2196f3; }
+        .rate-5 { background-color: var(--success); }
+
+        .hints { font-size: 0.9rem; color: #666; margin-top: 1rem; text-align: center; }
+
+        /* Completion Screen */
+        .completion-card {
+            background: white;
+            padding: 3rem;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        .completion-card h2 { color: var(--primary); font-size: 2.5rem; margin-bottom: 1rem; }
+        .completion-card p { font-size: 1.2rem; margin-bottom: 0.5rem; }
+
+        /* Animations */
+        @keyframes milestonePop {
+            0% { transform: scale(0.8); opacity: 0; }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .milestone-alert {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, #ff4081, #c51162);
+            color: white;
+            padding: 1rem 2rem;
+            border-radius: 30px;
+            font-weight: bold;
+            font-size: 1.2rem;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+            z-index: 1000;
+            animation: milestonePop 0.5s ease-out forwards;
+            display: none;
+        }
+
+        @media (max-width: 600px) {
+            .stats-bar { flex-direction: column; gap: 0.5rem; }
+            .rate-btn { min-width: calc(50% - 0.5rem); }
+            .scene { height: 300px; }
+            .card-face { font-size: 1.2rem; padding: 1.5rem; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Chapter 8: Spaced Repetition Flashcards</h1>
+    </header>
+
+    <div id="milestone-alert" class="milestone-alert">🎉 Streak Milestone! 🎉</div>
+
+    <main>
+        <!-- Dashboard Screen -->
+        <section id="screen-dashboard" class="screen active">
+            <div class="dashboard-stats">
+                <div class="level-badge" id="level-badge">Novice Chemist</div>
+                <div class="streak" id="streak-counter">🔥 0 day streak</div>
+                
+                <div class="stats-bar">
+                    <span style="color: var(--danger)">🔴 New: <span id="stat-new">0</span></span>
+                    <span style="color: var(--warning)">🟡 Learning: <span id="stat-learning">0</span></span>
+                    <span style="color: var(--success)">🟢 Mastered: <span id="stat-mastered">0</span></span>
+                </div>
+                <div class="stats-bar">
+                    <span>📅 Due Today: <span id="stat-due">0</span></span>
+                </div>
+
+                <div class="dist-chart" aria-label="Card distribution chart">
+                    <div id="bar-new" class="dist-bar bar-new" style="width: 33.3%"></div>
+                    <div id="bar-learning" class="dist-bar bar-learning" style="width: 33.3%"></div>
+                    <div id="bar-mastered" class="dist-bar bar-mastered" style="width: 33.3%"></div>
+                </div>
+            </div>
+
+            <button id="btn-start" class="btn">Start Review</button>
+            <button id="btn-browse" class="btn btn-outline" style="display: none;">Browse All Cards</button>
+        </section>
+
+        <!-- Review Screen -->
+        <section id="screen-review" class="screen">
+            <div class="progress-text" id="review-progress">Card 1 of 10</div>
+            
+            <div class="scene" id="card-scene">
+                <div class="card" id="flashcard">
+                    <div class="card-face card-front" id="card-front">
+                        <!-- Front text -->
+                    </div>
+                    <div class="card-face card-back" id="card-back">
+                        <!-- Back text -->
+                    </div>
+                </div>
+            </div>
+
+            <div class="controls">
+                <div class="rating-btns" id="rating-btns">
+                    <button class="rate-btn rate-0" data-val="0">0 — Blackout 💀</button>
+                    <button class="rate-btn rate-3" data-val="3">3 — Hard 😓</button>
+                    <button class="rate-btn rate-4" data-val="4">4 — Good 👍</button>
+                    <button class="rate-btn rate-5" data-val="5">5 — Easy 🌟</button>
+                </div>
+                <p class="hints">Keyboard shortcuts: [Space] to flip | [1-4] to rate</p>
+            </div>
+        </section>
+
+        <!-- Completion Screen -->
+        <section id="screen-complete" class="screen">
+            <div class="completion-card">
+                <h2>🎉 Session Complete!</h2>
+                <p>Cards reviewed: <strong id="comp-reviewed">0</strong></p>
+                <p>Average rating: <strong id="comp-rating">0.0</strong></p>
+                <p>Cards due tomorrow: <strong id="comp-tomorrow">0</strong></p>
+                <br>
+                <button id="btn-home" class="btn">Return to Dashboard</button>
+            </div>
+        </section>
+    </main>
+
+    <script type="module">
+        // Helper: Strict XSS Sanitization
+        function escapeHtml(unsafe) {
+            return (unsafe || '').toString()
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+        // --- CHAPTER 8 DECK (All 40 Cards) ---
+        const CHAPTER8_DECK = [
+            // === ALLOYS (Chapter 8.1) ===
+            { id:'c8_001', front:'What is an alloy?', back:'A mixture of a metal with one or more other elements (metals or non-metals). The other atoms have different sizes, disrupting the regular lattice and preventing layer slippage, making the alloy harder than pure metal.' },
+            { id:'c8_002', front:'Why are alloys harder than pure metals?', back:'Foreign atoms with different atomic radii disrupt the orderly arrangement of pure metal atoms. This disruption prevents atomic layers from sliding past each other, increasing hardness and strength.' },
+            { id:'c8_003', front:'Give the composition of brass.', back:'Brass = Copper (Cu) + Zinc (Zn). Used in: musical instruments, plumbing fittings, electrical connectors.' },
+            { id:'c8_004', front:'Give the composition of bronze.', back:'Bronze = Copper (Cu) + Tin (Sn). Used in: statues, coins, bells, marine hardware.' },
+            { id:'c8_005', front:'Give the composition of steel (mild steel).', back:'Mild Steel = Iron (Fe) + Carbon (C, 0.1–0.3%). Stronger and harder than pure iron. Used in: construction, car bodies, bridges.' },
+            { id:'c8_006', front:'Give the composition of stainless steel.', back:'Stainless Steel = Iron (Fe) + Chromium (Cr, 10.5–18%) + Nickel (Ni). Resistant to corrosion. Used in: cutlery, surgical instruments, kitchen equipment.' },
+            { id:'c8_007', front:'Give the composition of duralumin.', back:'Duralumin = Aluminium (Al) + Copper (Cu, 4%) + Magnesium (Mg, 1.5%) + Manganese (Mn, 0.5%). Lightweight yet strong. Used in: aircraft bodies, spacecraft parts.' },
+            { id:'c8_008', front:'Give the composition of pewter (timah).', back:'Pewter = Tin (Sn, 85–99%) + Copper (Cu) + Antimony (Sb). Used in: traditional Malaysian crafts, decorative items, tableware.' },
+            { id:'c8_009', front:'What type of alloy arrangement is carbon in steel?', back:'Carbon atoms are INTERSTITIAL — they fit into the gaps (interstices) between the larger iron atoms in the lattice. This blocks layer slippage more effectively.' },
+            { id:'c8_010', front:'What type of alloy arrangement is zinc in brass?', back:'Zinc atoms are SUBSTITUTIONAL — they replace copper atoms in the lattice. Since Zn has a slightly different atomic radius, the regular arrangement is disrupted.' },
+            // === GLASS (Chapter 8.2) ===
+            { id:'c8_011', front:'What is fused silica (quartz glass)?', back:'Composition: 100% SiO₂ (silicon dioxide). Properties: Very high melting point, very low thermal expansion (ΔL tiny), excellent UV & IR transmission. Uses: optical fibres, laboratory glassware, telescope lenses.' },
+            { id:'c8_012', front:'What is soda-lime glass?', back:'Composition: SiO₂ + Na₂O + CaO (most common glass). Properties: Cheap, easy to melt and shape, poor thermal resistance (shatters with sudden temp change). Uses: windows, bottles, jars, ordinary drinking glasses.' },
+            { id:'c8_013', front:'What is borosilicate glass?', back:'Composition: SiO₂ + B₂O₃ (boric oxide, 12–15%). Properties: Very low thermal expansion coefficient (can withstand sudden temperature changes without cracking). Uses: laboratory Pyrex glassware, oven-safe bakeware, pharmaceutical bottles.' },
+            { id:'c8_014', front:'What is lead crystal glass?', back:'Composition: SiO₂ + PbO (lead oxide, 24–35%). Properties: High refractive index (brilliant sparkle/brilliance), high density, soft (easy to cut), not suitable for heat. Uses: chandeliers, decorative crystal vases, fine glassware.' },
+            { id:'c8_015', front:'What is photochromic glass?', back:'Glass containing silver chloride (AgCl) or silver bromide (AgBr) microcrystals. In bright light/UV: Ag⁺ + e⁻ → Ag (darkens). In darkness: reverses (clears). Uses: photochromic prescription lenses (transition glasses).' },
+            { id:'c8_016', front:'What makes borosilicate glass suitable for lab use?', back:'Its very low coefficient of thermal expansion (~3.3×10⁻⁶/°C) means it barely expands/contracts with temperature changes. It will NOT shatter (thermal shock) when heated suddenly or placed in cold water.' },
+            { id:'c8_017', front:'Compare thermal expansion: soda-lime vs borosilicate glass.', back:'Soda-lime: High thermal expansion (~9×10⁻⁶/°C) — cracks easily. Borosilicate: Low thermal expansion (~3.3×10⁻⁶/°C) — highly resistant to thermal shock. Borosilicate is preferred for lab/cooking use.' },
+            { id:'c8_018', front:'What is optical fibre made of?', back:'High-purity fused silica (SiO₂) fibre. Uses total internal reflection to transmit light signals. Used in: telecommunications, internet cables, medical endoscopes. Advantage: transmits data at speed of light over long distances with low signal loss.' },
+            // === CERAMICS (Chapter 8.3) ===
+            { id:'c8_019', front:'What are traditional ceramics? Give examples.', back:'Made from natural clay minerals by shaping and firing (high temperature sintering). Examples: bricks, tiles, porcelain, earthenware, terracotta, stoneware. Properties: Hard, brittle, poor electrical & thermal conductors.' },
+            { id:'c8_020', front:'What are advanced ceramics? Give examples.', back:'Engineered ceramics made from pure compounds for specific high-performance applications. Examples: Alumina (Al₂O₃), Zirconia (ZrO₂), Silicon nitride (Si₃N₄), Silicon carbide (SiC). Properties: Extremely hard, high temperature resistance, excellent electrical insulators.' },
+            { id:'c8_021', front:'What is alumina (Al₂O₃) used for?', back:'Advanced ceramic. Properties: Hardness (9 on Mohs scale), high melting point (2072°C), excellent electrical insulator. Uses: spark plug insulators, cutting tools, hip/knee joint replacements (bioceramics), electronic substrates.' },
+            { id:'c8_022', front:'What is zirconia (ZrO₂) used for?', back:'Advanced ceramic. Properties: Very high melting point (2715°C), high fracture toughness (toughest ceramic), low thermal conductivity. Uses: Thermal barrier coatings on jet engines, dental crowns and implants, oxygen sensors.' },
+            { id:'c8_023', front:'Why are ceramics electrical insulators?', back:'Ceramics have ionic or covalent bonding. All electrons are tightly held in bonds — there are NO free/delocalized electrons to carry electric current. Therefore ceramics are very poor electrical conductors (excellent insulators).' },
+            { id:'c8_024', front:'Why are ceramics brittle?', back:'Ceramics have strong but DIRECTIONAL ionic/covalent bonds. Under stress, instead of deforming (like metals with metallic bonds), the bonds BREAK, causing sudden fracture. There is no mechanism for atomic layer slippage.' },
+            // === COMPOSITE MATERIALS (Chapter 8.4) ===
+            { id:'c8_025', front:'What is a composite material?', back:'A material made from two or more constituent materials with significantly different physical or chemical properties, that when combined, produce a material with better properties than either component alone.' },
+            { id:'c8_026', front:'What is the matrix in a composite?', back:'The matrix is the continuous phase that surrounds and holds the reinforcing phase. It binds the reinforcement together and protects it. Examples: concrete (matrix: cement paste), fibreglass (matrix: polyester/epoxy resin).' },
+            { id:'c8_027', front:'What is the reinforcing phase in a composite?', back:'The reinforcing phase provides strength, stiffness, or other desired properties. It is usually in the form of fibres, particles, or flakes. Examples: steel rods in concrete (reinforcement), glass fibres in fibreglass (reinforcement).' },
+            { id:'c8_028', front:'What is reinforced concrete (besi tetulang)?', back:'Matrix: Concrete (cement + sand + gravel + water). Reinforcement: Steel rods/bars. Why: Concrete is strong in compression but weak in tension. Steel is strong in tension. Combined: strong in BOTH compression AND tension. Uses: buildings, bridges, dams.' },
+            { id:'c8_029', front:'What is fibreglass (fiber glass)?', back:'Matrix: Polyester or epoxy resin. Reinforcement: Glass fibres. Properties: Lightweight, strong, corrosion-resistant, can be moulded. Uses: boat hulls, car body panels, storage tanks, bathtubs, surfboards.' },
+            { id:'c8_030', front:'What is carbon fibre reinforced polymer (CFRP)?', back:'Matrix: Epoxy resin. Reinforcement: Carbon fibres. Properties: Extremely strong, very lightweight (lower density than aluminium), stiff. Uses: aircraft components, Formula 1 chassis, high-performance sports equipment, aerospace.' },
+            { id:'c8_031', front:'What are superconductors?', back:'Materials that conduct electricity with ZERO electrical resistance below a critical temperature (Tc). Examples: Mercury (Tc = 4.2K), YBCO (YBa₂Cu₃O₇, Tc = 93K). Uses: MRI machines, maglev trains, particle accelerators.' },
+            { id:'c8_032', front:'What are the properties of a superconductor?', back:'1. Zero electrical resistance below critical temperature Tc. 2. Perfect diamagnetism (Meissner effect) — expels magnetic fields. 3. Allows very large currents without energy loss. Challenge: Most require extremely low temperatures (liquid nitrogen/helium).' },
+            { id:'c8_033', front:'What is the Meissner effect?', back:'When a superconductor is cooled below its critical temperature (Tc), it expels all magnetic field lines from inside — becoming a perfect diamagnet. This allows magnets to levitate above superconductors. Demonstrates the Meissner effect.' },
+            { id:'c8_034', front:'What is kevlar? What type of composite?', back:'Kevlar is a synthetic fibre (poly-paraphenylene terephthalamide — an aromatic polyamide). Used as reinforcement in: bulletproof vests, helmets, cut-resistant gloves. Properties: 5× stronger than steel by weight, flexible, lightweight.' },
+            { id:'c8_035', front:'Compare properties of metals, ceramics, and polymers.', back:'Metals: Good conductors of heat & electricity, ductile, malleable, high melting point, metallic bonding. Ceramics: Insulators, hard, brittle, high melting point, ionic/covalent bonding. Polymers: Insulators, flexible/soft, low melting point, covalent bonding (chains).' },
+            // === CHAPTER 8 SPM APPLICATION QUESTIONS ===
+            { id:'c8_036', front:'Why is duralumin used in aircraft instead of pure aluminium?', back:'Duralumin is significantly harder and stronger than pure aluminium because the foreign atoms (Cu, Mg, Mn) disrupt the regular atomic arrangement, preventing layer slippage. Yet it remains lightweight — critical for aircraft (low density means fuel efficiency).' },
+            { id:'c8_037', front:'Why is stainless steel used for surgical instruments?', back:'1. Very hard and strong (alloy properties). 2. Highly resistant to corrosion (chromium forms a protective Cr₂O₃ passive layer). 3. Can be sterilized repeatedly. 4. Does not react with body fluids or tissues (biocompatible).' },
+            { id:'c8_038', front:'Why is lead crystal glass used for high-quality glassware?', back:'PbO increases the refractive index, causing light to refract and disperse more, creating brilliant sparkle. The lead also increases the density and softness, making it easier to cut intricate patterns. Adds pleasing ringing sound when struck.' },
+            { id:'c8_039', front:'Explain why composite materials are used in construction.', back:'Composites combine the best properties of each component. Reinforced concrete = concrete (compression strength + cheapness) + steel (tension strength) → a material that withstands forces from all directions, suitable for structural use in buildings, bridges.' },
+            { id:'c8_040', front:'Describe the structure and use of optical fibre.', back:'Core: High-purity SiO₂ (fused silica), high refractive index. Cladding: Lower refractive index glass. Function: Light signals undergo total internal reflection and travel along the fibre. Uses: Telecommunications, high-speed internet, medical endoscopes, sensing.' }
+        ];
+
+        // --- SM-2 ALGORITHM ---
+        function sm2(card, q) {
+            let { interval, repetitions, easeFactor } = card;
+            
+            if (q < 3) {
+                repetitions = 0;
+                interval = 1;
+            } else {
+                if (repetitions === 0) interval = 1;
+                else if (repetitions === 1) interval = 6;
+                else interval = Math.round(interval * easeFactor);
+                repetitions += 1;
+            }
+            
+            easeFactor = easeFactor + (0.1 - (5 - q) * (0.08 + (5 - q) * 0.02));
+            if (easeFactor < 1.3) easeFactor = 1.3;
+            
+            const nextReviewDate = new Date();
+            nextReviewDate.setDate(nextReviewDate.getDate() + interval);
+            
+            return { interval, repetitions, easeFactor, nextReviewDate: nextReviewDate.toISOString() };
+        }
+
+        // --- INDEXEDDB SETUP ---
+        const DB_NAME = 'chemlearn-srs';
+        const STORE_NAME = 'cardStates';
+        let db;
+
+        function initDB() {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open(DB_NAME, 1);
+                request.onupgradeneeded = (e) => {
+                    const database = e.target.result;
+                    if (!database.objectStoreNames.contains(STORE_NAME)) {
+                        database.createObjectStore(STORE_NAME, { keyPath: 'id' });
+                    }
+                };
+                request.onsuccess = (e) => {
+                    db = e.target.result;
+                    resolve();
+                };
+                request.onerror = (e) => reject(e.target.error);
+            });
+        }
+
+        function getCardState(id) {
+            return new Promise((resolve, reject) => {
+                const tx = db.transaction(STORE_NAME, 'readonly');
+                const store = tx.objectStore(STORE_NAME);
+                const req = store.get(id);
+                req.onsuccess = () => resolve(req.result);
+                req.onerror = () => reject(req.error);
+            });
+        }
+
+        function saveCardState(state) {
+            return new Promise((resolve, reject) => {
+                const tx = db.transaction(STORE_NAME, 'readwrite');
+                const store = tx.objectStore(STORE_NAME);
+                const req = store.put(state);
+                req.onsuccess = () => resolve();
+                req.onerror = () => reject(req.error);
+            });
+        }
+
+        function getAllCardStates() {
+            return new Promise((resolve, reject) => {
+                const tx = db.transaction(STORE_NAME, 'readonly');
+                const store = tx.objectStore(STORE_NAME);
+                const req = store.getAll();
+                req.onsuccess = () => resolve(req.result);
+                req.onerror = () => reject(req.error);
+            });
+        }
+
+        // --- FIREBASE INTEGRATION (Optional) ---
+        let fbApp, fbDb;
+        let userId = 'anonymous'; // Replace with actual auth logic if present
+        
+        async function initFirebase() {
+            if (window.FIREBASE_CONFIG) {
+                try {
+                    const { initializeApp } = await import('https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js');
+                    const { getDatabase, ref, set } = await import('https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js');
+                    fbApp = initializeApp(window.FIREBASE_CONFIG);
+                    fbDb = getDatabase(fbApp);
+                    console.log('Firebase initialized.');
+                } catch (err) {
+                    console.error('Firebase initialization failed:', err);
+                }
+            }
+        }
+
+        let syncTimeout = null;
+        function syncToFirebase(state) {
+            if (!fbDb) return;
+            // Debounce writes
+            if (syncTimeout) clearTimeout(syncTimeout);
+            syncTimeout = setTimeout(async () => {
+                try {
+                    const { ref, set } = await import('https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js');
+                    await set(ref(fbDb, `user_flashcards/${userId}/${state.id}`), state);
+                } catch (err) {
+                    console.error('Firebase sync failed:', err);
+                }
+            }, 2000);
+        }
+
+        // --- APP STATE & LOGIC ---
+        let appState = new Map(); // id -> state
+        let reviewQueue = [];
+        let currentCardIndex = 0;
+        let isCardFlipped = false;
+        let sessionStats = { reviewed: 0, ratingSum: 0, tomorrowDue: 0 };
+        let cardsReviewedThisSession = 0;
+
+        function getStatus(state) {
+            if (state.repetitions === 0 && state.interval === 1 && !state.nextReviewDate.includes('Z')) return 'new'; // Simplistic check
+            if (state.interval >= 21) return 'mastered';
+            if (state.interval > 1) return 'learning';
+            return 'new';
+        }
+
+        function createDefaultState(id) {
+            const today = new Date();
+            today.setHours(0,0,0,0);
+            return {
+                id,
+                interval: 1,
+                repetitions: 0,
+                easeFactor: 2.5,
+                nextReviewDate: today.toISOString(),
+                status: 'new'
+            };
+        }
+
+        async function loadData() {
+            await initDB();
+            await initFirebase(); // Loads config if present on host window
+
+            const savedStates = await getAllCardStates();
+            
+            CHAPTER8_DECK.forEach(card => {
+                let state = savedStates.find(s => s.id === card.id);
+                if (!state) {
+                    state = createDefaultState(card.id);
+                } else {
+                    state.status = getStatus(state);
+                }
+                appState.set(card.id, state);
+            });
+
+            updateDashboard();
+        }
+
+        function updateDashboard() {
+            let nNew = 0, nLearn = 0, nMaster = 0, nDue = 0;
+            const now = new Date();
+
+            reviewQueue = [];
+
+            appState.forEach((state, id) => {
+                if (state.status === 'new') nNew++;
+                else if (state.status === 'learning') nLearn++;
+                else if (state.status === 'mastered') nMaster++;
+
+                const dueDate = new Date(state.nextReviewDate);
+                if (dueDate <= now) {
+                    nDue++;
+                    const cardData = CHAPTER8_DECK.find(c => c.id === id);
+                    if (cardData) reviewQueue.push({ ...cardData, state });
+                }
+            });
+
+            // Update UI Stats
+            document.getElementById('stat-new').textContent = nNew;
+            document.getElementById('stat-learning').textContent = nLearn;
+            document.getElementById('stat-mastered').textContent = nMaster;
+            document.getElementById('stat-due').textContent = nDue;
+
+            // Update Chart
+            const total = 40;
+            document.getElementById('bar-new').style.width = `${(nNew/total)*100}%`;
+            document.getElementById('bar-learning').style.width = `${(nLearn/total)*100}%`;
+            document.getElementById('bar-mastered').style.width = `${(nMaster/total)*100}%`;
+            
+            document.getElementById('bar-new').textContent = nNew > 3 ? 'New' : '';
+            document.getElementById('bar-learning').textContent = nLearn > 3 ? 'Learning' : '';
+            document.getElementById('bar-mastered').textContent = nMaster > 3 ? 'Mastered' : '';
+
+            // Update Level Badge
+            const levelBadge = document.getElementById('level-badge');
+            if (nMaster === 40) levelBadge.textContent = 'SPM Champion!';
+            else if (nMaster >= 30) levelBadge.textContent = 'Expert Scientist';
+            else if (nMaster >= 20) levelBadge.textContent = 'Junior Scientist';
+            else if (nMaster >= 10) levelBadge.textContent = 'Apprentice Chemist';
+            else levelBadge.textContent = 'Novice Chemist';
+
+            const startBtn = document.getElementById('btn-start');
+            if (nDue === 0) {
+                startBtn.textContent = 'All Caught Up!';
+                startBtn.disabled = true;
+            } else {
+                startBtn.textContent = `Start Review (${nDue})`;
+                startBtn.disabled = false;
+            }
+        }
+
+        function switchScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
+        }
+
+        function startReview() {
+            if (reviewQueue.length === 0) return;
+            sessionStats = { reviewed: 0, ratingSum: 0, tomorrowDue: 0 };
+            currentCardIndex = 0;
+            cardsReviewedThisSession = 0;
+            switchScreen('screen-review');
+            showCurrentCard();
+        }
+
+        function showCurrentCard() {
+            if (currentCardIndex >= reviewQueue.length) {
+                endSession();
+                return;
+            }
+
+            const card = reviewQueue[currentCardIndex];
+            document.getElementById('review-progress').textContent = `Card ${currentCardIndex + 1} of ${reviewQueue.length}`;
+            
+            document.getElementById('card-front').innerHTML = escapeHtml(card.front);
+            document.getElementById('card-back').innerHTML = escapeHtml(card.back);
+            
+            const cardEl = document.getElementById('flashcard');
+            cardEl.classList.remove('is-flipped');
+            isCardFlipped = false;
+            
+            document.getElementById('rating-btns').classList.remove('visible');
+        }
+
+        function flipCard() {
+            if (isCardFlipped) return;
+            document.getElementById('flashcard').classList.add('is-flipped');
+            document.getElementById('rating-btns').classList.add('visible');
+            isCardFlipped = true;
+        }
+
+        async function rateCard(q) {
+            if (!isCardFlipped) return;
+
+            const cardObj = reviewQueue[currentCardIndex];
+            const oldState = cardObj.state;
+            
+            const result = sm2(oldState, q);
+            const newState = { ...oldState, ...result };
+            newState.status = getStatus(newState);
+
+            // Save locally
+            appState.set(newState.id, newState);
+            await saveCardState(newState);
+            
+            // Sync Firebase
+            syncToFirebase(newState);
+
+            // Update stats
+            sessionStats.reviewed++;
+            sessionStats.ratingSum += q;
+            
+            const tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            if (new Date(newState.nextReviewDate) <= tomorrow) {
+                sessionStats.tomorrowDue++;
+            }
+
+            // Gamification logic
+            cardsReviewedThisSession++;
+            if (cardsReviewedThisSession > 0 && cardsReviewedThisSession % 10 === 0) {
+                showMilestone();
+            }
+
+            currentCardIndex++;
+            showCurrentCard();
+        }
+
+        function showMilestone() {
+            const milestone = document.getElementById('milestone-alert');
+            milestone.style.display = 'block';
+            setTimeout(() => {
+                milestone.style.display = 'none';
+            }, 3000);
+        }
+
+        function endSession() {
+            document.getElementById('comp-reviewed').textContent = sessionStats.reviewed;
+            const avg = sessionStats.reviewed ? (sessionStats.ratingSum / sessionStats.reviewed).toFixed(1) : "0.0";
+            document.getElementById('comp-rating').textContent = avg;
+            document.getElementById('comp-tomorrow').textContent = sessionStats.tomorrowDue;
+            
+            updateDashboard();
+            switchScreen('screen-complete');
+        }
+
+        // --- EVENT LISTENERS ---
+        document.getElementById('btn-start').addEventListener('click', startReview);
+        
+        document.getElementById('card-scene').addEventListener('click', () => {
+            if (!isCardFlipped) flipCard();
+        });
+
+        document.querySelectorAll('.rate-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation(); // prevent card flip toggle
+                const val = parseInt(btn.getAttribute('data-val'));
+                rateCard(val);
+            });
+        });
+
+        document.getElementById('btn-home').addEventListener('click', () => {
+            switchScreen('screen-dashboard');
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (!document.getElementById('screen-review').classList.contains('active')) return;
+            
+            if (e.code === 'Space') {
+                e.preventDefault();
+                if (!isCardFlipped) flipCard();
+            } else if (isCardFlipped) {
+                if (e.key === '1') rateCard(0);
+                if (e.key === '2') rateCard(3);
+                if (e.key === '3') rateCard(4);
+                if (e.key === '4') rateCard(5);
+            }
+        });
+
+        // Initialize App
+        window.addEventListener('DOMContentLoaded', loadData);
+
+    </script>
+</body>
+</html>

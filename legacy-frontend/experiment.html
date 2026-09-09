@@ -322,6 +322,165 @@
     position: absolute; bottom: 2px; left: 2px; right: 2px; height: 14px;
     border-radius: 0 0 8px 8px; transition: background-color 0.8s cubic-bezier(0.4, 0, 0.2, 1);
 }
+/* --- LABORATORY SAFETY COMMAND BAR --- */
+.lab-safety-command-bar {
+    background: #0f172a;
+    border-bottom: 1px solid #1e293b;
+    color: #f8fafc;
+    padding: 8px 24px;
+    font-size: 0.82rem;
+    position: relative;
+    z-index: 1000;
+}
+.safety-command-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+.safety-indicator-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+.safety-indicator-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    padding: 4px 12px;
+    border-radius: 9999px;
+    color: #cbd5e1;
+    font-size: 0.78rem;
+}
+.safety-indicator-pill strong { color: #ffffff; }
+.safety-indicator-pill.warning-pill {
+    background: rgba(245, 158, 11, 0.15);
+    border-color: rgba(245, 158, 11, 0.3);
+    color: #fde68a;
+}
+.safety-protocol-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #6d28d9;
+    color: #ffffff;
+    border: none;
+    padding: 6px 14px;
+    border-radius: 8px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.1s;
+}
+.safety-protocol-btn:hover {
+    background: #7c3aed;
+    transform: translateY(-1px);
+}
+
+/* --- SAFETY MODAL --- */
+.safety-modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.75);
+    backdrop-filter: blur(5px);
+    z-index: 100000;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+.safety-modal-overlay.active { display: flex; }
+.safety-modal-box {
+    background: #ffffff;
+    border-radius: 20px;
+    max-width: 720px;
+    width: 100%;
+    max-height: 85vh;
+    overflow-y: auto;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    border: 1px solid #e2e8f0;
+    display: flex;
+    flex-direction: column;
+    animation: safetyModalFade 0.25s ease-out;
+}
+@keyframes safetyModalFade {
+    from { opacity: 0; transform: scale(0.95); }
+    to { opacity: 1; transform: scale(1); }
+}
+.safety-modal-header {
+    padding: 20px 24px;
+    border-bottom: 1px solid #e2e8f0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #faf5ff;
+    border-radius: 20px 20px 0 0;
+}
+.safety-modal-header h3 {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: #4c1d95;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.safety-modal-close {
+    background: none;
+    border: none;
+    font-size: 1.6rem;
+    color: #64748b;
+    cursor: pointer;
+    line-height: 1;
+    padding: 4px 8px;
+    border-radius: 6px;
+    transition: all 0.2s;
+}
+.safety-modal-close:hover { color: #0f172a; background: rgba(0,0,0,0.05); }
+.safety-modal-body {
+    padding: 24px;
+    color: #334155;
+    line-height: 1.6;
+    font-size: 0.92rem;
+}
+.safety-card-item {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-left: 4px solid #6d28d9;
+    border-radius: 12px;
+    padding: 14px 18px;
+    margin-bottom: 16px;
+}
+.safety-card-item.danger-item {
+    border-left-color: #ef4444;
+    background: #fef2f2;
+}
+.safety-card-item.warning-item {
+    border-left-color: #f59e0b;
+    background: #fffbeb;
+}
+.safety-card-item h4 {
+    margin: 0 0 6px 0;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #0f172a;
+}
+
+/* --- CHAPTER 8 TOPIC STYLING --- */
+:root {
+    --color-chapter8: #0284c7;
+    --bg-chapter8: #e0f2fe;
+}
+.pill-btn.active[data-target="chapter8"] { border-color: #0284c7; background: #0284c7; color: #ffffff; }
+.resource-card[data-topic="chapter8"]:hover { border-color: #0284c7; transform: translateY(-6px); }
+.card-tag.tag-chapter8 { background: var(--bg-chapter8); color: var(--color-chapter8); }
+.card-tag.tag-safety { background: #fef3c7; color: #b45309; }
     </style>
 </head>
 <body>
@@ -362,10 +521,19 @@
             </div>
         </div>
     </div>
-    <!-- LEGACY ARCHIVE DEMARCATION BANNER -->
-    <div style="background: linear-gradient(90deg, #fef3c7, #fee2e2); border-bottom: 2px solid #f59e0b; color: #78350f; padding: 10px 16px; font-size: 0.85rem; font-weight: 600; text-align: center; display: flex; align-items: center; justify-content: center; gap: 8px; z-index: 99999; position: relative;">
-        <span>⚠️ <strong>LEGACY ARCHIVE DEMARCATION:</strong> This standalone HTML experiment laboratory is preserved for historical and syllabus archival reference. For the modern, production, server-authoritative experience with full anti-cheat gamification, please visit the <a href="/experiments" style="color: #6d28d9; text-decoration: underline; font-weight: 700;">ChemLearn Next.js Production App</a>.</span>
-        <span style="background: #ef4444; color: #fff; padding: 2px 8px; border-radius: 9999px; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em;">Legacy / Non-Authoritative</span>
+    <!-- LABORATORY SAFETY COMMAND BAR (CHEMLEARN PROTOCOL) -->
+    <div class="lab-safety-command-bar">
+        <div class="safety-command-inner">
+            <div class="safety-indicator-group">
+                <span class="safety-indicator-pill"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle; margin-right:4px;"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> 🥽 <strong>Safety Mandatory:</strong> Splash Goggles &amp; Lab Coat Required</span>
+                <span class="safety-indicator-pill"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle; margin-right:4px;"><path d="M17.7 7.7a2.5 2.5 0 1 1 1.8 4.3H2"/><path d="M9.6 4.6A2 2 0 1 1 11 8H2"/><path d="M12.6 19.4A2 2 0 1 0 14 16H2"/></svg> 🛡️ <strong>Ventilation:</strong> Fume Cupboard for Toxic Gas Tests</span>
+                <span class="safety-indicator-pill warning-pill"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle; margin-right:4px;"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> ⚠️ <strong>Ch 8 Protocol:</strong> High-Temp Furnace Sintering Restricted</span>
+            </div>
+            <button type="button" class="safety-protocol-btn" onclick="openSafetyModal()">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle; margin-right:4px;"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                Safety Protocol Manual
+            </button>
+        </div>
     </div>
 
     <nav class="global-navbar">
@@ -426,17 +594,24 @@
 
         <div class="filter-dock">
             <button class="pill-btn active" data-target="intro" onclick="filterExperiments('intro', this)">✨ Introduction</button>
-            <button class="pill-btn" data-target="acids" onclick="filterExperiments('acids', this)">🔴 Ch 6: Acids & Bases</button>
-            <button class="pill-btn" data-target="salts" onclick="filterExperiments('salts', this)">🔮 Ch 6: Salts & Gases</button>
-            <button class="pill-btn" data-target="spm" onclick="filterExperiments('spm', this)">📝 Ch 6: SPM Checkpoint</button>
+            <button class="pill-btn" data-target="acids" onclick="filterExperiments('acids', this)">🔴 Ch 6: Acids &amp; Bases</button>
+            <button class="pill-btn" data-target="salts" onclick="filterExperiments('salts', this)">🔮 Ch 6: Salts &amp; Gases</button>
+            <button class="pill-btn" data-target="chapter8" onclick="filterExperiments('chapter8', this)">⚙️ Ch 8: Alloys &amp; Composites</button>
+            <button class="pill-btn" data-target="spm" onclick="filterExperiments('spm', this)">📝 SPM Checkpoint</button>
         </div>
     </section>
 
     <div class="grid-container" id="experimentsGrid">
         
         <div class="intro-billboard" id="introHubPanel">
-            <h2>Welcome to the Consolidated Practical Lab Station!</h2>
-            <p>Filter by specific topics above to perform analytical chemistry reactions, test structural properties of materials, or challenge your examination timing.</p>
+            <h2>Welcome to the ChemLearn Production Virtual Lab! 🧑‍🔬</h2>
+            <p style="margin-bottom: 20px;">Conduct official SPM KSSM practical experiments in interactive real-time simulation. Master analytical reactions, test materials mechanics, and verify examination criteria with instant AI scoring.</p>
+            <div style="display: flex; justify-content: center; gap: 12px; flex-wrap: wrap;">
+                <button class="pill-btn" style="border-color: var(--color-acids); color: var(--color-acids); background: #fef2f2;" onclick="filterExperiments('acids', document.querySelector('[data-target=\"acids\"]'))">🔴 Ch 6: Acids &amp; Titration</button>
+                <button class="pill-btn" style="border-color: var(--color-salts); color: var(--color-salts); background: #faf5ff;" onclick="filterExperiments('salts', document.querySelector('[data-target=\"salts\"]'))">🔮 Ch 6: Salt Analysis &amp; Gases</button>
+                <button class="pill-btn" style="border-color: #0284c7; color: #0284c7; background: #f0f9ff;" onclick="filterExperiments('chapter8', document.querySelector('[data-target=\"chapter8\"]'))">⚙️ Ch 8: Alloys &amp; Composites</button>
+                <button class="pill-btn" style="border-color: #b45309; color: #b45309; background: #fffbeb;" onclick="openSafetyModal()">🛡️ Safety Protocols Manual</button>
+            </div>
         </div>
         
         <div class="resource-card" data-topic="acids" style="display: none;">
@@ -861,6 +1036,229 @@
                     </div>
                 </div>
             </div>
+        <!-- CARD 16: EXPERIMENT 8.1A - HARDNESS DROP TEST -->
+        <div class="resource-card" data-topic="chapter8" style="display: none;">
+            <div class="card-tag tag-chapter8">Ch 8 Alloys</div>
+            <h3 class="card-title">Hardness Drop Test: Copper vs Bronze 🔨</h3>
+            <p class="card-description">Drop a 1 kg weight from 50 cm onto a steel ball bearing taped to a metal block. Measure dent diameter to verify alloy hardness.</p>
+            
+            <div class="animation-window" style="background: linear-gradient(180deg, #f8fafc 0%, #e2e8f0 100%); flex-direction: column; justify-content: flex-end; align-items: center; position: relative;">
+                <div id="weightDropArm" style="position: absolute; top: 10px; width: 44px; height: 20px; background: #334155; border-radius: 4px; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 0.68rem; font-weight: 800; transition: top 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94); z-index: 5;">1 kg</div>
+                <div id="bearingBall" style="position: absolute; bottom: 32px; width: 14px; height: 14px; background: radial-gradient(circle at 35% 35%, #cbd5e1, #475569); border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.3); z-index: 4;"></div>
+                <div id="metalBlock" style="width: 130px; height: 26px; background: #b45309; border-radius: 4px; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 0.72rem; font-weight: 700; transition: background 0.3s; position: relative; z-index: 3;">
+                    <span id="blockLabel">Pure Copper (Cu)</span>
+                    <div id="dentIndicator" style="position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 0px; height: 0px; background: rgba(0,0,0,0.45); border-radius: 50%; transition: all 0.3s;"></div>
+                </div>
+            </div>
+
+            <div class="download-box">
+                <select id="hardnessMatSelect" class="spm-input" style="margin-bottom: 8px;" onchange="updateHardnessMaterial()">
+                    <option value="copper">Test Pure Copper Block (Pure Metal Cu)</option>
+                    <option value="bronze">Test Bronze Block (Alloy Cu 90% + Sn 10%)</option>
+                </select>
+                <div class="step-text" id="stepTextHardness">
+                    <strong>Setup:</strong> 1 kg weight suspended 50 cm above ball bearing. Select material and release weight.
+                </div>
+                <div class="action-bar">
+                    <span class="status-badge" id="statusHardness" style="color: var(--color-chapter8);">READY</span>
+                    <div class="action-btns-cluster">
+                        <button class="replay-btn" onclick="resetHardnessDropSim()" title="Reset Setup">🔄</button>
+                        <button class="download-btn" id="btnHardnessDrop" onclick="runHardnessDropSim()">Release Weight 🔨</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- CARD 17: EXPERIMENT 8.1B - THE RUST RACE -->
+        <div class="resource-card" data-topic="chapter8" style="display: none;">
+            <div class="card-tag tag-chapter8">Ch 8 Alloys</div>
+            <h3 class="card-title">The Rust Race: Corrosion Test 🛡️</h3>
+            <p class="card-description">Submerge iron, mild steel, and stainless steel in jelly containing potassium hexacyanoferrate(III) and phenolphthalein for 3 days.</p>
+            
+            <div class="animation-window" style="background: #f8fafc; align-items: center; justify-content: center; position: relative;">
+                <div style="width: 38px; height: 80px; border: 2.5px solid #64748b; border-top: none; border-radius: 0 0 16px 16px; position: relative; background: rgba(255,255,255,0.7); overflow: hidden; display: flex; align-items: flex-end;">
+                    <div id="agarJellyFill" style="width: 100%; height: 75%; background: rgba(254, 240, 138, 0.4); position: absolute; bottom: 0; transition: background 0.8s ease;"></div>
+                    <div id="testNail" style="width: 6px; height: 50px; background: #64748b; margin: 0 auto 6px auto; border-radius: 2px 2px 0 0; position: relative; z-index: 2; transition: all 0.5s;">
+                        <div id="rustSpot" style="position: absolute; top: 12px; left: -3px; width: 12px; height: 26px; border-radius: 6px; opacity: 0; transition: opacity 0.6s;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="download-box">
+                <select id="rustNailSelect" class="spm-input" style="margin-bottom: 8px;" onchange="updateRustNail()">
+                    <option value="iron">Iron Nail (Pure Fe)</option>
+                    <option value="steel">Mild Steel Nail (Fe + C)</option>
+                    <option value="stainless">Stainless Steel Nail (Fe + Cr + Ni)</option>
+                </select>
+                <div class="step-text" id="stepTextRust">
+                    <strong>Incubator:</strong> Nail placed in jelly + K₃[Fe(CN)₆] + phenolphthalein. Click Incubate.
+                </div>
+                <div class="action-bar">
+                    <span class="status-badge" id="statusRust" style="color: var(--color-chapter8);">READY</span>
+                    <div class="action-btns-cluster">
+                        <button class="replay-btn" onclick="resetRustRaceSim()" title="Reset Setup">🔄</button>
+                        <button class="download-btn" id="btnRustRace" onclick="runRustRaceSim()">Incubate (3 Days) ⏱️</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- CARD 18: EXPERIMENT 8.4 - SKELETON STRENGTH TEST -->
+        <div class="resource-card" data-topic="chapter8" style="display: none;">
+            <div class="card-tag tag-chapter8">Ch 8 Composites</div>
+            <h3 class="card-title">Skeleton Strength: Concrete vs Armature 🏗️</h3>
+            <p class="card-description">Compare plain concrete vs reinforced concrete (with steel wire mesh armature) under incremental dropped impact loads.</p>
+            
+            <div class="animation-window" style="background: #f1f5f9; flex-direction: column; justify-content: space-between; align-items: center; padding: 10px; position: relative;">
+                <div id="concreteFallingWeights" style="display: flex; gap: 4px; align-items: center; font-size: 0.68rem; font-weight: 800; color: #fff;">
+                    <span id="weightBadge" style="background: #334155; padding: 2px 8px; border-radius: 4px;">Load: 1 kg</span>
+                </div>
+                <div style="position: relative; width: 140px; height: 35px; display: flex; align-items: center; justify-content: center;">
+                    <div style="position: absolute; bottom: 0; left: 0; width: 20px; height: 18px; background: #94a3b8; border-radius: 2px;"></div>
+                    <div style="position: absolute; bottom: 0; right: 0; width: 20px; height: 18px; background: #94a3b8; border-radius: 2px;"></div>
+                    <div id="concreteBeam" style="width: 130px; height: 14px; background: #cbd5e1; border-radius: 2px; position: absolute; bottom: 12px; transition: all 0.3s; display: flex; align-items: center; justify-content: center; font-size: 0.65rem; font-weight: 700; color: #334155;">
+                        <span id="beamLabel">Plain Concrete</span>
+                        <div id="beamCrack" style="position: absolute; top: 0; left: 50%; width: 2px; height: 100%; background: transparent;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="download-box">
+                <select id="concreteTypeSelect" class="spm-input" style="margin-bottom: 8px;" onchange="updateConcreteType()">
+                    <option value="plain">Plain Concrete Block (Cement + Sand + Gravel)</option>
+                    <option value="reinforced">Reinforced Concrete Block (+ Steel Wire Armature)</option>
+                </select>
+                <div class="step-text" id="stepTextConcrete">
+                    <strong>Load Test:</strong> Concrete placed across two supports. Drop weights onto center.
+                </div>
+                <div class="action-bar">
+                    <span class="status-badge" id="statusConcrete" style="color: var(--color-chapter8);">READY</span>
+                    <div class="action-btns-cluster">
+                        <button class="replay-btn" onclick="resetConcreteStrengthSim()" title="Reset Test">🔄</button>
+                        <button class="download-btn" id="btnConcreteTest" onclick="runConcreteStrengthSim()">Drop Impact Load ⚖️</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- CARD 19: ALLOY 2D LATTICE SHEAR MODELER -->
+        <div class="resource-card" data-topic="chapter8" style="display: none;">
+            <div class="card-tag tag-chapter8">Physics Engine</div>
+            <h3 class="card-title">Alloy Lattice Shear Modeler ⚙️</h3>
+            <p class="card-description">Interactive 60fps HTML5 Canvas physics simulation. Apply force to see layer sliding in pure metals vs foreign atom pinning in alloys.</p>
+            
+            <div class="animation-window" style="background: #0f172a; flex-direction: column; align-items: center; justify-content: center; color: #38bdf8;">
+                <div style="font-size: 0.88rem; font-weight: 700; margin-bottom: 4px;">Atoms &amp; Electron Sea Simulator</div>
+                <div style="font-size: 0.72rem; color: #94a3b8;">Slip planes, Yield strength, Delocalized electron shimmer</div>
+            </div>
+
+            <div class="download-box">
+                <div class="step-text">
+                    <strong>SPM Concept:</strong> Pure aluminum vs Duralumin (Cu+Mg). Pure iron vs Carbon steel.
+                </div>
+                <div class="action-bar" style="margin-top: 10px;">
+                    <span class="status-badge" style="color: #0284c7;">CANVAS 2D</span>
+                    <div class="action-btns-cluster">
+                        <a href="experiments/alloy-sim.html" class="download-btn" style="text-decoration: none; padding: 8px 16px;">Launch Simulator 🚀</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- CARD 20: OFFICIAL CHAPTER 8 PRACTICAL GUIDE -->
+        <div class="resource-card" data-topic="chapter8" style="display: none;">
+            <div class="card-tag tag-chapter8">Official Syllabus</div>
+            <h3 class="card-title">Chapter 8 Practical Exam Manual 📖</h3>
+            <p class="card-description">The complete Form 4 Chapter 8 practical textbook guide: full variables (manipulated, responding, constant), apparatus lists, and scoring criteria.</p>
+            
+            <div class="animation-window" style="background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%); flex-direction: column; align-items: center; justify-content: center;">
+                <div style="font-size: 0.95rem; font-weight: 800; color: #1e40af;">KSSM Paper 3 Laboratory Guide</div>
+                <div style="font-size: 0.75rem; color: #3b82f6; font-weight: 600;">Full Rubric &amp; Structured Essay Templates</div>
+            </div>
+
+            <div class="download-box">
+                <div class="step-text">
+                    <strong>Exam Targets:</strong> Master variable phrasing ("Mass of weight", not "Weight") to guarantee full Paper 3 marks.
+                </div>
+                <div class="action-bar" style="margin-top: 10px;">
+                    <span class="status-badge" style="color: #2563eb;">KSSM SYLLABUS</span>
+                    <div class="action-btns-cluster">
+                        <a href="experiments/chapter-8.html" class="download-btn" style="text-decoration: none; padding: 8px 16px;">Open Practical Manual 📖</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- CARD 21: GLASS & CERAMICS SAFETY DIRECTIVE -->
+        <div class="resource-card" data-topic="chapter8" style="display: none;">
+            <div class="card-tag tag-safety">Safety Directive</div>
+            <h3 class="card-title">Glass &amp; Ceramics Industrial Safety 🛡️</h3>
+            <p class="card-description">Official KSSM safety rule: Why no school experiments exist for Glass (8.2) &amp; Ceramics (8.3), plus key properties and uses for exam success.</p>
+            
+            <div class="animation-window" style="background: #fef2f2; border-color: #fecaca; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 12px;">
+                <div style="font-size: 0.85rem; font-weight: 800; color: #991b1b;">⚠️ School Lab Safety Restriction</div>
+                <div style="font-size: 0.72rem; color: #b91c1c; margin-top: 2px;">Furnaces reach &gt;1200°C–2000°C. Prohibited in school laboratories.</div>
+            </div>
+
+            <div class="download-box">
+                <div class="step-text" id="safetyDirectiveText">
+                    <strong>SPM Rule:</strong> Focus entirely on properties (chemical inertness, high melting point, thermal shock resistance) and applications.
+                </div>
+                <div class="action-bar" style="margin-top: 10px;">
+                    <span class="status-badge" style="color: #b45309;">SAFETY FOCUS</span>
+                    <div class="action-btns-cluster">
+                        <button class="download-btn" onclick="openSafetyModal()" style="background: #b45309;">Read Safety Code 📋</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- CARD 22: QUALITATIVE SALT ANALYSIS SIMULATOR -->
+        <div class="resource-card" data-topic="salts" style="display: none;">
+            <div class="card-tag tag-salts">High-Fidelity Lab</div>
+            <h3 class="card-title">Interactive Salt Analysis Simulator 🔮</h3>
+            <p class="card-description">Full SVG test tube workbench. Identify 8 cations and 4 anions with NaOH, NH₃(aq), KI, and Brown Ring confirmatory tests with instant scoring.</p>
+            
+            <div class="animation-window" style="background: radial-gradient(circle, #faf5ff 0%, #ede9fe 100%); flex-direction: column; align-items: center; justify-content: center;">
+                <div style="font-size: 0.9rem; font-weight: 800; color: #6d28d9;">8 Cations × 4 Anions Matrix</div>
+                <div style="font-size: 0.75rem; color: #7c3aed;">Dropwise &amp; Excess Reagent Drop Simulation</div>
+            </div>
+
+            <div class="download-box">
+                <div class="step-text">
+                    <strong>Module:</strong> Precipitate solubility in excess alkali + ionic equation deduction engine.
+                </div>
+                <div class="action-bar" style="margin-top: 10px;">
+                    <span class="status-badge" style="color: var(--color-salts);">STANDALONE SIM</span>
+                    <div class="action-btns-cluster">
+                        <a href="experiments/qualitative-sim.html" class="download-btn" style="text-decoration: none; padding: 8px 16px;">Launch Salt Simulator 🔮</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- CARD 23: ACID-BASE TITRATION SIMULATOR -->
+        <div class="resource-card" data-topic="acids" style="display: none;">
+            <div class="card-tag tag-acids">High-Fidelity Lab</div>
+            <h3 class="card-title">Acid–Base Titration Curve Visualizer 🧪</h3>
+            <p class="card-description">Live Chart.js line graph and burette animation. Strong/weak acids, Henderson-Hasselbalch buffer calculations, and indicator color shifts.</p>
+            
+            <div class="animation-window" style="background: radial-gradient(circle, #f0fdf4 0%, #dcfce7 100%); flex-direction: column; align-items: center; justify-content: center;">
+                <div style="font-size: 0.9rem; font-weight: 800; color: #166534;">Real-Time Mathematical pH Engine</div>
+                <div style="font-size: 0.75rem; color: #15803d;">Equivalence Point &amp; Indicator Transitions</div>
+            </div>
+
+            <div class="download-box">
+                <div class="step-text">
+                    <strong>Features:</strong> Phenolphthalein vs Methyl Orange pH transitions with drop-by-drop graphing.
+                </div>
+                <div class="action-bar" style="margin-top: 10px;">
+                    <span class="status-badge" style="color: var(--color-acids);">CHART.JS 4.X</span>
+                    <div class="action-btns-cluster">
+                        <a href="experiments/titration-sim.html" class="download-btn" style="text-decoration: none; padding: 8px 16px;">Launch Titration Sim 🧪</a>
+                    </div>
+                </div>
+            </div>
         </div>
 
     </div>
@@ -898,8 +1296,51 @@
         </div>
         <div class="footer-bottom-bar">&copy; 2026 ChemLearn Engine. Built for KSSM Chemistry Excellence.</div>
     </footer>
-   <script>
-   function filterExperiments(category, element) {
+
+    <!-- SPM LABORATORY SAFETY PROTOCOL & COMPLIANCE MODAL -->
+    <div id="safetyModalOverlay" class="safety-modal-overlay">
+        <div class="safety-modal-box">
+            <div class="safety-modal-header">
+                <div class="safety-modal-title">
+                    <span style="font-size: 1.5rem;">🥽</span>
+                    <h3>KSSM SPM Chemistry Laboratory Safety & Risk Protocols</h3>
+                </div>
+                <button class="safety-modal-close" onclick="closeSafetyModal()" aria-label="Close Safety Protocols">✕</button>
+            </div>
+            <div class="safety-grid">
+                <div class="safety-card">
+                    <h4><span>⚙️</span> Chapter 8 High-Temp Sintering Restriction</h4>
+                    <p>Standard secondary school labs are <strong>STRICTLY PROHIBITED</strong> from executing high-temperature ceramic sintering (&gt;1200&deg;C) or toxic metal vapor casting (e.g. Lead/Lead Crystal). Utilize ChemLearn interactive simulations for lattice modeling and furnace calculations.</p>
+                </div>
+                <div class="safety-card">
+                    <h4><span>🥽</span> Personal Protective Equipment (PPE)</h4>
+                    <p>Approved impact-resistant splash goggles, buttoned cotton laboratory coats, and nitrile chemical gloves must be worn whenever handling mineral acids, alkalis, and transition metal salt solutions.</p>
+                </div>
+                <div class="safety-card">
+                    <h4><span>💧</span> Acid Dilution Golden Rule (A&amp;W Rule)</h4>
+                    <p>Always add concentrated acid to water slowly down the side of the glass beaker with continuous stirring (<strong>Acid to Water</strong>). <strong>NEVER add water to acid</strong>, as violent localized exothermic boiling will shatter glassware and eject corrosive acid.</p>
+                </div>
+                <div class="safety-card">
+                    <h4><span>🛡️</span> Fume Cupboard Ventilation</h4>
+                    <p>Heating hydrated nitrates, chloride salts with oxidizers, or generating noxious gases (NO₂, SO₂, Cl₂, NH₃) must be conducted strictly within an active fume cupboard with exhaust fan operational.</p>
+                </div>
+                <div class="safety-card">
+                    <h4><span>🔥</span> Thermal Decomposition &amp; Test Tube Direction</h4>
+                    <p>When thermally decomposing solid carbonates or nitrates, ensure the mouth of the boiling tube is tilted 45&deg; and pointed <strong>AWAY</strong> from yourself and all laboratory peers. Use tongs and Pyrex/borosilicate glassware only.</p>
+                </div>
+                <div class="safety-card">
+                    <h4><span>🧹</span> Chemical Spill &amp; Heavy Metal Disposal</h4>
+                    <p>Transition metal compounds (Cu²⁺, Fe³⁺, Pb²⁺) must never be poured into standard sinks. Collect in labeled heavy metal waste containers to prevent environmental contamination and plumbing corrosion.</p>
+                </div>
+            </div>
+            <div style="margin-top: 1.5rem; text-align: right;">
+                <button class="btn-primary" onclick="closeSafetyModal()" style="padding: 10px 24px; border-radius: 10px; cursor: pointer;">Acknowledge &amp; Proceed to Experiments</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    function filterExperiments(category, element) {
 
     // Update active button
     document.querySelectorAll('.pill-btn').forEach(btn => {
@@ -942,7 +1383,7 @@
         let savedBadges = localStorage.getItem('chemLearn_earnedBadges');
         let earnedBadges = savedBadges ? new Set(JSON.parse(savedBadges)) : new Set();
 
-       const totalLabs = 12;
+       const totalLabs = 16;
 let activeQuizScore = 0; 
 let activeQuizIndex = 0;
 
@@ -2650,6 +3091,221 @@ function checkDilutionCalculation() {
                 document.getElementById('progressText').innerText = `${completedLabs.size} / ${totalLabs}`;
                 document.getElementById('progressBar').style.width = `${(completedLabs.size / totalLabs) * 100}%`;
             }
+        }
+
+        // --- SAFETY PROTOCOL MODAL HANDLERS ---
+        function openSafetyModal() {
+            const modal = document.getElementById('safetyModalOverlay');
+            if (modal) {
+                modal.classList.add('active');
+                document.body.style.overflow = 'hidden';
+            }
+        }
+
+        function closeSafetyModal() {
+            const modal = document.getElementById('safetyModalOverlay');
+            if (modal) {
+                modal.classList.remove('active');
+                document.body.style.overflow = '';
+            }
+        }
+
+        window.addEventListener('click', (e) => {
+            const modal = document.getElementById('safetyModalOverlay');
+            if (e.target === modal) {
+                closeSafetyModal();
+            }
+        });
+
+        // --- CHAPTER 8 INTERACTIVE MINI-SIMULATIONS ---
+        // 1. Experiment 8.1A: Hardness Drop Test
+        let hardnessMaterial = 'copper';
+        function updateHardnessMaterial(mat) {
+            hardnessMaterial = mat;
+            resetHardnessDropSim();
+            const desc = document.getElementById('hardnessDesc');
+            if (desc) {
+                if (mat === 'copper') {
+                    desc.innerText = 'Pure copper: orderly lattice of identical copper atoms allows layers to slide easily under impact, resulting in deeper, wider indentations.';
+                } else {
+                    desc.innerText = 'Bronze alloy: tin atoms of different atomic radius disrupt copper lattice rows, inhibiting slip planes and resisting indentation.';
+                }
+            }
+        }
+
+        function runHardnessDropSim() {
+            const weight = document.getElementById('hardnessWeight');
+            const dent = document.getElementById('hardnessDent');
+            const resultBox = document.getElementById('hardnessResult');
+            const runBtn = document.getElementById('hardnessRunBtn');
+            if (!weight || !dent) return;
+
+            if (runBtn) runBtn.disabled = true;
+
+            // Animate weight falling
+            weight.style.transform = 'translateX(-50%) translateY(140px)';
+
+            setTimeout(() => {
+                const diameter = hardnessMaterial === 'copper' ? 4.8 : 1.9;
+                dent.style.display = 'block';
+                dent.style.width = hardnessMaterial === 'copper' ? '38px' : '16px';
+                dent.style.height = hardnessMaterial === 'copper' ? '12px' : '6px';
+
+                if (resultBox) {
+                    resultBox.innerHTML = `<strong>Result:</strong> ${hardnessMaterial === 'copper' ? 'Pure Copper' : 'Bronze Alloy'} Dent Diameter = <span style="color:${hardnessMaterial === 'copper' ? '#e11d48':'#16a34a'}; font-weight:800;">${diameter} mm</span>. ${hardnessMaterial === 'copper' ? '⚠️ High ductility and lower yield strength.' : '✅ Alloy resistance to layer sliding confirmed!'}`;
+                }
+
+                awardXP(35, `Tested hardness of ${hardnessMaterial === 'copper' ? 'Copper' : 'Bronze'}`, '🔨');
+                updateProgress('sim16');
+                if (runBtn) runBtn.disabled = false;
+            }, 650);
+        }
+
+        function resetHardnessDropSim() {
+            const weight = document.getElementById('hardnessWeight');
+            const dent = document.getElementById('hardnessDent');
+            const resultBox = document.getElementById('hardnessResult');
+            const runBtn = document.getElementById('hardnessRunBtn');
+            if (weight) weight.style.transform = 'translateX(-50%) translateY(0)';
+            if (dent) dent.style.display = 'none';
+            if (resultBox) {
+                resultBox.innerHTML = 'Drop 1 kg weight to measure indentation diameter on metal block.';
+            }
+            if (runBtn) runBtn.disabled = false;
+        }
+
+        // 2. Experiment 8.1B: The Rust Race
+        let rustNail = 'iron';
+        function updateRustNail(nail) {
+            rustNail = nail;
+            resetRustRaceSim();
+            const desc = document.getElementById('rustDesc');
+            if (desc) {
+                if (nail === 'iron') {
+                    desc.innerText = 'Pure iron nail: readily oxidizes (Fe → Fe²⁺ + 2e⁻). Potassium hexacyanoferrate(III) detects Fe²⁺ turning intensely dark blue.';
+                } else if (nail === 'steel') {
+                    desc.innerText = 'Mild steel nail: iron with 0.2% carbon. Still oxidizes readily; slight protection but noticeable dark blue Fe²⁺ precipitate develops.';
+                } else {
+                    desc.innerText = 'Stainless steel nail: iron alloyed with 18% chromium and 8% nickel. Chromium forms an impermeable, self-healing Cr₂O₃ oxide film, preventing oxidation.';
+                }
+            }
+        }
+
+        function runRustRaceSim() {
+            const halo = document.getElementById('rustHalo');
+            const rustPatch = document.getElementById('rustPatch');
+            const resultBox = document.getElementById('rustResult');
+            const runBtn = document.getElementById('rustRunBtn');
+            if (runBtn) runBtn.disabled = true;
+
+            setTimeout(() => {
+                if (rustNail === 'iron') {
+                    if (halo) {
+                        halo.style.display = 'block';
+                        halo.style.background = 'radial-gradient(ellipse at center, rgba(30,58,138,0.7) 0%, rgba(30,58,138,0.1) 70%, transparent 100%)';
+                    }
+                    if (rustPatch) rustPatch.style.display = 'block';
+                    if (resultBox) {
+                        resultBox.innerHTML = '<strong>Day 3 Observation:</strong> <span style="color:#2563eb; font-weight:800;">Intense dark blue precipitate</span> with rust crust. High Fe²⁺ concentration detected.';
+                    }
+                } else if (rustNail === 'steel') {
+                    if (halo) {
+                        halo.style.display = 'block';
+                        halo.style.background = 'radial-gradient(ellipse at center, rgba(37,99,235,0.4) 0%, rgba(37,99,235,0.05) 70%, transparent 100%)';
+                    }
+                    if (rustPatch) rustPatch.style.display = 'block';
+                    if (resultBox) {
+                        resultBox.innerHTML = '<strong>Day 3 Observation:</strong> <span style="color:#2563eb; font-weight:800;">Moderate dark blue discoloration</span>. Moderate corrosion observed.';
+                    }
+                } else {
+                    if (halo) halo.style.display = 'none';
+                    if (rustPatch) rustPatch.style.display = 'none';
+                    if (resultBox) {
+                        resultBox.innerHTML = '<strong>Day 3 Observation:</strong> <span style="color:#16a34a; font-weight:800;">Zero dark blue precipitate</span>. Cr₂O₃ passivation layer completely halts rust progression!';
+                    }
+                }
+
+                awardXP(35, `Observed corrosion profile of ${rustNail}`, '🛡️');
+                updateProgress('sim17');
+                if (runBtn) runBtn.disabled = false;
+            }, 600);
+        }
+
+        function resetRustRaceSim() {
+            const halo = document.getElementById('rustHalo');
+            const rustPatch = document.getElementById('rustPatch');
+            const resultBox = document.getElementById('rustResult');
+            const runBtn = document.getElementById('rustRunBtn');
+            if (halo) halo.style.display = 'none';
+            if (rustPatch) rustPatch.style.display = 'none';
+            if (resultBox) {
+                resultBox.innerHTML = 'Incubate test tube with jelly solution + K₃[Fe(CN)₆] + phenolphthalein.';
+            }
+            if (runBtn) runBtn.disabled = false;
+        }
+
+        // 3. Experiment 8.4: Concrete Skeleton Strength Test
+        let concreteType = 'plain';
+        function updateConcreteType(type) {
+            concreteType = type;
+            resetConcreteStrengthSim();
+            const rebar = document.getElementById('concreteRebar');
+            const desc = document.getElementById('concreteDesc');
+            if (rebar) rebar.style.display = type === 'reinforced' ? 'block' : 'none';
+            if (desc) {
+                if (type === 'plain') {
+                    desc.innerText = 'Plain concrete cylinder: strong under compressive forces but highly vulnerable to tensile and shear stress. Snaps under moderate load.';
+                } else {
+                    desc.innerText = 'Reinforced concrete: interior steel rebar armature provides high tensile strength, creating a synergistic composite material.';
+                }
+            }
+        }
+
+        function runConcreteStrengthSim() {
+            const crack = document.getElementById('concreteCrack');
+            const weightPill = document.getElementById('concreteLoadPill');
+            const resultBox = document.getElementById('concreteResult');
+            const runBtn = document.getElementById('concreteRunBtn');
+            if (runBtn) runBtn.disabled = true;
+
+            let load = 0;
+            const targetLoad = concreteType === 'plain' ? 4 : 20;
+            const interval = setInterval(() => {
+                load += 2;
+                if (weightPill) weightPill.innerText = `${load} kg`;
+
+                if (load >= targetLoad) {
+                    clearInterval(interval);
+                    if (concreteType === 'plain') {
+                        if (crack) crack.style.display = 'block';
+                        if (resultBox) {
+                            resultBox.innerHTML = '<strong>Fracture Load:</strong> <span style="color:#e11d48; font-weight:800;">4 kg (Snaps instantly)</span>. Plain concrete lacks tensile resilience.';
+                        }
+                    } else {
+                        if (crack) crack.style.display = 'none';
+                        if (resultBox) {
+                            resultBox.innerHTML = '<strong>Maximum Load:</strong> <span style="color:#16a34a; font-weight:800;">20+ kg (Zero fracture)</span>. Steel armature successfully absorbs all bending stresses!';
+                        }
+                    }
+
+                    awardXP(35, `Tested structural load for ${concreteType} concrete`, '🏗️');
+                    updateProgress('sim18');
+                    if (runBtn) runBtn.disabled = false;
+                }
+            }, 120);
+        }
+
+        function resetConcreteStrengthSim() {
+            const crack = document.getElementById('concreteCrack');
+            const weightPill = document.getElementById('concreteLoadPill');
+            const resultBox = document.getElementById('concreteResult');
+            const runBtn = document.getElementById('concreteRunBtn');
+            if (crack) crack.style.display = 'none';
+            if (weightPill) weightPill.innerText = '0 kg';
+            if (resultBox) {
+                resultBox.innerHTML = 'Increment weights suspended from center of the concrete beam to measure flexural fracture limit.';
+            }
+            if (runBtn) runBtn.disabled = false;
         }
     </script>
 

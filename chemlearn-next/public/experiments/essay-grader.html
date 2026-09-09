@@ -1,0 +1,1303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chapter 6 & 8: SPM Essay Keyword Grader</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --purple: #6d28d9;
+            --purple-light: #ede9fe;
+            --purple-dark: #4c1d95;
+            --text-dark: #1e1b4b;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+            --bg: #f8fafc;
+            --white: #ffffff;
+            --green: #16a34a;
+            --green-bg: #f0fdf4;
+            --red: #dc2626;
+            --red-bg: #fef2f2;
+            --orange: #ea580c;
+            --orange-bg: #fff7ed;
+            --blue: #2563eb;
+            --blue-bg: #eff6ff;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: var(--bg);
+            color: var(--text-dark);
+            min-height: 100vh;
+        }
+
+        header {
+            background: var(--white);
+            border-bottom: 1px solid var(--border);
+            padding: 16px 5%;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .brand-icon {
+            width: 36px; height: 36px;
+            background: var(--purple);
+            border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+        }
+
+        header h1 { font-size: 1.1rem; font-weight: 700; }
+        header p { font-size: 0.8rem; color: var(--text-muted); }
+
+        .back-btn {
+            margin-left: auto;
+            padding: 8px 16px;
+            border: 1px solid var(--border);
+            background: transparent;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 0.875rem;
+            font-weight: 600;
+            text-decoration: none;
+            color: var(--text-dark);
+        }
+
+        /* Main Layout */
+        .app-wrapper {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0;
+            height: calc(100vh - 73px);
+        }
+
+        @media (max-width: 900px) {
+            .app-wrapper { grid-template-columns: 1fr; height: auto; }
+        }
+
+        /* Left Panel */
+        .left-panel {
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid var(--border);
+            background: var(--white);
+            overflow-y: auto;
+        }
+
+        .panel-section {
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .panel-section h2 {
+            font-size: 0.85rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--text-muted);
+            margin-bottom: 12px;
+        }
+
+        /* Question Selector */
+        .question-select {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            background: var(--bg);
+            font-family: inherit;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--text-dark);
+            cursor: pointer;
+            outline: none;
+        }
+
+        .question-select:focus {
+            border-color: var(--purple);
+            box-shadow: 0 0 0 3px rgba(109,40,217,0.1);
+        }
+
+        .question-prompt-box {
+            margin-top: 12px;
+            background: var(--blue-bg);
+            border: 1px solid #bfdbfe;
+            border-radius: 12px;
+            padding: 14px 16px;
+            font-size: 0.875rem;
+            line-height: 1.6;
+            color: var(--text-dark);
+        }
+
+        .marks-badge {
+            display: inline-block;
+            background: var(--purple);
+            color: white;
+            padding: 2px 8px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        /* Textarea */
+        .essay-textarea {
+            width: 100%;
+            min-height: 220px;
+            padding: 14px 16px;
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            font-family: inherit;
+            font-size: 0.9rem;
+            line-height: 1.7;
+            resize: vertical;
+            color: var(--text-dark);
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .essay-textarea:focus { border-color: var(--purple); }
+
+        .word-counter {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 8px;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 14px;
+            background: var(--purple);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-family: inherit;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 16px;
+        }
+
+        .submit-btn:hover:not(:disabled) { background: var(--purple-dark); transform: translateY(-1px); }
+        .submit-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+        .spinner {
+            width: 18px; height: 18px;
+            border: 2px solid rgba(255,255,255,0.4);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+            display: none;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Right Panel */
+        .right-panel {
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            background: var(--bg);
+        }
+
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 60px 40px;
+            text-align: center;
+            color: var(--text-muted);
+            height: 100%;
+        }
+
+        .empty-icon {
+            font-size: 3rem;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+
+        /* Score Card */
+        .score-card {
+            margin: 20px 24px;
+            background: var(--white);
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            padding: 24px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.04);
+        }
+
+        .score-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .score-display {
+            display: flex;
+            align-items: baseline;
+            gap: 4px;
+        }
+
+        .score-num {
+            font-size: 3.5rem;
+            font-weight: 800;
+            color: var(--purple);
+            line-height: 1;
+        }
+
+        .score-total {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--text-muted);
+        }
+
+        .score-grade {
+            padding: 6px 14px;
+            border-radius: 999px;
+            font-weight: 800;
+            font-size: 1rem;
+        }
+
+        .grade-a { background: #dcfce7; color: #15803d; }
+        .grade-b { background: #dbeafe; color: #1d4ed8; }
+        .grade-c { background: #fef9c3; color: #a16207; }
+        .grade-d { background: #fee2e2; color: #b91c1c; }
+
+        /* Keyword Hits */
+        .keyword-section { margin-bottom: 20px; }
+
+        .keyword-section h3 {
+            font-size: 0.85rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--text-muted);
+            margin-bottom: 10px;
+        }
+
+        .keyword-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            border-radius: 999px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin: 3px;
+        }
+
+        .kw-hit-tag { background: var(--green-bg); color: var(--green); }
+        .kw-miss-tag { background: var(--red-bg); color: var(--red); }
+
+        /* Annotated Essay */
+        .annotated-essay {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px;
+            font-size: 0.875rem;
+            line-height: 1.8;
+        }
+
+        .kw-hit { background: #bbf7d0; color: #14532d; border-radius: 3px; padding: 1px 3px; }
+        .kw-misconception { background: #fecaca; color: #7f1d1d; border-radius: 3px; padding: 1px 3px; text-decoration: line-through; }
+        .kw-warning { background: #fef08a; color: #713f12; border-radius: 3px; padding: 1px 3px; }
+
+        /* Rubric Checklist */
+        .rubric-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            padding: 10px 14px;
+            border-radius: 10px;
+            margin-bottom: 6px;
+            font-size: 0.875rem;
+        }
+
+        .rubric-item.pass { background: var(--green-bg); }
+        .rubric-item.fail { background: var(--red-bg); }
+        .rubric-item.warn { background: var(--orange-bg); }
+
+        .rubric-icon { font-size: 1rem; flex-shrink: 0; margin-top: 1px; }
+        .rubric-text { flex: 1; }
+        .rubric-mark { font-weight: 800; font-size: 0.9rem; }
+
+        /* Examiner Feedback */
+        .feedback-box {
+            background: var(--purple-light);
+            border: 1px solid #c4b5fd;
+            border-radius: 12px;
+            padding: 16px;
+            font-size: 0.875rem;
+            line-height: 1.7;
+            color: #3b0764;
+        }
+
+        .tip-box {
+            background: var(--orange-bg);
+            border: 1px solid #fed7aa;
+            border-radius: 12px;
+            padding: 12px 14px;
+            font-size: 0.825rem;
+            line-height: 1.6;
+            margin-top: 8px;
+        }
+
+        .section-label {
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+            margin: 16px 24px 8px;
+        }
+
+        /* AI grading mode extras */
+        .mode-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+        .mode-tab {
+            flex: 1;
+            padding: 10px;
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            background: transparent;
+            font-family: inherit;
+            font-size: 0.85rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: var(--text-muted);
+        }
+        .mode-tab.active {
+            border-color: var(--purple);
+            background: var(--purple-light);
+            color: var(--purple);
+        }
+        .mode-tab:hover:not(.active) {
+            border-color: #c4b5fd;
+            background: #fafafa;
+        }
+        .open-q-panel { display: none; flex-direction: column; gap: 10px; }
+        .open-q-panel.visible { display: flex; }
+        .preset-q-panel { display: flex; flex-direction: column; gap: 10px; }
+        .preset-q-panel.hidden { display: none; }
+
+        .open-q-input {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            font-family: inherit;
+            font-size: 0.85rem;
+            background: var(--bg);
+            color: var(--text-dark);
+            outline: none;
+        }
+        .open-q-input:focus { border-color: var(--purple); box-shadow: 0 0 0 3px rgba(109,40,217,0.1); }
+
+        .marks-row {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+        .marks-select {
+            padding: 8px 12px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 0.85rem;
+            background: var(--bg);
+            color: var(--text-dark);
+            outline: none;
+        }
+        .marks-select:focus { border-color: var(--purple); }
+
+        .ai-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 3px 10px;
+            background: linear-gradient(135deg, #6d28d9, #a855f7);
+            color: white;
+            border-radius: 999px;
+            font-size: 0.72rem;
+            font-weight: 800;
+            letter-spacing: 0.04em;
+        }
+        .ai-streaming-box {
+            background: var(--purple-light);
+            border: 1px solid #c4b5fd;
+            border-radius: 12px;
+            padding: 16px;
+            font-size: 0.875rem;
+            line-height: 1.8;
+            color: #3b0764;
+            white-space: pre-wrap;
+            font-family: inherit;
+            min-height: 80px;
+        }
+        /* SPM-format marking scheme table */
+        .ms-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.82rem;
+            margin-top: 12px;
+        }
+        .ms-table th {
+            background: var(--purple);
+            color: white;
+            padding: 8px 12px;
+            text-align: left;
+            font-weight: 700;
+            font-size: 0.78rem;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+        .ms-table th:first-child { border-radius: 8px 0 0 0; }
+        .ms-table th:last-child  { border-radius: 0 8px 0 0; }
+        .ms-table td {
+            padding: 8px 12px;
+            border-bottom: 1px solid var(--border);
+            vertical-align: top;
+        }
+        .ms-table tr:nth-child(even) td { background: #f8fafc; }
+        .ms-table tr:last-child td { border-bottom: none; }
+        .ms-table .awarded { color: var(--green); font-weight: 700; text-align: center; }
+        .ms-table .missed   { color: var(--red);   font-weight: 700; text-align: center; }
+        .api-key-notice {
+            background: #fef9c3;
+            border: 1px solid #fde047;
+            border-radius: 10px;
+            padding: 10px 14px;
+            font-size: 0.8rem;
+            color: #713f12;
+            margin-bottom: 12px;
+        }
+        .api-key-row {
+            display: flex;
+            gap: 8px;
+            margin-top: 6px;
+        }
+        .api-key-row input {
+            flex: 1;
+            padding: 7px 10px;
+            border: 1px solid #fde047;
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 0.8rem;
+            background: white;
+            outline: none;
+        }
+        .api-key-row button {
+            padding: 7px 14px;
+            background: #a16207;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 0.8rem;
+            font-weight: 700;
+        }
+
+    </style>
+</head>
+<body>
+<header role="banner">
+    <div class="brand-icon">
+        <svg width="20" height="20" viewBox="0 0 22 26" fill="none">
+            <path d="M2 2H20M2 24H20M3.5 2C3.5 2 5 10.5 11 13C5 15.5 3.5 24 3.5 24M18.5 2C18.5 2 17 10.5 11 13C17 15.5 18.5 24 18.5 24" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+    </div>
+    <div>
+        <h1>SPM Essay Keyword Grader</h1>
+        <p>Chapter 6 &amp; 8 — Section B/C Marking Engine</p>
+    </div>
+    <a href="../experiment.html" class="back-btn">← Back to Lab</a>
+</header>
+
+<div class="app-wrapper" role="main">
+    <!-- LEFT: Input Panel -->
+    <section class="left-panel" aria-label="Essay Input">
+        <div class="panel-section">
+            <h2>Question Mode</h2>
+
+            <!-- Mode Toggle Tabs -->
+            <div class="mode-tabs" role="tablist">
+                <button class="mode-tab active" role="tab" aria-selected="true" data-mode="preset" onclick="switchMode('preset')">📋 SPM Preset Questions</button>
+                <button class="mode-tab" role="tab" aria-selected="false" data-mode="open" onclick="switchMode('open')">✍️ Open Question (AI Graded)</button>
+            </div>
+
+            <!-- PRESET panel -->
+            <div class="preset-q-panel" id="presetQPanel">
+                <select class="question-select" id="questionSelect" aria-label="Select exam question">
+                    <option value="">— Choose a question —</option>
+                    <option value="q1">Q1 [10m] Explain why alloys are harder than pure metals. (Chapter 8)</option>
+                    <option value="q2">Q2 [10m] Describe the properties and uses of 3 types of glass. (Chapter 8)</option>
+                    <option value="q3">Q3 [10m] Explain the difference between traditional and advanced ceramics. (Chapter 8)</option>
+                    <option value="q4">Q4 [10m] Describe the qualitative analysis to identify Cu²⁺ ions. (Chapter 6)</option>
+                    <option value="q5">Q5 [10m] Explain how to identify CO₃²⁻ and Cl⁻ anions in a salt solution. (Chapter 6)</option>
+                    <option value="q6">Q6 [20m] Using a composite material of your choice, explain the matrix, reinforcing phase, and advantage. (Chapter 8)</option>
+                </select>
+                <div id="questionPromptBox" class="question-prompt-box" style="display:none;"></div>
+            </div>
+
+            <!-- OPEN QUESTION panel -->
+            <div class="open-q-panel" id="openQPanel">
+                <div class="api-key-notice" id="apiKeyNotice">
+                    ⚡ <strong>Gemini AI grading</strong> requires an API key.
+                    <div class="api-key-row">
+                        <input type="password" id="geminiApiKeyInput" placeholder="Paste your Gemini API key here…" autocomplete="off">
+                        <button onclick="saveApiKey()">Save</button>
+                    </div>
+                    <small style="display:block;margin-top:4px;">Key stored in sessionStorage only — never sent anywhere except Google's API.</small>
+                </div>
+                <textarea
+                    class="open-q-input"
+                    id="openQuestionInput"
+                    rows="3"
+                    placeholder="Type any SPM Chemistry question (Chapter 6 or 8) — e.g. 'Explain the qualitative analysis to identify Fe³⁺ ions using NaOH and NH₃ reagents.' [10 marks]"
+                    aria-label="Open question input"
+                ></textarea>
+                <div class="marks-row">
+                    <label for="openMarksSelect" style="font-size:0.85rem;font-weight:600;">Marks:</label>
+                    <select class="marks-select" id="openMarksSelect">
+                        <option value="5">5 marks</option>
+                        <option value="10" selected>10 marks</option>
+                        <option value="15">15 marks</option>
+                        <option value="20">20 marks</option>
+                    </select>
+                    <label for="chapterSelect" style="font-size:0.85rem;font-weight:600;margin-left:8px;">Chapter:</label>
+                    <select class="marks-select" id="chapterSelect">
+                        <option value="6">Chapter 6 — Salts</option>
+                        <option value="8" selected>Chapter 8 — Materials</option>
+                        <option value="both">Both</option>
+                    </select>
+                </div>
+                <div id="openQStatus" style="font-size:0.8rem;color:var(--text-muted);"></div>
+            </div>
+        </div>
+
+        <div class="panel-section" style="flex:1;">
+            <h2>Your Answer</h2>
+            <textarea
+                class="essay-textarea"
+                id="essayTextarea"
+                aria-label="Write your essay answer here"
+                placeholder="Write your SPM answer here. Use clear, point-by-point sentences. Include scientific terms, state facts, give explanations and examples..."
+                maxlength="3000"
+            ></textarea>
+            <div class="word-counter">
+                <span id="wordCount">0 words</span>
+                <span id="charCount">0 / 3000 characters</span>
+            </div>
+            <button class="submit-btn" id="gradeBtn" disabled>
+                <div class="spinner" id="spinner" aria-hidden="true"></div>
+                <span id="btnText">✏️ Select a Question First</span>
+            </button>
+        </div>
+    </section>
+
+    <!-- RIGHT: Results Panel -->
+    <section class="right-panel" aria-label="Essay Results" aria-live="polite">
+        <div class="empty-state" id="emptyState">
+            <div class="empty-icon">✏️</div>
+            <p style="font-weight:600; font-size:1.1rem; margin-bottom:8px;">No essay graded yet</p>
+            <p>Select a question, write your answer, and click <strong>Grade Essay</strong> to get instant SPM feedback.</p>
+        </div>
+        <div id="resultsContainer" style="display:none;"></div>
+    </section>
+</div>
+
+<script>
+// ===== QUESTION BANK & RUBRICS =====
+const QUESTIONS = {
+    q1: {
+        prompt: `Explain why alloys are harder and stronger than pure metals. Your answer should include:
+• The structure of pure metals vs alloys
+• What happens when a force is applied to each
+• Specific examples of alloys and their compositions
+• Why this property makes alloys more useful`,
+        marks: 10,
+        rubric: [
+            { code:'F1', text:'Pure metals have a regular, orderly arrangement of same-sized atoms in layers.', marks:1 },
+            { code:'E1', text:'When force is applied, layers of atoms in pure metals slide past each other easily along slip planes.', marks:1 },
+            { code:'F2', text:'Alloys contain foreign atoms of different atomic radii (sizes) introduced into the metal lattice.', marks:1 },
+            { code:'E2', text:'The foreign atoms disrupt the regular arrangement, preventing/hindering atomic layer slippage under stress.', marks:1 },
+            { code:'K1', text:'Key terms used: lattice distortion / disruption, foreign atoms, slip planes, atomic radii.', marks:1 },
+            { code:'A1', text:'Example: Steel (Fe + C) — carbon atoms block slippage in iron lattice.', marks:1 },
+            { code:'A2', text:'Example: Duralumin (Al + Cu + Mg + Mn) — lighter yet stronger than pure aluminium.', marks:1 },
+            { code:'A3', text:'Example: Brass (Cu + Zn) or Bronze (Cu + Sn) or Stainless Steel (Fe + Cr + Ni).', marks:1 },
+            { code:'E3', text:'This makes alloys harder, stronger, and more resistant to deformation — useful for construction/aerospace.', marks:1 },
+            { code:'K2', text:'Contrasts ductility of pure metal with hardness of alloy correctly.', marks:1 },
+        ],
+        keywords: ['regular arrangement','orderly','same size','slip','slide','layer','foreign atom','different size','disrupt','lattice','alloy','harder','stronger','steel','iron','carbon','duralumin','aluminium','brass','copper','zinc'],
+        misconceptions: [
+            { phrase: 'molecules', penalty:'Metals consist of atoms, not molecules. Metallic bonding involves positive ions in a sea of electrons.' },
+            { phrase: 'ionic bond', penalty:'Metals have metallic bonds (delocalized electrons), not ionic bonds.' },
+            { phrase: 'breaks bond', penalty:'In pure metals, atoms slide — bonds are not broken during deformation, they are maintained by the electron sea.' },
+        ]
+    },
+    q2: {
+        prompt: `Describe the properties and uses of THREE types of glass. For each type, state:
+• Its composition
+• Two key properties
+• One practical use`,
+        marks: 10,
+        rubric: [
+            { code:'F1', text:'Soda-lime glass: SiO₂ + Na₂O + CaO composition.', marks:1 },
+            { code:'E1', text:'Soda-lime: cheap, common, poor thermal resistance. Used for windows/bottles.', marks:1 },
+            { code:'F2', text:'Borosilicate glass: SiO₂ + B₂O₃ composition.', marks:1 },
+            { code:'E2', text:'Borosilicate: low thermal expansion, resists thermal shock. Used in lab glassware (Pyrex).', marks:1 },
+            { code:'F3', text:'Lead crystal glass: SiO₂ + PbO composition.', marks:1 },
+            { code:'E3', text:'Lead crystal: high refractive index, brilliant sparkle, dense. Used for decorative glassware.', marks:1 },
+            { code:'K1', text:'Correct properties with scientific explanation (thermal expansion, refractive index, etc).', marks:1 },
+            { code:'A1', text:'Fused silica / photochromic glass mentioned as a 4th type (bonus understanding).', marks:1 },
+            { code:'A2', text:'Borosilicate vs soda-lime thermal expansion comparison made.', marks:1 },
+            { code:'K2', text:'Lead oxide or B₂O₃ correctly identified as the key additive and its effect explained.', marks:1 },
+        ],
+        keywords:['soda-lime','borosilicate','lead crystal','silica','SiO2','thermal expansion','refractive index','pyrex','PbO','B2O3','Na2O','CaO','thermal shock','lab','laboratory','window','bottle','decorative','fused silica','photochromic'],
+        misconceptions:[
+            { phrase:'glass is polymer', penalty:'Glass is not a polymer. It is an amorphous solid made mainly of silicon dioxide (SiO₂).' },
+            { phrase:'borosilicate expands more', penalty:'Borosilicate has a LOWER coefficient of thermal expansion than soda-lime glass — it expands LESS.' },
+        ]
+    },
+    q3: {
+        prompt: `Explain the differences between traditional ceramics and advanced ceramics.
+Include: raw materials, manufacturing, properties, and at least 2 examples of each type.`,
+        marks: 10,
+        rubric: [
+            { code:'F1', text:'Traditional ceramics: made from natural clay minerals (kaolin, silica, feldspar).', marks:1 },
+            { code:'F2', text:'Advanced ceramics: made from purified/synthetic compounds (Al₂O₃, ZrO₂, SiC, Si₃N₄).', marks:1 },
+            { code:'E1', text:'Traditional: shaped by hand/wheel/moulding, fired at kiln temperature. Lower precision.', marks:1 },
+            { code:'E2', text:'Advanced: engineered from pure powders, pressed and sintered at very high temps with precise control.', marks:1 },
+            { code:'K1', text:'Properties: both types — hard, brittle, electrical insulator, high melting point.', marks:1 },
+            { code:'A1', text:'Traditional examples: bricks, tiles, porcelain, earthenware, terracotta.', marks:1 },
+            { code:'A2', text:'Advanced examples: alumina (Al₂O₃) — spark plugs, hip joints. Zirconia (ZrO₂) — dental crowns, jet engines.', marks:1 },
+            { code:'E3', text:'Advanced ceramics have superior properties: higher strength, purity, temperature resistance, specific electrical/optical behaviour.', marks:1 },
+            { code:'K2', text:'Correct explanation of why ceramics are electrical insulators (no free electrons, ionic/covalent bonding).', marks:1 },
+            { code:'K3', text:'Correct explanation of brittleness: directional ionic/covalent bonds break rather than deform.', marks:1 },
+        ],
+        keywords:['traditional','advanced','clay','natural','sintered','sintering','alumina','Al2O3','zirconia','ZrO2','silicon carbide','SiC','silicon nitride','insulator','no free electron','ionic','covalent','brittle','hard','high melting','porcelain','brick','tile','spark plug','hip','dental','jet engine'],
+        misconceptions:[
+            { phrase:'ceramics conduct electricity', penalty:'Ceramics are electrical insulators. They have no free/delocalized electrons — all electrons are tightly bound in ionic/covalent bonds.' },
+            { phrase:'ceramics are flexible', penalty:'Ceramics are brittle — they fracture rather than deform because their bonds are directional and break rather than slide.' },
+        ]
+    },
+    q4: {
+        prompt: `A student has a solution containing an unknown cation. Describe how to perform qualitative tests to confirm the cation is Cu²⁺.
+Include: reagents used, observations, and chemical equations.`,
+        marks: 10,
+        rubric: [
+            { code:'F1', text:'Add NaOH(aq) dropwise to the solution.', marks:1 },
+            { code:'E1', text:'Observation: Blue precipitate formed — Cu(OH)₂.', marks:1 },
+            { code:'F2', text:'Add excess NaOH — blue precipitate remains insoluble (does NOT dissolve).', marks:1 },
+            { code:'E2', text:'This confirms Cu²⁺ (unlike Al³⁺/Zn²⁺/Pb²⁺ which dissolve in excess NaOH).', marks:1 },
+            { code:'K1', text:'Ionic equation: Cu²⁺(aq) + 2OH⁻(aq) → Cu(OH)₂(s)', marks:1 },
+            { code:'F3', text:'Add NH₃(aq) dropwise — blue precipitate formed.', marks:1 },
+            { code:'E3', text:'Add excess NH₃(aq) — blue precipitate DISSOLVES to give a DEEP BLUE solution [Cu(NH₃)₄]²⁺.', marks:1 },
+            { code:'K2', text:'Deep blue complex ion / tetraamminecopper(II) complex formed in excess ammonia.', marks:1 },
+            { code:'A1', text:'Contrast with Fe²⁺ (green ppt) and Fe³⁺ (brown ppt) to show uniqueness of Cu²⁺ blue colour.', marks:1 },
+            { code:'A2', text:'Conclusion: Both NaOH and NH₃ tests together confirm Cu²⁺ ion present.', marks:1 },
+        ],
+        keywords:['NaOH','sodium hydroxide','blue precipitate','Cu(OH)2','copper hydroxide','insoluble','excess','NH3','ammonia','deep blue','complex','dissolves','tetraammine','Cu2+','ionic equation','OH-','blue ppt','blue precipitate remains'],
+        misconceptions:[
+            { phrase:'dissolves in excess NaOH', penalty:'Cu(OH)₂ does NOT dissolve in excess NaOH — it remains as a blue precipitate. Only Al³⁺, Zn²⁺, Pb²⁺ hydroxides dissolve in excess NaOH.' },
+            { phrase:'green precipitate with NaOH', penalty:'Cu²⁺ gives a BLUE precipitate with NaOH. Green precipitate indicates Fe²⁺.' },
+        ]
+    },
+    q5: {
+        prompt: `Describe the confirmatory tests to identify CO₃²⁻ and Cl⁻ anions in a salt solution.
+For each anion, state the reagents added, observations, and conclusion.`,
+        marks: 10,
+        rubric: [
+            { code:'F1', text:'Test for CO₃²⁻: Add dilute HNO₃ (or dilute HCl) to the solution.', marks:1 },
+            { code:'E1', text:'Observation: Effervescence (bubbles) — colourless gas CO₂ produced.', marks:1 },
+            { code:'F2', text:'Bubble the gas through limewater [Ca(OH)₂(aq)].', marks:1 },
+            { code:'E2', text:'Observation: Limewater turns milky/cloudy — white precipitate of CaCO₃ formed.', marks:1 },
+            { code:'K1', text:'Ionic equation: CO₃²⁻(aq) + 2H⁺(aq) → H₂O(l) + CO₂(g)', marks:1 },
+            { code:'F3', text:'Test for Cl⁻: Add dilute HNO₃ first (to acidify and remove CO₃²⁻ interference), then AgNO₃(aq).', marks:1 },
+            { code:'E3', text:'Observation: White precipitate of silver chloride (AgCl) formed.', marks:1 },
+            { code:'K2', text:'Key point: HNO₃ must be added FIRST to prevent false positives from CO₃²⁻.', marks:1 },
+            { code:'K3', text:'Ionic equation: Ag⁺(aq) + Cl⁻(aq) → AgCl(s)', marks:1 },
+            { code:'A1', text:'Correctly states AgCl is a white precipitate (not yellow) — confirms Cl⁻ not I⁻ or Br⁻.', marks:1 },
+        ],
+        keywords:['CO3','carbonate','dilute HNO3','dilute acid','effervescence','bubble','gas','limewater','milky','CaCO3','calcium carbonate','AgNO3','silver nitrate','Cl-','chloride','AgCl','silver chloride','white precipitate','HNO3','acidify','ionic equation'],
+        misconceptions:[
+            { phrase:'test with HCl directly', penalty:'When testing for Cl⁻, you should NOT use HCl as the acidifier — it introduces Cl⁻ ions and gives a false positive. Use HNO₃ instead.' },
+            { phrase:'yellow precipitate with AgNO3', penalty:'AgCl gives a WHITE precipitate. Yellow precipitate indicates AgI (iodide ion). Yellow/pale yellow could be AgBr.' },
+            { phrase:'AgCl dissolves', penalty:'AgCl is insoluble in dilute HNO₃. It remains as a white precipitate.' },
+        ]
+    },
+    q6: {
+        prompt: `Using ONE composite material of your choice:
+(a) Name the matrix and reinforcing phase. [4 marks]
+(b) Explain how the two components are combined and why this gives better properties. [8 marks]
+(c) State THREE specific uses of this composite material. [4 marks]
+(d) Compare the properties of this composite material with each of its individual components. [4 marks]`,
+        marks: 20,
+        rubric: [
+            { code:'F1', text:'Correctly identifies a composite material (e.g., reinforced concrete, fibreglass, CFRP, kevlar composite).', marks:2 },
+            { code:'F2', text:'Correctly names the matrix component and its role (binds, protects, transfers stress).', marks:2 },
+            { code:'F3', text:'Correctly names the reinforcing phase and its role (provides strength/stiffness).', marks:2 },
+            { code:'E1', text:'Explains why each component alone is inadequate (e.g., concrete weak in tension, fibres cannot be used alone).', marks:2 },
+            { code:'E2', text:'Explains how combination overcomes individual weaknesses (synergistic properties).', marks:2 },
+            { code:'K1', text:'Uses correct terminology: matrix, reinforcing phase, composite, synergistic.', marks:2 },
+            { code:'A1', text:'Three valid specific uses stated with context.', marks:3 },
+            { code:'K2', text:'Compares properties: composite vs pure matrix and vs pure reinforcing phase.', marks:3 },
+            { code:'E3', text:'Explains structural/mechanical advantage with reference to force distribution or stress transfer.', marks:2 },
+            { code:'A2', text:'Mentions real-world engineering significance or cost-effectiveness of the composite.', marks:2 },
+        ],
+        keywords:['matrix','reinforcing','composite','concrete','steel','fibreglass','glass fibre','CFRP','carbon fibre','kevlar','epoxy','polyester','resin','stronger','stiffer','lightweight','tension','compression','synergistic','stress','transfer','uses','application'],
+        misconceptions:[
+            { phrase:'pure concrete is strong', penalty:'Concrete is strong in compression but WEAK in tension. Without steel reinforcement, it cracks easily under bending.' },
+            { phrase:'fibres alone can be used', penalty:'Glass fibres or carbon fibres alone are brittle and cannot be shaped into structures. They need the matrix (resin) to hold them together and transfer loads.' },
+        ]
+    }
+};
+
+// ===== DOM REFERENCES =====
+const questionSelect = document.getElementById('questionSelect');
+const questionPromptBox = document.getElementById('questionPromptBox');
+const essayTextarea = document.getElementById('essayTextarea');
+const wordCount = document.getElementById('wordCount');
+const charCount = document.getElementById('charCount');
+const gradeBtn = document.getElementById('gradeBtn');
+const btnText = document.getElementById('btnText');
+const spinner = document.getElementById('spinner');
+const emptyState = document.getElementById('emptyState');
+const resultsContainer = document.getElementById('resultsContainer');
+
+// ===== ESCAPING =====
+function escapeHtml(str) {
+    if (!str) return '';
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
+
+// ===== QUESTION SELECTION =====
+questionSelect.addEventListener('change', () => {
+    const qKey = questionSelect.value;
+    if (!qKey || !QUESTIONS[qKey]) {
+        questionPromptBox.style.display = 'none';
+        gradeBtn.disabled = true;
+        btnText.textContent = '✏️ Select a Question First';
+        return;
+    }
+    const q = QUESTIONS[qKey];
+    questionPromptBox.style.display = 'block';
+    questionPromptBox.innerHTML = `<span class="marks-badge">${q.marks} marks</span><br>${escapeHtml(q.prompt).replace(/\n/g,'<br>')}`;
+    gradeBtn.disabled = !essayTextarea.value.trim();
+    btnText.textContent = '📝 Grade My Essay';
+});
+
+// ===== WORD/CHAR COUNTER =====
+essayTextarea.addEventListener('input', () => {
+    const text = essayTextarea.value;
+    const words = text.trim() ? text.trim().split(/\s+/).length : 0;
+    wordCount.textContent = `${words} word${words !== 1 ? 's' : ''}`;
+    charCount.textContent = `${text.length} / 3000 characters`;
+    // Delegate to unified button state
+    updateGradeButton();
+});
+
+// ===== LOCAL GRADING ENGINE =====
+function gradeEssayLocally(essay, questionKey) {
+    const q = QUESTIONS[questionKey];
+    if (!q) return null;
+
+    const essayLower = essay.toLowerCase();
+    const totalMarks = q.marks;
+
+    // 1. Detect keyword hits
+    const detectedKeywords = [];
+    const missedKeywords = [];
+    q.keywords.forEach(kw => {
+        if (essayLower.includes(kw.toLowerCase())) {
+            detectedKeywords.push(kw);
+        } else {
+            missedKeywords.push(kw);
+        }
+    });
+
+    // 2. Detect misconceptions
+    const foundMisconceptions = [];
+    q.misconceptions.forEach(m => {
+        if (essayLower.includes(m.phrase.toLowerCase())) {
+            foundMisconceptions.push(m);
+        }
+    });
+
+    // 3. Score rubric points
+    const rubricResults = q.rubric.map(rp => {
+        // Check if essay covers this rubric point concept
+        const rpWords = rp.text.toLowerCase().split(/\W+/).filter(w => w.length > 4);
+        const coverage = rpWords.filter(w => essayLower.includes(w)).length / rpWords.length;
+        const passed = coverage > 0.45 || rpWords.some(w => essayLower.includes(w) && w.length > 7);
+        return { ...rp, passed };
+    });
+
+    // 4. Calculate raw score
+    let rawScore = rubricResults.filter(r => r.passed).length;
+    // Penalty for misconceptions (max -2)
+    const penalty = Math.min(foundMisconceptions.length, 2);
+    rawScore = Math.max(0, rawScore - penalty);
+
+    // Scale to total marks
+    const maxRubricPoints = q.rubric.length;
+    const score = Math.round((rawScore / maxRubricPoints) * totalMarks);
+
+    // 5. Annotate essay
+    let annotated = escapeHtml(essay);
+    q.keywords.forEach(kw => {
+        if (essayLower.includes(kw.toLowerCase())) {
+            const regex = new RegExp(`(${kw.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+            annotated = annotated.replace(regex, '<span class="kw-hit">$1</span>');
+        }
+    });
+    q.misconceptions.forEach(m => {
+        const regex = new RegExp(`(${m.phrase.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+        annotated = annotated.replace(regex, '<span class="kw-misconception" title="' + escapeHtml(m.penalty) + '">$1</span>');
+    });
+
+    // 6. Generate examiner feedback
+    const pct = (score / totalMarks) * 100;
+    let grade, gradeClass;
+    if (pct >= 80) { grade = 'A+'; gradeClass = 'grade-a'; }
+    else if (pct >= 60) { grade = 'B'; gradeClass = 'grade-b'; }
+    else if (pct >= 40) { grade = 'C'; gradeClass = 'grade-c'; }
+    else { grade = 'D'; gradeClass = 'grade-d'; }
+
+    const passedRubric = rubricResults.filter(r => r.passed);
+    const failedRubric = rubricResults.filter(r => !r.passed);
+
+    let feedback = `Your answer scored <strong>${score}/${totalMarks}</strong>. `;
+    if (passedRubric.length > 0) {
+        feedback += `You successfully addressed ${passedRubric.length} rubric point(s), including: ${passedRubric.slice(0,3).map(r => r.code).join(', ')}. `;
+    }
+    if (failedRubric.length > 0) {
+        feedback += `You missed rubric points: ${failedRubric.slice(0,3).map(r => r.code).join(', ')}. `;
+    }
+    if (foundMisconceptions.length > 0) {
+        feedback += `<br><br><strong>⚠️ Misconception(s) detected:</strong> ${foundMisconceptions.map(m => escapeHtml(m.penalty)).join(' | ')}`;
+    }
+
+    const tips = failedRubric.slice(0, 3).map(r => r.text);
+
+    return {
+        score, totalMarks, grade, gradeClass,
+        detectedKeywords, missedKeywords,
+        rubricResults, foundMisconceptions,
+        annotatedEssayHtml: annotated,
+        feedback, tips
+    };
+}
+
+// ===== RENDER RESULTS =====
+function renderResults(result) {
+    emptyState.style.display = 'none';
+    resultsContainer.style.display = 'block';
+
+    const missedTop = result.missedKeywords.slice(0, 8);
+
+    resultsContainer.innerHTML = `
+        <div class="score-card">
+            <div class="score-header">
+                <div>
+                    <div style="font-size:0.8rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:var(--text-muted);margin-bottom:6px;">Score</div>
+                    <div class="score-display">
+                        <span class="score-num">${result.score}</span>
+                        <span class="score-total">/ ${result.totalMarks}</span>
+                    </div>
+                </div>
+                <span class="score-grade ${result.gradeClass}">${result.grade}</span>
+            </div>
+
+            <div class="keyword-section">
+                <h3>✅ Detected Keywords (${result.detectedKeywords.length})</h3>
+                <div>${result.detectedKeywords.map(k => `<span class="keyword-tag kw-hit-tag">✓ ${escapeHtml(k)}</span>`).join('')}</div>
+            </div>
+
+            ${missedTop.length ? `<div class="keyword-section">
+                <h3>❌ Missing Keywords (top ${missedTop.length})</h3>
+                <div>${missedTop.map(k => `<span class="keyword-tag kw-miss-tag">✗ ${escapeHtml(k)}</span>`).join('')}</div>
+            </div>` : ''}
+        </div>
+
+        <div class="section-label">Rubric Checklist</div>
+        <div style="padding: 0 24px 16px;">
+            ${result.rubricResults.map(r => `
+            <div class="rubric-item ${r.passed ? 'pass' : 'fail'}">
+                <span class="rubric-icon">${r.passed ? '✅' : '❌'}</span>
+                <span class="rubric-text">
+                    <strong>${escapeHtml(r.code)}</strong> — ${escapeHtml(r.text)}
+                </span>
+                <span class="rubric-mark" style="color:${r.passed ? 'var(--green)' : 'var(--red)'}">${r.passed ? '+' + r.marks : '0'}</span>
+            </div>`).join('')}
+        </div>
+
+        ${result.foundMisconceptions.length ? `
+        <div class="section-label" style="color:var(--red);">⚠️ Misconceptions Detected</div>
+        <div style="padding:0 24px 16px;">
+            ${result.foundMisconceptions.map(m => `
+            <div class="rubric-item warn">
+                <span class="rubric-icon">⚠️</span>
+                <span class="rubric-text">${escapeHtml(m.penalty)}</span>
+                <span class="rubric-mark" style="color:var(--orange)">-1</span>
+            </div>`).join('')}
+        </div>` : ''}
+
+        <div class="section-label">Annotated Essay</div>
+        <div style="padding:0 24px 16px;">
+            <div class="annotated-essay">${result.annotatedEssayHtml}</div>
+            <div style="display:flex;gap:12px;margin-top:8px;font-size:0.75rem;flex-wrap:wrap;">
+                <span><span style="background:#bbf7d0;padding:1px 5px;border-radius:3px;">Green</span> = Keyword hit</span>
+                <span><span style="background:#fecaca;padding:1px 5px;border-radius:3px;text-decoration:line-through;">Red</span> = Misconception</span>
+            </div>
+        </div>
+
+        <div class="section-label">Examiner Feedback</div>
+        <div style="padding:0 24px 16px;">
+            <div class="feedback-box">${result.feedback}</div>
+            ${result.tips.length ? `<div class="tip-box"><strong>📌 Tips to improve:</strong><ul style="margin:6px 0 0 18px;">${result.tips.map(t => `<li style="margin-bottom:4px;">${escapeHtml(t)}</li>`).join('')}</ul></div>` : ''}
+        </div>
+
+        <div style="padding:0 24px 24px;">
+            <button onclick="resetGrader()" style="padding:10px 20px;border:1px solid var(--border);border-radius:10px;background:white;font-family:inherit;font-size:0.875rem;font-weight:600;cursor:pointer;">↩ Grade Another Answer</button>
+        </div>
+    `;
+}
+
+// ===== GRADE BUTTON =====
+gradeBtn.addEventListener('click', async () => {
+    const essay = essayTextarea.value.trim();
+    if (!essay) return;
+
+    spinner.style.display = 'block';
+    gradeBtn.disabled = true;
+
+    if (currentMode === 'preset') {
+        const qKey = questionSelect.value;
+        if (!qKey) return;
+        btnText.textContent = 'Grading...';
+        await new Promise(r => setTimeout(r, 700));
+        const result = gradeEssayLocally(essay, qKey);
+        spinner.style.display = 'none';
+        btnText.textContent = '📝 Grade My Essay';
+        gradeBtn.disabled = false;
+        renderResults(result);
+        resultsContainer.scrollIntoView({ behavior: 'smooth' });
+
+    } else {
+        // AI grading mode
+        const openQ = document.getElementById('openQuestionInput').value.trim();
+        const marks  = parseInt(document.getElementById('openMarksSelect').value);
+        const chapter = document.getElementById('chapterSelect').value;
+        if (!openQ) return;
+
+        btnText.textContent = '🤖 Gemini is marking…';
+        const status = document.getElementById('openQStatus');
+        status.textContent = '⏳ Sending to Gemini AI for KSSM marking scheme evaluation…';
+
+        try {
+            const result = await gradeWithGemini(openQ, essay, marks, chapter);
+            spinner.style.display = 'none';
+            btnText.textContent = '🤖 Grade with AI';
+            gradeBtn.disabled = false;
+            status.textContent = '';
+            renderAIResults(result, openQ, marks);
+        } catch (err) {
+            spinner.style.display = 'none';
+            btnText.textContent = '🤖 Grade with AI';
+            gradeBtn.disabled = false;
+            status.textContent = '❌ Error: ' + escapeHtml(err.message);
+        }
+    }
+});
+
+// ===== RESET =====
+function resetGrader() {
+    emptyState.style.display = 'flex';
+    resultsContainer.style.display = 'none';
+    essayTextarea.value = '';
+    wordCount.textContent = '0 words';
+    charCount.textContent = '0 / 3000 characters';
+}
+
+
+// ========================================================
+// MODE MANAGEMENT
+// ========================================================
+let currentMode = 'preset'; // 'preset' | 'open'
+let savedApiKey = sessionStorage.getItem('gemini_api_key') || '';
+
+function switchMode(mode) {
+    currentMode = mode;
+    document.querySelectorAll('.mode-tab').forEach(tab => {
+        const isActive = tab.dataset.mode === mode;
+        tab.classList.toggle('active', isActive);
+        tab.setAttribute('aria-selected', isActive ? 'true' : 'false');
+    });
+    document.getElementById('presetQPanel').classList.toggle('hidden', mode !== 'preset');
+    document.getElementById('openQPanel').classList.toggle('visible', mode === 'open');
+
+    // Update notice visibility
+    refreshApiKeyNotice();
+
+    // Enable/disable grade button
+    updateGradeButton();
+}
+
+function refreshApiKeyNotice() {
+    savedApiKey = sessionStorage.getItem('gemini_api_key') || '';
+    const notice = document.getElementById('apiKeyNotice');
+    if (savedApiKey) {
+        notice.innerHTML = '✅ <strong>Gemini API key saved</strong> for this session. <button onclick="clearApiKey()" style="background:none;border:1px solid #a16207;border-radius:6px;padding:2px 8px;cursor:pointer;font-size:0.75rem;color:#92400e;font-weight:700;">Clear Key</button>';
+    } else {
+        notice.innerHTML = `⚡ <strong>Gemini AI grading</strong> requires an API key.
+            <div class="api-key-row">
+                <input type="password" id="geminiApiKeyInput" placeholder="Paste your Gemini API key here…" autocomplete="off">
+                <button onclick="saveApiKey()">Save</button>
+            </div>
+            <small style="display:block;margin-top:4px;">Key stored in sessionStorage only — never sent anywhere except Google's API.</small>`;
+    }
+}
+
+function saveApiKey() {
+    const input = document.getElementById('geminiApiKeyInput');
+    if (input && input.value.trim()) {
+        sessionStorage.setItem('gemini_api_key', input.value.trim());
+        savedApiKey = input.value.trim();
+        refreshApiKeyNotice();
+        updateGradeButton();
+    }
+}
+
+function clearApiKey() {
+    sessionStorage.removeItem('gemini_api_key');
+    savedApiKey = '';
+    refreshApiKeyNotice();
+    updateGradeButton();
+}
+
+function updateGradeButton() {
+    const essay = document.getElementById('essayTextarea').value.trim();
+    const btn = document.getElementById('gradeBtn');
+    const btnTxt = document.getElementById('btnText');
+    if (currentMode === 'preset') {
+        const qVal = document.getElementById('questionSelect').value;
+        btn.disabled = !qVal || !essay;
+        btnTxt.textContent = qVal ? '📝 Grade My Essay' : '✏️ Select a Question First';
+    } else {
+        const openQ = document.getElementById('openQuestionInput').value.trim();
+        savedApiKey = sessionStorage.getItem('gemini_api_key') || '';
+        if (!savedApiKey) {
+            btn.disabled = true;
+            btnTxt.textContent = '🔑 Enter API Key First';
+        } else if (!openQ) {
+            btn.disabled = true;
+            btnTxt.textContent = '✍️ Type a Question First';
+        } else if (!essay) {
+            btn.disabled = true;
+            btnTxt.textContent = '📝 Write Your Answer First';
+        } else {
+            btn.disabled = false;
+            btnTxt.textContent = '🤖 Grade with AI';
+        }
+    }
+}
+
+// ========================================================
+// AI GRADING ENGINE — Gemini REST API
+// ========================================================
+async function gradeWithGemini(question, essay, marks, chapter) {
+    savedApiKey = sessionStorage.getItem('gemini_api_key') || '';
+    if (!savedApiKey) throw new Error('No API key');
+
+    const systemPrompt = `You are a strict SPM Chemistry examiner marking student essays for the Malaysian KSSM syllabus.
+You will evaluate the student answer based on the official Lembaga Peperiksaan Malaysia SPM marking scheme principles.
+
+MARKING SCHEME FORMAT (strictly follow):
+- Award marks for: Fact (F), Explanation (E), Scientific Keyword (K), Example/Application (A)
+- Deduct marks if common misconceptions appear (flag them with ⚠️)
+- Total marks available: ${marks}
+- Chapter focus: Chapter ${chapter} (KSSM SPM Chemistry)
+
+OUTPUT FORMAT — respond ONLY with this JSON structure, no prose before or after:
+{
+  "score": <integer>,
+  "totalMarks": <integer>,
+  "grade": "<A+|A|B+|B|C+|C|D|E|F>",
+  "markingScheme": [
+    { "point": "<marking point text>", "type": "<F|E|K|A>", "awarded": <true|false>, "marksAwarded": <0 or 1> }
+  ],
+  "misconceptions": [
+    { "phrase": "<exact text from answer>", "correction": "<scientific correction>" }
+  ],
+  "annotatedAnswer": "<student answer with <span class='kw-hit'>hits</span> and <span class='kw-misconception'>misconceptions</span> marked>",
+  "examinerComment": "<2-3 sentences of examiner feedback in formal SPM examiner tone>",
+  "improvements": ["<specific improvement 1>", "<specific improvement 2>", "<specific improvement 3>"]
+}`;
+
+    const userPrompt = `QUESTION (${marks} marks):
+${question}
+
+STUDENT ANSWER:
+${essay}`;
+
+    const response = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${encodeURIComponent(savedApiKey)}`,
+        {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                systemInstruction: { parts: [{ text: systemPrompt }] },
+                contents: [{ role: 'user', parts: [{ text: userPrompt }] }],
+                generationConfig: {
+                    responseMimeType: 'application/json',
+                    temperature: 0.2,
+                    maxOutputTokens: 2048
+                }
+            })
+        }
+    );
+
+    if (!response.ok) {
+        const err = await response.json().catch(() => ({}));
+        throw new Error(err.error?.message || `API error ${response.status}`);
+    }
+
+    const data = await response.json();
+    const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+    if (!text) throw new Error('Empty response from Gemini');
+
+    try {
+        return JSON.parse(text.replace(/^```json\n?/, '').replace(/```$/, '').trim());
+    } catch {
+        throw new Error('Could not parse AI response as JSON');
+    }
+}
+
+function renderAIResults(result, question, marks) {
+    const emptyState = document.getElementById('emptyState');
+    const resultsContainer = document.getElementById('resultsContainer');
+    emptyState.style.display = 'none';
+    resultsContainer.style.display = 'block';
+
+    const pct = (result.score / result.totalMarks) * 100;
+    let gradeClass = 'grade-d';
+    if (pct >= 80) gradeClass = 'grade-a';
+    else if (pct >= 60) gradeClass = 'grade-b';
+    else if (pct >= 40) gradeClass = 'grade-c';
+
+    const msRows = (result.markingScheme || []).map((pt, i) => `
+        <tr>
+            <td class="step-num">${i + 1}</td>
+            <td><span style="display:inline-block;padding:1px 7px;border-radius:999px;font-size:0.72rem;font-weight:700;background:${pt.type==='F'?'#dbeafe':pt.type==='E'?'#dcfce7':pt.type==='K'?'#fce7f3':'#fef9c3'};color:${pt.type==='F'?'#1d4ed8':pt.type==='E'?'#166534':pt.type==='K'?'#9d174d':'#92400e'}">${escapeHtml(pt.type)}</span></td>
+            <td>${escapeHtml(pt.point)}</td>
+            <td class="${pt.awarded ? 'awarded' : 'missed'}">${pt.awarded ? '+' + pt.marksAwarded : '0'}</td>
+        </tr>`).join('');
+
+    const misconRows = (result.misconceptions || []).map(m => `
+        <div class="rubric-item warn">
+            <span class="rubric-icon">⚠️</span>
+            <span class="rubric-text"><strong>"${escapeHtml(m.phrase)}"</strong><br>${escapeHtml(m.correction)}</span>
+        </div>`).join('');
+
+    const improvements = (result.improvements || []).map(imp => `<li style="margin-bottom:4px;">${escapeHtml(imp)}</li>`).join('');
+
+    resultsContainer.innerHTML = `
+        <div class="score-card">
+            <div class="score-header">
+                <div>
+                    <div style="font-size:0.8rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:var(--text-muted);margin-bottom:6px;">
+                        AI Score <span class="ai-badge">✨ Gemini 2.0 Flash</span>
+                    </div>
+                    <div class="score-display">
+                        <span class="score-num">${result.score}</span>
+                        <span class="score-total">/ ${result.totalMarks}</span>
+                    </div>
+                </div>
+                <span class="score-grade ${gradeClass}">${escapeHtml(result.grade)}</span>
+            </div>
+            <div style="font-size:0.8rem;color:var(--text-muted);font-style:italic;border-top:1px solid var(--border);padding-top:12px;margin-top:8px;">
+                <strong>Question:</strong> ${escapeHtml(question)}
+            </div>
+        </div>
+
+        <div class="section-label">📋 SPM Marking Scheme</div>
+        <div style="padding:0 24px 16px;">
+            <div style="overflow-x:auto;border-radius:10px;border:1px solid var(--border);">
+                <table class="ms-table" aria-label="SPM Marking Scheme">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Type</th>
+                            <th>Marking Point</th>
+                            <th>Mark</th>
+                        </tr>
+                    </thead>
+                    <tbody>${msRows || '<tr><td colspan="4" style="padding:16px;text-align:center;color:var(--text-muted)">No marking scheme data</td></tr>'}</tbody>
+                </table>
+            </div>
+            <div style="font-size:0.75rem;color:var(--text-muted);margin-top:6px;">F=Fact &nbsp;|&nbsp; E=Explanation &nbsp;|&nbsp; K=Scientific Keyword &nbsp;|&nbsp; A=Application/Example</div>
+        </div>
+
+        ${misconRows ? `<div class="section-label" style="color:var(--orange);">⚠️ Misconceptions</div>
+        <div style="padding:0 24px 16px;">${misconRows}</div>` : ''}
+
+        <div class="section-label">📝 Annotated Answer</div>
+        <div style="padding:0 24px 16px;">
+            <div class="annotated-essay">${result.annotatedAnswer || escapeHtml(document.getElementById('essayTextarea').value)}</div>
+            <div style="display:flex;gap:12px;margin-top:8px;font-size:0.75rem;flex-wrap:wrap;">
+                <span><span style="background:#bbf7d0;padding:1px 5px;border-radius:3px;">Green</span> = Keyword hit</span>
+                <span><span style="background:#fecaca;padding:1px 5px;border-radius:3px;text-decoration:line-through;">Red</span> = Misconception</span>
+            </div>
+        </div>
+
+        <div class="section-label">💬 Examiner Feedback</div>
+        <div style="padding:0 24px 16px;">
+            <div class="feedback-box">${escapeHtml(result.examinerComment)}</div>
+            ${improvements ? `<div class="tip-box"><strong>📌 To improve:</strong><ul style="margin:6px 0 0 18px;">${improvements}</ul></div>` : ''}
+        </div>
+
+        <div style="padding:0 24px 24px;">
+            <button onclick="resetGrader()" style="padding:10px 20px;border:1px solid var(--border);border-radius:10px;background:white;font-family:inherit;font-size:0.875rem;font-weight:600;cursor:pointer;">↩ Grade Another Answer</button>
+        </div>
+    `;
+    resultsContainer.scrollIntoView({ behavior: 'smooth' });
+}
+
+// Hook open-question inputs to updateGradeButton
+document.addEventListener('DOMContentLoaded', () => {
+    const openQInput = document.getElementById('openQuestionInput');
+    if (openQInput) openQInput.addEventListener('input', updateGradeButton);
+    refreshApiKeyNotice();
+});
+
+</script>
+</body>
+</html>
