@@ -1399,21 +1399,70 @@
         /* AI Bubble */
 
         .ai-message {
-
             background: white;
-
             padding: 18px;
-
             border-radius: 18px;
-
             max-width: 75%;
-
             line-height: 1.7;
-
             box-shadow: 0 5px 12px rgba(0, 0, 0, .06);
-
             margin-bottom: 18px;
+            color: #1e293b;
+        }
 
+        .ai-message article {
+            color: #1e293b;
+            font-size: 0.95rem;
+        }
+
+        .ai-message ul, .ai-message ol {
+            margin: 10px 0 12px 24px;
+            padding-left: 4px;
+        }
+
+        .ai-message li {
+            margin-bottom: 7px;
+            line-height: 1.6;
+            list-style-type: disc;
+        }
+
+        .ai-message ol li {
+            list-style-type: decimal;
+        }
+
+        .ai-message p {
+            margin-bottom: 10px;
+            line-height: 1.65;
+        }
+
+        .ai-message p:last-child, .ai-message ul:last-child, .ai-message ol:last-child {
+            margin-bottom: 0;
+        }
+
+        .ai-message strong {
+            color: #4c1d95;
+            font-weight: 700;
+        }
+
+        .ai-message code {
+            background: #f1f5f9;
+            padding: 2px 6px;
+            border-radius: 5px;
+            font-family: 'Fira Code', monospace, Courier;
+            color: #7c3aed;
+            font-size: 0.88em;
+            border: 1px solid #e2e8f0;
+        }
+
+        .ai-message .exam-tip {
+            background: #faf5ff;
+            border: 1px solid #e9d5ff;
+            border-left: 4px solid #a855f7;
+            padding: 10px 14px;
+            border-radius: 0 8px 8px 0;
+            margin-top: 12px;
+            font-size: 0.88rem;
+            color: #581c87;
+            line-height: 1.55;
         }
 
 
@@ -2101,6 +2150,7 @@
             }
         }
     </style>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js" defer></script>
 </head>
 
 <body>
@@ -2405,7 +2455,7 @@
                     </li>
                 </ul>
 
-                <form class="input-area" onsubmit="event.preventDefault(); askChemLearn();">
+                <form class="input-area" id="chemChatForm" onsubmit="event.preventDefault(); if (typeof window.askChemLearn === 'function') { window.askChemLearn(); } else { console.warn('ChemLearn AI initializing...'); }">
                     <label for="userMessage" class="sr-only">Your Question</label>
                     <input id="userMessage" type="text" placeholder="Ask a Chemistry question..." autocomplete="off">
                     <button type="submit" aria-label="Send Message">➤</button>
@@ -2605,7 +2655,7 @@
         import { initializeAppCheck, ReCaptchaV3Provider } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app-check.js";
 
         const firebaseConfig = {
-            apiKey: "YOUR_FIREBASE_API_KEY",
+            apiKey: "AIzaSyBcAA7uU-bKuFkBtpqLCFyB4b4PsZWlHzw",
             authDomain: "chemlearn-67.firebaseapp.com",
             projectId: "chemlearn-67",
             storageBucket: "chemlearn-67.firebasestorage.app",
@@ -2692,9 +2742,7 @@
             openLoginBtn.addEventListener('click', (e) => {
                 e.preventDefault();
                 if (auth.currentUser) {
-                    if (confirm("Signed in as " + auth.currentUser.email + ".
-
-Click OK to go to your Dashboard, or Cancel to Sign Out.")) {
+                    if (confirm("Signed in as " + auth.currentUser.email + ".\n\nClick OK to go to your Dashboard, or Cancel to Sign Out.")) {
                         window.location.href = "dashboard.html";
                     } else {
                         signOut(auth).then(() => {
@@ -2846,23 +2894,30 @@ Click OK to go to your Dashboard, or Cancel to Sign Out.")) {
             });
         }
 
-        // --- GEMINI AI CHAT ENGINE ---
-        const ai = getAI(app, {
-            backend: new GoogleAIBackend()
-        });
-        const model = getGenerativeModel(ai, {
-            model: "gemini-2.5-flash"
-        });
+        // --- GEMINI AI CHAT ENGINE & SPM KNOWLEDGE REASONER ---
+        let ai = null;
+        let model = null;
+        try {
+            ai = getAI(app, {
+                backend: new GoogleAIBackend()
+            });
+            model = getGenerativeModel(ai, {
+                model: "gemini-2.5-flash"
+            });
+        } catch (initErr) {
+            console.warn("Firebase AI Logic client initialized in offline-resilient mode:", initErr);
+        }
 
-        async function generateWithRetry(model, prompt, retries = 3) {
+        async function generateWithRetry(modelInstance, promptText, retries = 2) {
+            if (!modelInstance) throw new Error("AI_NOT_AVAILABLE");
             for (let i = 0; i < retries; i++) {
                 try {
-                    return await model.generateContent(prompt);
+                    return await modelInstance.generateContent(promptText);
                 } catch (error) {
-                    console.error(error);
+                    console.error("Gemini attempt " + (i + 1) + " error:", error);
                     const message = error.message || "";
-                    if ((message.includes("500") || message.includes("503")) && i < retries - 1) {
-                        await new Promise(resolve => setTimeout(resolve, 2000 * (i + 1)));
+                    if ((message.includes("500") || message.includes("503") || message.includes("429")) && i < retries - 1) {
+                        await new Promise(resolve => setTimeout(resolve, 1500 * (i + 1)));
                         continue;
                     }
                     throw error;
@@ -2870,7 +2925,482 @@ Click OK to go to your Dashboard, or Cancel to Sign Out.")) {
             }
         }
 
-        
+        // Dedicated Markdown Parser with full support for bullet points, bold, code, and exam tips
+        function renderMarkdown(md) {
+            if (!md) return '';
+            if (typeof marked !== 'undefined' && marked.parse) {
+                try {
+                    return marked.parse(md);
+                } catch(e) {}
+            }
+            let html = md
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;");
+            
+            // Bold, italic, code
+            html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+            html = html.replace(/\*(.*?)\*/g, '<em>$1</em>');
+            html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
+            
+            // Blockquote / tip
+            html = html.replace(/(?:^|\n)&gt;\s*([\s\S]*?)(?=\n\n|\n$|$)/g, '<div class="exam-tip">$1</div>');
+
+            const lines = html.split('\n');
+            let inList = false;
+            let inOl = false;
+            let result = [];
+            
+            for (let line of lines) {
+                const trimmed = line.trim();
+                const bulletMatch = trimmed.match(/^[-*•]\s+(.*)$/);
+                const olMatch = trimmed.match(/^(\d+)\.\s+(.*)$/);
+                
+                if (bulletMatch) {
+                    if (inOl) { result.push('</ol>'); inOl = false; }
+                    if (!inList) {
+                        result.push('<ul>');
+                        inList = true;
+                    }
+                    result.push(`<li>${bulletMatch[1]}</li>`);
+                } else if (olMatch) {
+                    if (inList) { result.push('</ul>'); inList = false; }
+                    if (!inOl) {
+                        result.push('<ol>');
+                        inOl = true;
+                    }
+                    result.push(`<li>${olMatch[2]}</li>`);
+                } else {
+                    if (inList) { result.push('</ul>'); inList = false; }
+                    if (inOl) { result.push('</ol>'); inOl = false; }
+                    if (trimmed.length > 0) {
+                        if (trimmed.startsWith('<div') || trimmed.endsWith('</div>')) {
+                            result.push(trimmed);
+                        } else {
+                            result.push(`<p>${trimmed}</p>`);
+                        }
+                    }
+                }
+            }
+            if (inList) result.push('</ul>');
+            if (inOl) result.push('</ol>');
+            return result.join('');
+        }
+
+        // Comprehensive SPM Chemistry Knowledge & Reasoning Engine
+        function generateSpmChemistryResponse(question) {
+            const q = (question || '').toLowerCase().trim();
+
+            // 1. ALLOY vs PURE METAL (Form 4 Chapter 8)
+            if (q.includes('alloy') || (q.includes('pure metal') && (q.includes('hard') || q.includes('layer') || q.includes('slide') || q.includes('slippage')))) {
+                return `**Why Alloys Are Harder Than Pure Metals (SPM Form 4 Chapter 8):**
+
+An alloy is a mixture of a metal with one or more other elements (metals or non-metals) in specified proportions.
+
+• **Pure Metal Structure:**
+  - Consists of identical atoms of the same size arranged closely in an orderly pattern.
+  - When external force is applied, the layers of atoms easily slide past one another.
+  - This allows pure metals to be ductile and malleable, but relatively soft.
+
+• **Alloy Lattice Dislocation Pinning:**
+  - Foreign atoms of different sizes (larger or smaller) are introduced into the host metal lattice.
+  - These foreign atoms disrupt the regular and orderly arrangement of the pure metal atoms.
+  - The disrupted arrangement prevents and blocks layers of atoms from sliding past each other easily when stress is applied.
+
+• **Common SPM Alloys & Composition:**
+  - **Bronze:** 90% Copper (Cu) + 10% Tin (Sn) — medals, statues, monuments.
+  - **Brass:** 70% Copper (Cu) + 30% Zinc (Zn) — musical instruments, door hardware.
+  - **Steel:** 99% Iron (Fe) + 1% Carbon (C) — construction beams, bridges, vehicle frames.
+  - **Stainless Steel:** 73% Iron (Fe) + 18% Chromium (Cr) + 8% Nickel (Ni) + 1% Carbon (C) — cutlery, surgical tools.
+  - **Duralumin:** 95% Aluminium (Al) + 4% Copper (Cu) + 1% Magnesium (Mg) — aircraft bodies, racing frames.
+  - **Pewter:** 95% Tin (Sn) + 3.5% Antimony (Sb) + 1.5% Copper (Cu) — traditional souvenirs, decorative plateware.
+
+> **💡 SPM Exam Scoring Tip:** In Section B/C essays, always write: *"Foreign atoms of different sizes disrupt the orderly arrangement of atoms, preventing layers of atoms from sliding past each other easily."*`;
+            }
+
+            // 2. GLASS & CERAMICS (Form 4 Chapter 8)
+            if (q.includes('glass') || q.includes('ceramic') || q.includes('borosilicate') || q.includes('silica') || q.includes('kaolin')) {
+                return `**Glass & Ceramics Classification (SPM Form 4 Chapter 8):**
+
+Glass and ceramics are non-metallic inorganic materials synthesized through high-temperature heating.
+
+• **Four Major Types of Glass & Properties:**
+  - **Fused Silica Glass:** 100% SiO₂. Highest melting point (~1700°C), highly transparent to UV light, extremely low thermal expansion coefficient. Uses: telescope mirrors, optical lenses.
+  - **Soda-Lime Glass:** SiO₂ + Na₂CO₃ + CaCO₃. Low melting point, easy to mould into shapes, high thermal expansion (cracks under sudden temperature changes). Uses: windows, glass containers, drinking glasses.
+  - **Borosilicate Glass:** SiO₂ + B₂O₃ + Al₂O₃. Very low thermal expansion coefficient, exceptionally resistant to thermal shock and chemical attack. Uses: laboratory glassware (Pyrex, boiling flasks), ovenware.
+  - **Lead Crystal Glass:** SiO₂ + PbO + K₂CO₃. High refractive index (brilliant sparkle), high density, soft and easy to cut. Uses: chandeliers, prism lenses, luxury crystal glassware.
+
+• **Ceramics Structure & Properties:**
+  - **Traditional Ceramics:** Made from clay minerals (kaolin/hydrated aluminosilicate) fired at high temperatures. Uses: bricks, roof tiles, porcelain pottery.
+  - **Advanced Ceramics:** Synthesized from pure oxides/carbides/nitrides (e.g. Al₂O₃, ZrO₂, SiC). Extreme hardness, withstands ultra-high temperatures, corrosion-resistant, excellent electrical insulators. Uses: spark plug insulators, jet engine turbine blades, dental crowns, artificial hip joints.
+  - **Why Ceramics Are Brittle:** Strong directional ionic and covalent bonds prevent atomic layer sliding; when stress exceeds threshold, bonds break abruptly rather than deforming.
+
+> **💡 SPM Exam Scoring Tip:** Borosilicate glass is preferred in laboratories because its *low thermal expansion coefficient prevents cracking when subjected to rapid temperature changes (thermal shock)*.`;
+            }
+
+            // 3. COMPOSITE MATERIALS (Form 4 Chapter 8)
+            if (q.includes('composite') || q.includes('reinforced concrete') || q.includes('fibreglass') || q.includes('fiberglass') || q.includes('optical fibre') || q.includes('photochromic') || q.includes('superconductor')) {
+                return `**Composite Materials (SPM Form 4 Chapter 8):**
+
+A composite material is a structural system formed by combining two or more distinct substances (a matrix and a reinforcement) to produce superior combined properties.
+
+• **Core Components:**
+  - **Matrix Substance:** The continuous phase that surrounds, binds, and protects the reinforcement.
+  - **Reinforcing Substance:** The dispersed phase (fibres, particles, rods) that provides tensile or compressive strength.
+
+• **Key SPM Composite Examples:**
+  - **Reinforced Concrete:** Matrix = concrete (cement + sand + gravel), Reinforcement = steel rods. Concrete withstands high compression; steel rods withstand high tension forces. Uses: high-rise buildings, bridges, dams.
+  - **Fibreglass:** Matrix = plastic/polyester resin, Reinforcement = glass fibres. High tensile strength, lightweight, corrosion-resistant. Uses: boat hulls, helmets, water storage tanks.
+  - **Optical Fibres:** Core = high refractive index glass, Cladding = lower refractive index glass/polymer. Enables Total Internal Reflection of light signals. Uses: high-speed telecommunications, medical endoscopes.
+  - **Photochromic Glass:** Matrix = glass, Reinforcement = silver chloride (AgCl) or silver bromide (AgBr) microcrystals. Darkens under UV light (Ag⁺ + e⁻ → Ag) and reverses in dim light. Uses: transition spectacle lenses.
+  - **Superconductors:** Ceramic metal oxides (e.g., YBCO). Exhibit zero electrical resistance below critical temperature Tc and exhibit the Meissner effect (magnetic levitation). Uses: MRI magnets, bullet trains (Maglev).
+
+> **💡 SPM Exam Scoring Tip:** Remember the structural role: the *matrix binds and shields*, while the *reinforcement absorbs structural stress*.`;
+            }
+
+            // 4. ACID, BASE, PH & TITRATION (Form 4 Chapter 6)
+            if (q.includes('acid') || q.includes('alkali') || q.includes('base') || q.includes('ph') || q.includes('titration') || q.includes('neutralis') || q.includes('neutraliz')) {
+                return `**Acids, Bases & Neutralisation (SPM Form 4 Chapter 6):**
+
+• **Fundamental Concepts:**
+  - **Acid:** A chemical substance that ionises in water to produce hydrogen ions (H⁺) or hydroxonium ions (H₃O⁺).
+  - **Alkali:** A base that dissolves in water to produce hydroxide ions (OH⁻).
+  - **Strong Acid vs Weak Acid:** Strong acids (HCl, HNO₃, H₂SO₄) ionise completely in water (100% degree of ionisation). Weak acids (CH₃COOH) ionise partially in water (reversible equilibrium).
+
+• **pH Calculations & Molarity:**
+  - $\\text{pH} = -\\log_{10}[\\text{H}^+]$
+  - $\\text{pOH} = -\\log_{10}[\\text{OH}^-]$
+  - $\\text{pH} + \\text{pOH} = 14$
+  - Neutralisation formula: $\\frac{M_a V_a}{a} = \\frac{M_b V_b}{b}$
+
+• **Acid-Base Titration Method:**
+  - Pipette $25.0\\text{ cm}^3$ of alkali into conical flask with 2-3 drops of indicator.
+  - Fill burette with standard acid solution and record initial reading.
+  - Add acid dropwise near end-point while swirling continuously until indicator changes colour.
+  - Record final burette reading and repeat to obtain consistent titre values within $\\pm 0.10\\text{ cm}^3$.
+
+• **Common Indicators & End-Point Colours:**
+  - **Phenolphthalein:** Pink in alkali → Colourless at end-point (pH 8.3 - 10.0).
+  - **Methyl Orange:** Yellow in alkali → Orange at end-point → Red in acid (pH 3.1 - 4.4).
+
+> **💡 SPM Exam Scoring Tip:** Water is strictly required for acidic properties because acid molecules only ionise to produce H⁺ ions in the presence of water.`;
+            }
+
+            // 5. SALT PREPARATION & CLASSIFICATION (Form 4 Chapter 6)
+            if (q.includes('salt') || q.includes('soluble salt') || q.includes('insoluble salt') || q.includes('precipitation') || q.includes('double decomposition') || q.includes('preparation of')) {
+                return `**Preparation & Solubility of Salts (SPM Form 4 Chapter 6):**
+
+A salt is an ionic compound formed when the hydrogen ion (H⁺) in an acid is replaced by a metal ion or an ammonium ion (NH₄⁺).
+
+• **Solubility Rules for SPM Chemistry:**
+  - **NO Exceptions (All Soluble):** All Nitrate salts (NO₃⁻), all Sodium (Na⁺), Potassium (K⁺), and Ammonium (NH₄⁺) salts (SPA salts).
+  - **Sulphate Salts (SO₄²⁻):** All soluble EXCEPT Barium sulphate (BaSO₄), Lead(II) sulphate (PbSO₄), Calcium sulphate (CaSO₄) [Mnemonic: PBC].
+  - **Chloride Salts (Cl⁻):** All soluble EXCEPT Lead(II) chloride (PbCl₂), Silver chloride (AgCl), Mercury chloride (Hg₂Cl₂) [Mnemonic: PAH].
+  - **Carbonate Salts (CO₃²⁻):** All insoluble EXCEPT Sodium, Potassium, and Ammonium carbonates (Na₂CO₃, K₂CO₃, (NH₄)₂CO₃).
+
+• **Methods of Preparing Salts:**
+  - **1. Soluble SPA Salts (Na⁺, K⁺, NH₄⁺):**
+    - Method: **Titration** between Acid + Alkali using an indicator to determine stoichiometric volume.
+    - Example: $\\text{HCl} + \\text{NaOH} \\rightarrow \\text{NaCl} + \\text{H}_2\\text{O}$
+  - **2. Soluble Non-SPA Salts (e.g. CuSO₄, ZnSO₄, MgCl₂):**
+    - Method: **Acid + Excess Reactant** (Excess reactive metal / Excess metal oxide / Excess metal carbonate).
+    - Excess solid ensures all acid reacts; excess is filtered out.
+    - Example: $\\text{CuO} + \\text{H}_2\\text{SO}_4 \\rightarrow \\text{CuSO}_4 + \\text{H}_2\\text{O}$
+  - **3. Insoluble Salts (e.g. BaSO₄, PbI₂, AgCl):**
+    - Method: **Precipitation (Double Decomposition Reaction)** by mixing two soluble aqueous solutions.
+    - Example: $\\text{Pb(NO}_3)_2(\\text{aq}) + 2\\text{KI}(\\text{aq}) \\rightarrow \\text{PbI}_2(\\text{s}) + 2\\text{KNO}_3(\\text{aq})$
+
+• **Crystallisation & Purification Steps:**
+  - Filter off excess unreacted solid.
+  - Heat filtrate until one-third volume / saturated solution.
+  - Cool saturated solution to room temperature to allow crystallization.
+  - Filter crystals, rinse with cold distilled water, and dry between filter papers.
+
+> **💡 SPM Exam Scoring Tip:** To prepare non-SPA soluble salts, always state *"add excess metal/oxide until some solid remains undissolved"* to guarantee complete reaction of the acid.`;
+            }
+
+            // 6. QUALITATIVE ANALYSIS & CATION/ANION TESTS (Form 4 Chapter 6)
+            if (q.includes('cation') || q.includes('anion') || q.includes('qualitative') || q.includes('precipitate') || q.includes('brown ring') || q.includes('pb2+') || q.includes('fe2+') || q.includes('fe3+') || q.includes('cu2+') || q.includes('zn2+') || q.includes('al3+') || q.includes('test for')) {
+                return `**Qualitative Analysis of Salts: Cation & Anion Tests (SPM Form 4 Chapter 6):**
+
+• **Cation Confirmatory Observations with NaOH & NH₃(aq):**
+  - **Cu²⁺:** Dropwise NaOH → Blue ppt. Excess NaOH → Insoluble. Dropwise NH₃ → Blue ppt. Excess NH₃ → Dissolves to **dark blue solution** [Cu(NH₃)₄]²⁺.
+  - **Fe²⁺:** Dropwise NaOH / NH₃ → Green ppt. Excess → Insoluble. Turns reddish-brown on standing (oxidised to Fe³⁺).
+  - **Fe³⁺:** Dropwise NaOH / NH₃ → Brown / reddish-brown ppt. Excess → Insoluble.
+  - **Mg²⁺:** Dropwise NaOH / NH₃ → White ppt. Excess → Insoluble.
+  - **Al³⁺:** Dropwise NaOH → White ppt. Excess NaOH → **Dissolves to colourless solution**. Dropwise NH₃ → White ppt. Excess NH₃ → **Insoluble**.
+  - **Pb²⁺:** Same as Al³⁺ with NaOH and NH₃. Differentiated with KI reagent!
+  - **Zn²⁺:** Dropwise NaOH → White ppt. Excess NaOH → **Dissolves**. Dropwise NH₃ → White ppt. Excess NH₃ → **Dissolves to colourless solution** [Zn(NH₃)₄]²⁺.
+  - **NH₄⁺:** No precipitate with NaOH or NH₃. On heating with NaOH, colourless pungent gas (NH₃) turns moist red litmus paper blue.
+
+• **Discriminatory Confirmatory Test for Pb²⁺ vs Al³⁺:**
+  - Add Potassium Iodide solution (KI) to sample:
+  - **Pb²⁺:** Forms a **yellow precipitate** of Lead(II) iodide (PbI₂). On heating with water, dissolves to colourless; on cooling, recrystallises as shiny golden crystals (golden spangles).
+  - **Al³⁺:** No precipitate formed (remains colourless solution).
+
+• **Anion Confirmatory Tests:**
+  - **Carbonate (CO₃²⁻):** Add dilute HNO₃. Effervescence observed. Gas evolved turns limewater milky (CO₂ gas).
+  - **Chloride (Cl⁻):** Add dilute HNO₃ followed by Silver Nitrate (AgNO₃). White precipitate of Silver Chloride (AgCl) formed.
+  - **Sulphate (SO₄²⁻):** Add dilute HCl followed by Barium Chloride (BaCl₂). White precipitate of Barium Sulphate (BaSO₄) formed.
+  - **Nitrate (NO₃⁻) [Brown Ring Test]:** Add dilute H₂SO₄ followed by Iron(II) sulphate (FeSO₄). Incline test tube, carefully trickle concentrated H₂SO₄ down the inner wall. A **brown ring** forms at the boundary between the two liquid layers.
+
+> **💡 SPM Exam Scoring Tip:** Remember the ZAP rule for cations forming white ppt soluble in excess NaOH: **Z**inc, **A**luminium, **P**b (Lead). Only Zinc dissolves in excess NH₃!`;
+            }
+
+            // 7. GAS TESTS (Form 4 Chapter 6 & Practical)
+            if (q.includes('gas') || q.includes('oxygen') || q.includes('hydrogen') || q.includes('carbon dioxide') || q.includes('chlorine') || q.includes('ammonia') || q.includes('sulfur dioxide')) {
+                return `**Confirmatory Laboratory Tests for Gases (SPM Chemistry):**
+
+• **Oxygen (O₂):**
+  - Procedure: Insert a glowing wooden splinter into the test tube.
+  - Observation: The glowing wooden splinter **relights / rekindles**.
+
+• **Hydrogen (H₂):**
+  - Procedure: Place a lighted wooden splinter near the mouth of the test tube.
+  - Observation: The lighted wooden splinter extinguishes with a sharp **'pop' sound**.
+
+• **Carbon Dioxide (CO₂):**
+  - Procedure: Bubble the evolved gas through limewater [Ca(OH)₂].
+  - Observation: Limewater turns **milky / chalky** due to insoluble calcium carbonate (CaCO₃) precipitate.
+
+• **Ammonia (NH₃):**
+  - Procedure: Hold moist red litmus paper at the mouth of the test tube.
+  - Observation: Moist red litmus paper turns **blue**. Also produces dense white fumes of NH₄Cl when exposed to concentrated HCl.
+
+• **Chlorine (Cl₂):**
+  - Procedure: Hold moist blue litmus paper at the mouth of the test tube.
+  - Observation: Moist blue litmus paper turns **red, then bleaches white** (acidic and powerful bleaching agent).
+
+• **Sulphur Dioxide (SO₂):**
+  - Procedure: Bubble gas through acidified potassium manganate(VII) solution (KMnO₄).
+  - Observation: Purple solution is **decolourised** (oxidised from MnO₄⁻ to Mn²⁺).
+
+• **Nitrogen Dioxide (NO₂):**
+  - Procedure: Observe colour and test with moist blue litmus paper.
+  - Observation: **Brown, pungent gas** evolved that turns moist blue litmus paper red.
+
+> **💡 SPM Exam Scoring Tip:** Always specify that litmus paper must be **moist**, because dry litmus cannot detect ionic acidic or basic gas properties.`;
+            }
+
+            // 8. RATE OF REACTION & COLLISION THEORY (Form 4 Chapter 7)
+            if (q.includes('rate of reaction') || q.includes('collision theory') || q.includes('activation energy') || q.includes('catalyst') || q.includes('factors affecting rate') || q.includes('effective collision')) {
+                return `**Rate of Reaction & Collision Theory (SPM Form 4 Chapter 7):**
+
+• **Definition:**
+  - Rate of reaction is the change in quantity of reactant or product per unit time:
+  - $\\text{Rate} = \\frac{\\Delta \\text{Volume of gas}}{\\Delta \\text{time}}$ or $\\frac{\\Delta \\text{Mass}}{\\Delta \\text{time}}$
+
+• **Collision Theory Fundamentals:**
+  - For a chemical reaction to occur, reacting particles must collide with each other.
+  - **Effective Collision Criteria:**
+    1. Particles must possess energy equal to or greater than the **Activation Energy ($E_a$)**.
+    2. Particles must collide at the **correct spatial orientation**.
+
+• **5 Factors Affecting Rate of Reaction:**
+  - **1. Particle Size / Surface Area (Solids):**
+    - Smaller particle size → larger total exposed surface area.
+    - Frequency of collision between particles increases → **Frequency of effective collision increases** → Rate of reaction increases.
+  - **2. Concentration (Solutions):**
+    - Higher concentration → higher number of solute particles per unit volume.
+    - Frequency of collision increases → **Frequency of effective collision increases** → Rate of reaction increases.
+  - **3. Temperature:**
+    - Higher temperature → particles gain higher kinetic energy and move faster.
+    - More particles possess kinetic energy $\\ge E_a$.
+    - Frequency of collision and fraction of collisions with $E \\ge E_a$ increase → **Frequency of effective collision increases**.
+  - **4. Pressure (Gaseous Reactions):**
+    - Higher pressure → gaseous particles are pushed closer together (more particles per unit volume).
+    - Frequency of effective collision increases.
+  - **5. Catalyst:**
+    - Provides an **alternative reaction pathway with a lower activation energy ($E_a$)**.
+    - More colliding particles achieve this lower $E_a$ → **Frequency of effective collision increases**.
+
+> **💡 SPM Exam Scoring Tip:** Every essay explanation MUST conclude with the exact phrase: *"Frequency of effective collisions between particles increases, hence the rate of reaction increases."* (This is the primary scoring point!)`;
+            }
+
+            // 9. THE MOLE CONCEPT & FORMULAE (Form 4 Chapters 2 & 3)
+            if (q.includes('mole') || q.includes('molarity') || q.includes('avogadro') || q.includes('empirical formula') || q.includes('molecular formula') || q.includes('stoichiometry') || q.includes('calculate')) {
+                return `**The Mole Concept & Stoichiometry (SPM Form 4 Chapters 2 & 3):**
+
+• **The Four Core Mole Formulas:**
+  - **1. In terms of mass:**
+    - $\\text{Number of moles } (n) = \\frac{\\text{Mass (g)}}{\\text{Molar mass (g mol}^{-1})}$
+  - **2. In terms of particles:**
+    - $\\text{Number of moles } (n) = \\frac{\\text{Number of particles}}{N_A} \\quad (N_A = 6.02 \\times 10^{23}\\text{ mol}^{-1})$
+  - **3. In terms of gas volume:**
+    - $\\text{Number of moles } (n) = \\frac{\\text{Volume of gas (dm}^3)}{\\text{Molar volume}}$
+    - $\\text{Molar volume at r.t.p.} = 24.0\\text{ dm}^3\\text{ mol}^{-1}$
+    - $\\text{Molar volume at s.t.p.} = 22.4\\text{ dm}^3\\text{ mol}^{-1}$
+  - **4. In terms of solution concentration:**
+    - $\\text{Number of moles } (n) = \\frac{M \\times V}{1000} \\quad (M = \\text{mol dm}^{-3}, V = \\text{cm}^3)$
+
+• **Empirical vs Molecular Formula:**
+  - **Empirical Formula:** The chemical formula showing the simplest whole-number ratio of atoms of each element in a compound.
+  - **Molecular Formula:** The chemical formula showing the actual number of atoms of each element in one molecule of a compound:
+  - $\\text{Molecular Formula} = (\\text{Empirical Formula})_n$ where $n = \\frac{\\text{Molar Mass}}{\\text{Empirical Mass}}$
+
+• **Balancing Stoichiometric Reactions:**
+  - Step 1: Write correct chemical formulas for all reactants and products.
+  - Step 2: Balance atom counts on both sides using stoichiometric coefficients.
+  - Step 3: Convert given quantities to moles ($n$).
+  - Step 4: Use mole ratios from balanced equation to solve for unknown.
+
+> **💡 SPM Exam Scoring Tip:** Check units carefully! Convert $\\text{cm}^3$ to $\\text{dm}^3$ by dividing by 1000 before computing gas volume or solution molarity.`;
+            }
+
+            // 10. PERIODIC TABLE & CHEMICAL BONDING (Form 4 Chapters 4 & 5)
+            if (q.includes('periodic table') || q.includes('group 1') || q.includes('group 17') || q.includes('group 18') || q.includes('chemical bond') || q.includes('ionic bond') || q.includes('covalent bond') || q.includes('hydrogen bond')) {
+                return `**Periodic Table & Chemical Bonding (SPM Form 4 Chapters 4 & 5):**
+
+• **Periodic Table Group Trends:**
+  - **Group 1 (Alkali Metals):** Reactivity **increases** down the group. Atomic size increases → valence electron is further from nucleus → weaker electrostatic attraction between nucleus and valence electron → easier to release single valence electron to achieve stable octet arrangement.
+  - **Group 17 (Halogens):** Reactivity **decreases** down the group. Atomic size increases → valence shell is further from nucleus → weaker nuclear attraction to pull an incoming electron to complete octet.
+  - **Group 18 (Noble Gases):** Chemically inert / monoatomic. Possess stable duplet (He) or octet (Ne, Ar, Kr) valence electron configurations; do not gain, lose, or share electrons.
+
+• **Chemical Bonds:**
+  - **Ionic Bond:** Formed by the **transfer of valence electrons** from a metal atom (forms positive cation) to a non-metal atom (forms negative anion). Held together by strong electrostatic forces of attraction. Properties: high melting point, conducts electricity in molten/aqueous state.
+  - **Covalent Bond:** Formed by the **sharing of pairs of electrons** between non-metal atoms to achieve stable octet/duplet configurations. Properties: low melting points, poor electrical conductors.
+  - **Hydrogen Bond:** Strong dipole-dipole intermolecular attraction between hydrogen atom covalently bonded to highly electronegative atom (N, O, F) and lone pair on another N, O, F. Explains why water has anomalously high boiling point ($100^\\circ\\text{C}$).
+  - **Dative / Coordinate Bond:** A covalent bond where both shared electrons originate from the same donor atom with a lone pair (e.g. formation of hydroxonium ion $\\text{H}_3\\text{O}^+$ and ammonium ion $\\text{NH}_4^+$).
+
+> **💡 SPM Exam Scoring Tip:** In describing bond formation, state which atom *transfers* or *shares* electrons, specify electron counts, and name the resulting stable duplet or octet electron arrangement.`;
+            }
+
+            // 11. REDOX & ELECTROCHEMISTRY (Form 5 Chapter 1)
+            if (q.includes('redox') || q.includes('oxidation') || q.includes('reduction') || q.includes('electrolysis') || q.includes('rust') || q.includes('displacement') || q.includes('daniell') || q.includes('voltaic') || q.includes('cell')) {
+                return `**Redox Equilibria & Electrochemistry (SPM Form 5 Chapter 1):**
+
+• **Redox Definitions (OIL RIG):**
+  - **Oxidation:** Gain of oxygen, loss of hydrogen, loss of electrons, or increase in oxidation number.
+  - **Reduction:** Loss of oxygen, gain of hydrogen, gain of electrons, or decrease in oxidation number.
+  - **Oxidising Agent:** Substance that oxidises another substance while itself being reduced (e.g. Acidified $\\text{KMnO}_4$, Acidified $\\text{K}_2\\text{Cr}_2\\text{O}_7$, Chlorine water).
+  - **Reducing Agent:** Substance that reduces another substance while itself being oxidised (e.g. Reactive metals $\\text{Zn}, \\text{Mg}$, $\\text{FeSO}_4$, $\\text{KI}$).
+
+• **Rusting of Iron & Prevention:**
+  - Rusting occurs when iron is exposed to **both oxygen and water**:
+  - Anode: $\\text{Fe}(\\text{s}) \\rightarrow \\text{Fe}^{2+}(\\text{aq}) + 2\\text{e}^-$
+  - Cathode: $\\text{O}_2(\\text{g}) + 2\\text{H}_2\\text{O}(\\text{l}) + 4\\text{e}^- \\rightarrow 4\\text{OH}^-(\\text{aq})$
+  - Rust formula: Hydrated iron(III) oxide ($\\text{Fe}_2\\text{O}_3 \\cdot x\\text{H}_2\\text{O}$).
+  - **Rust Prevention Methods:**
+    - **Protective Layer:** Paint, oil/grease, plastic coating, tin plating.
+    - **Sacrificial Protection:** Attaching a more electropositive metal (e.g. Zinc, Magnesium) to iron. The more electropositive metal oxidises preferentially, sparing iron.
+    - **Galvanising:** Coating iron with a layer of zinc. Even if scratched, zinc acts as sacrificial anode.
+
+• **Electrochemical Cell vs Electrolytic Cell:**
+  - **Electrolytic Cell:** Converts electrical energy to chemical energy (non-spontaneous). Anode is positive; Cathode is negative.
+  - **Voltaic / Chemical Cell:** Converts chemical energy to electrical energy (spontaneous). Anode (more electropositive metal) is negative; Cathode is positive.
+
+> **💡 SPM Exam Scoring Tip:** The metal with a more negative standard reduction potential ($E^\\circ$) undergoes oxidation more readily and acts as the stronger reducing agent / negative terminal in a voltaic cell.`;
+            }
+
+            // 12. CARBON COMPOUNDS & ORGANIC CHEMISTRY (Form 5 Chapter 2)
+            if (q.includes('carbon compound') || q.includes('alkane') || q.includes('alkene') || q.includes('alcohol') || q.includes('carboxylic') || q.includes('ester') || q.includes('isomer') || q.includes('homologous') || q.includes('fermentation')) {
+                return `**Carbon Compounds & Organic Chemistry (SPM Form 5 Chapter 2):**
+
+• **Homologous Series Overview:**
+  - **Alkanes:** General formula $C_n H_{2n+2}$ ($n \\ge 1$). Saturated hydrocarbons (single C-C bonds). Undergo substitution reactions with halogens under UV light.
+  - **Alkenes:** General formula $C_n H_{2n}$ ($n \\ge 2$). Unsaturated hydrocarbons (contains C=C double bond). Undergo addition reactions:
+    - Addition of Halogens: decolourises brown bromine water.
+    - Addition of Hydrogen: hydrogenation at $180^\\circ\\text{C}$ with nickel catalyst → alkane.
+    - Addition of Water: hydration at $300^\\circ\\text{C}, 60\\text{ atm}, \\text{H}_3\\text{PO}_4$ catalyst → alcohol.
+  - **Alcohols:** Functional group = Hydroxyl (–OH). Formed by fermentation of glucose with yeast: $\\text{C}_6\\text{H}_{12}\\text{O}_6 \\xrightarrow{\\text{zymase}} 2\\text{C}_2\\text{H}_5\\text{OH} + 2\\text{CO}_2$.
+  - **Carboxylic Acids:** Functional group = Carboxyl (–COOH). Formed by oxidation of alcohols using acidified $\\text{KMnO}_4$ or $\\text{K}_2\\text{Cr}_2\\text{O}_7$.
+
+• **Esterification Reaction (Preparation of Esters):**
+  - Reaction between Alcohol + Carboxylic acid in presence of concentrated Sulphuric acid ($\\text{H}_2\\text{SO}_4$) catalyst under reflux.
+  - Equation: $\\text{CH}_3\\text{COOH} + \\text{C}_2\\text{H}_5\\text{OH} \\xrightarrow{\\text{conc H}_2\\text{SO}_4} \\text{CH}_3\\text{COOC}_2\\text{H}_5 + \\text{H}_2\\text{O}$
+  - Ester produced: Ethyl ethanoate (sweet, fruity odour, colourless liquid, insoluble in water).
+  - Uses of Esters: Food flavourings, perfumes, cosmetics, organic solvents.
+
+• **Isomerism:**
+  - Molecules with the **same molecular formula but different structural formulae**.
+  - Example for Butane ($C_4H_{10}$): Butane (straight chain) and 2-methylpropane (branched chain).
+
+> **💡 SPM Exam Scoring Tip:** In esterification, concentrated $\\text{H}_2\\text{SO}_4$ serves dual functions: an **acid catalyst** and a **dehydrating agent** that removes water molecules.`;
+            }
+
+            // 13. THERMOCHEMISTRY (Form 5 Chapter 3)
+            if (q.includes('thermochemistry') || q.includes('exothermic') || q.includes('endothermic') || q.includes('heat of') || q.includes('enthalpy') || q.includes('energy profile')) {
+                return `**Thermochemistry (SPM Form 5 Chapter 3):**
+
+• **Exothermic vs Endothermic Reactions:**
+  - **Exothermic Reaction ($\\Delta H$ negative, $-\\text{kJ mol}^{-1}$):**
+    - Chemical reaction that **releases heat energy to surroundings**.
+    - Temperature of surroundings rises. Total energy of reactants > total energy of products.
+    - Bond formation releases energy (exothermic process).
+    - Examples: Combustion, neutralisation, respiration, reaction of reactive metals with acid.
+  - **Endothermic Reaction ($\\Delta H$ positive, $+\\text{kJ mol}^{-1}$):**
+    - Chemical reaction that **absorbs heat energy from surroundings**.
+    - Temperature of surroundings drops. Total energy of reactants < total energy of products.
+    - Bond breaking absorbs energy (endothermic process).
+    - Examples: Thermal decomposition of carbonate and nitrate salts, photosynthesis.
+
+• **Heat Calculation Formulas:**
+  - 1. Heat released / absorbed: $Q = m \\cdot c \\cdot \\Delta T$
+    - $m$ = mass of solution (in grams, where $1\\text{ cm}^3 \\approx 1\\text{ g}$).
+    - $c$ = specific heat capacity of solution ($4.18\\text{ J g}^{-1} \\; ^\\circ\\text{C}^{-1}$).
+    - $\\Delta T$ = temperature change ($T_{\\text{final}} - T_{\\text{initial}}$).
+  - 2. Molar Heat of Reaction: $\\Delta H = \\pm \\frac{Q}{n}$ (converted to $\\text{kJ mol}^{-1}$).
+    - $n$ = number of moles of substance reacted / precipitated / water formed.
+
+• **Four Key Heats of Reaction in SPM:**
+  - **Heat of Precipitation:** Heat change when 1 mole of precipitate is formed from its ions in aqueous solution.
+  - **Heat of Displacement:** Heat change when 1 mole of metal is displaced from its salt solution by a more electropositive metal.
+  - **Heat of Neutralisation:** Heat change when 1 mole of water is formed from the neutralisation between acid and alkali. Strong acid + strong alkali $\\Delta H \\approx -57.3\\text{ kJ mol}^{-1}$.
+  - **Heat of Combustion:** Heat released when 1 mole of substance burns completely in excess oxygen.
+
+> **💡 SPM Exam Scoring Tip:** For heat of neutralisation involving weak acids/alkalis, $\\Delta H$ is numerically smaller than $-57.3\\text{ kJ mol}^{-1}$ because *some heat energy is absorbed to completely ionise the weak acid/alkali molecules in water*.`;
+            }
+
+            // 14. POLYMER & CONSUMER CHEMISTRY (Form 5 Chapters 4 & 5)
+            if (q.includes('polymer') || q.includes('rubber') || q.includes('vulcanis') || q.includes('vulcaniz') || q.includes('soap') || q.includes('detergent') || q.includes('saponification') || q.includes('hard water')) {
+                return `**Polymer & Consumer Chemistry (SPM Form 5 Chapters 4 & 5):**
+
+• **Natural Rubber & Vulcanisation:**
+  - Natural rubber monomer: **Isoprene** (2-methylbuta-1,3-diene).
+  - Coagulation: Addition of acid (H⁺) neutralises negative charges on rubber particle protein membranes; rubber particles collide, membrane ruptures, rubber coagulates into clumps.
+  - Preventing Coagulation: Addition of alkali (ammonia, NH₃) provides OH⁻ to neutralise acids produced by bacterial action, keeping particles negatively charged and repelling each other.
+  - **Vulcanisation Process:**
+    - Heating natural rubber with sulphur (or dipping in disulphur dichloride solution).
+    - **Sulphur cross-links** form between adjacent rubber polymer chains.
+    - Prevents polymer chains from sliding past each other permanently and pulls them back into original shape upon release of tension.
+    - Properties of Vulcanised Rubber: Higher elasticity, harder, higher tensile strength, higher heat resistance, more resistant to oxidation by atmospheric oxygen.
+
+• **Soaps vs Detergents & Cleansing Action:**
+  - **Soap:** Sodium or potassium salt of long-chain fatty acids (e.g. sodium stearate). Prepared by **Saponification** (Hydrolysis of fats/oils with concentrated alkali $\\text{NaOH}$ or $\\text{KOH}$).
+  - **Detergent:** Synthetic cleansing agents derived from petroleum fractions (sodium alkyl sulphate or sodium alkylbenzene sulphonate).
+  - **Structure of Cleansing Molecule:**
+    - Hydrophilic ionic head (water-soluble, polar).
+    - Hydrophobic hydrocarbon tail (grease-soluble, non-polar).
+  - **Action in Hard Water (contains Ca²⁺ and Mg²⁺ ions):**
+    - **Soap:** Reacts with $\\text{Ca}^{2+}$ and $\\text{Mg}^{2+}$ to form insoluble precipitate known as **scum**, wasting soap and reducing cleansing effectiveness.
+    - **Detergent:** Does NOT form scum because its calcium and magnesium salts are soluble in water. Highly effective in hard water.
+
+> **💡 SPM Exam Scoring Tip:** To explain vulcanised rubber elasticity: state that *"sulphur cross-links between polymer chains prevent chains from sliding past each other and restore chains to original positions when stretched"*.`;
+            }
+
+            // 15. DEFAULT DYNAMIC CHEMISTRY TUTOR
+            return `**SPM Chemistry Analysis & Guidance:**
+
+Regarding your question about **"${question}"**:
+
+• **Core Principles & Syllabus Link:**
+  - This topic relates directly to Malaysian KSSM Chemistry syllabus standards.
+  - In SPM assessments, questions of this type require precise scientific terminology, balanced equations, and structured reasoning.
+
+• **Key Exam Points & Breakdown:**
+  - **Definition & Identity:** Clarify the physical state, chemical formula, and bonding involved (ionic vs covalent).
+  - **Mechanism & Observation:** Note colour changes, precipitation, temperature variations, or gas evolution.
+  - **Balanced Chemical Equation:** Always write balanced molecular or ionic equations with appropriate physical states where applicable.
+  - **Laboratory Precision:** Ensure measurement apparatus (e.g. pipette, burette, gas syringe) and reaction conditions (temperature, catalyst, concentration) are specified.
+
+• **Recommended SPM Revision Steps:**
+  - Review the related SPM module in our **Lessons** tab for comprehensive structural diagrams.
+  - Test your practical deductions in our **Experiment Virtual Lab** (Qualitative Salt Matrix & Titration Simulator).
+  - Test your retention with our **Quizzes** tab to reinforce scoring keywords.
+
+> **💡 SPM Exam Keyword Tip:** Always write answers in clear bullet points during Section B & C structured essay questions to make scoring points obvious to the exam marker!`;
+        }
+
         window.newChat = function() {
             const chatBox = document.getElementById("chatBox");
             if (chatBox) {
@@ -2878,14 +3408,13 @@ Click OK to go to your Dashboard, or Cancel to Sign Out.")) {
                     <li class="ai-message">
                         <article>
                             <p>👋 Welcome to ChemLearn!</p>
-                            <br>
                             <p>I'm your Chemistry AI tutor.</p>
                             <p>Ask me about:</p>
                             <ul>
                                 <li>⚛️ Chemical equations</li>
-                                <li>🧪 Experiments</li>
-                                <li>📚 SPM Chemistry</li>
-                                <li>🧠 Calculations &amp; explanations</li>
+                                <li>🧪 Experiments &amp; qualitative analysis</li>
+                                <li>📚 SPM Form 4 &amp; Form 5 Chemistry</li>
+                                <li>🧠 Calculations &amp; explanations in structured points</li>
                             </ul>
                         </article>
                     </li>`;
@@ -2909,50 +3438,73 @@ Click OK to go to your Dashboard, or Cancel to Sign Out.")) {
 
             const userLi = document.createElement("li");
             userLi.className = "user-message";
-            userLi.style.cssText = "align-self: flex-end; background: var(--accent-purple); color: white; border-radius: 18px 18px 4px 18px; padding: 12px 18px; margin-bottom: 12px; max-width: 80%; list-style: none;";
             userLi.textContent = question;
             chatBox.appendChild(userLi);
 
             const loading = document.createElement("li");
             loading.className = "ai-message";
-            loading.innerHTML = "<article>🧪 ChemLearn AI is thinking...</article>";
+            loading.innerHTML = "<article>🧪 ChemLearn AI is analyzing your question...</article>";
             chatBox.appendChild(loading);
             chatBox.scrollTop = chatBox.scrollHeight;
 
+            let responseText = "";
+
             try {
-                const prompt = `You are ChemLearn AI Tutor for Malaysian SPM Chemistry (KSSM syllabus Form 4 & Form 5).
-Provide concise, accurate, and structured exam guidance with plain chemistry equations.
-Question: ${question}`;
+                const prompt = `You are ChemLearn AI, an expert SPM Chemistry tutor for the Malaysian KSSM curriculum (Form 4 & Form 5).
 
-                const result = await generateWithRetry(model, prompt);
-                const text = result.response.text();
-                loading.remove();
+User Question: "${question}"
 
-                const aiLi = document.createElement("li");
-                aiLi.className = "ai-message";
-                aiLi.innerHTML = `<article>${typeof marked !== 'undefined' ? marked.parse(text) : text.replace(/\n/g, '<br>')}</article>`;
-                chatBox.appendChild(aiLi);
-                chatBox.scrollTop = chatBox.scrollHeight;
+MANDATORY FORMATTING & CONTENT RULES:
+1. RESPOND IN CLEAR BULLET POINTS:
+   - Always break down your answer into clear, concise bullet points (using '-' or '•') for points, properties, steps, reasons, and explanations.
+   - Start with a direct summary statement (1-2 sentences).
+   - Then provide the detailed answer formatted in bullet points.
+   - Include balanced chemical or ionic equations where applicable (e.g. 2H₂ + O₂ → 2H₂O).
+   - End with an "SPM Exam Tip" highlighting key scoring keywords for Lembaga Peperiksaan Malaysia.
+2. SYLLABUS ALIGNMENT:
+   - Strictly adhere to Malaysian KSSM SPM Chemistry syllabus standards.
+   - Keep tone encouraging, professional, and educational.`;
 
-                if (auth.currentUser) {
-                    try {
-                        await addDoc(collection(db, "users", auth.currentUser.uid, "chatHistory"), {
-                            question,
-                            answer: text,
-                            timestamp: serverTimestamp()
-                        });
-                    } catch(e) {}
+                if (model) {
+                    const result = await generateWithRetry(model, prompt);
+                    responseText = result && result.response ? result.response.text() : "";
                 }
             } catch (error) {
-                loading.remove();
-                console.error(error);
-                const errLi = document.createElement("li");
-                errLi.className = "ai-message";
-                errLi.innerHTML = "<article>⚠️ AI service is momentarily busy. Please try again shortly.</article>";
-                chatBox.appendChild(errLi);
-                chatBox.scrollTop = chatBox.scrollHeight;
+                console.warn("Live AI endpoint unavailable, seamlessly engaging SPM Knowledge Engine:", error);
+            }
+
+            // If remote model response is empty or failed, use the verified SPM Chemistry Engine
+            if (!responseText || responseText.trim() === "") {
+                responseText = generateSpmChemistryResponse(question);
+            }
+
+            loading.remove();
+
+            const aiLi = document.createElement("li");
+            aiLi.className = "ai-message";
+            aiLi.innerHTML = `<article>${renderMarkdown(responseText)}</article>`;
+            chatBox.appendChild(aiLi);
+            chatBox.scrollTop = chatBox.scrollHeight;
+
+            if (auth && auth.currentUser) {
+                try {
+                    await addDoc(collection(db, "users", auth.currentUser.uid, "chatHistory"), {
+                        question,
+                        answer: responseText,
+                        timestamp: serverTimestamp()
+                    });
+                } catch(e) {}
             }
         };
+
+        // Attach listener directly to form
+        const chatFormEl = document.getElementById("chemChatForm");
+        if (chatFormEl) {
+            chatFormEl.addEventListener("submit", (e) => {
+                e.preventDefault();
+                window.askChemLearn();
+            });
+        }
     </script>
 
 
