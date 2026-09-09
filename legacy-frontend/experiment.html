@@ -322,66 +322,6 @@
     position: absolute; bottom: 2px; left: 2px; right: 2px; height: 14px;
     border-radius: 0 0 8px 8px; transition: background-color 0.8s cubic-bezier(0.4, 0, 0.2, 1);
 }
-/* --- LABORATORY SAFETY COMMAND BAR --- */
-.lab-safety-command-bar {
-    background: #0f172a;
-    border-bottom: 1px solid #1e293b;
-    color: #f8fafc;
-    padding: 8px 24px;
-    font-size: 0.82rem;
-    position: relative;
-    z-index: 1000;
-}
-.safety-command-inner {
-    max-width: 1200px;
-    margin: 0 auto;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 16px;
-    flex-wrap: wrap;
-}
-.safety-indicator-group {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    flex-wrap: wrap;
-}
-.safety-indicator-pill {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    background: rgba(255, 255, 255, 0.08);
-    border: 1px solid rgba(255, 255, 255, 0.14);
-    padding: 4px 12px;
-    border-radius: 9999px;
-    color: #cbd5e1;
-    font-size: 0.78rem;
-}
-.safety-indicator-pill strong { color: #ffffff; }
-.safety-indicator-pill.warning-pill {
-    background: rgba(245, 158, 11, 0.15);
-    border-color: rgba(245, 158, 11, 0.3);
-    color: #fde68a;
-}
-.safety-protocol-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    background: #6d28d9;
-    color: #ffffff;
-    border: none;
-    padding: 6px 14px;
-    border-radius: 8px;
-    font-size: 0.8rem;
-    font-weight: 700;
-    cursor: pointer;
-    transition: background 0.2s, transform 0.1s;
-}
-.safety-protocol-btn:hover {
-    background: #7c3aed;
-    transform: translateY(-1px);
-}
 
 /* --- SAFETY MODAL --- */
 .safety-modal-overlay {
@@ -620,20 +560,6 @@
                     <div class="skeleton-box" style="width: 100%; height: 140px; border-radius: 16px;"></div>
                 </div>
             </div>
-        </div>
-    </div>
-    <!-- LABORATORY SAFETY COMMAND BAR (CHEMLEARN PROTOCOL) -->
-    <div class="lab-safety-command-bar">
-        <div class="safety-command-inner">
-            <div class="safety-indicator-group">
-                <span class="safety-indicator-pill"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle; margin-right:4px;"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> 🥽 <strong>Safety Mandatory:</strong> Splash Goggles &amp; Lab Coat Required</span>
-                <span class="safety-indicator-pill"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle; margin-right:4px;"><path d="M17.7 7.7a2.5 2.5 0 1 1 1.8 4.3H2"/><path d="M9.6 4.6A2 2 0 1 1 11 8H2"/><path d="M12.6 19.4A2 2 0 1 0 14 16H2"/></svg> 🛡️ <strong>Ventilation:</strong> Fume Cupboard for Toxic Gas Tests</span>
-                <span class="safety-indicator-pill warning-pill"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle; margin-right:4px;"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> ⚠️ <strong>Ch 8 Protocol:</strong> High-Temp Furnace Sintering Restricted</span>
-            </div>
-            <button type="button" class="safety-protocol-btn" onclick="openSafetyModal()">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle; margin-right:4px;"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-                Safety Protocol Manual
-            </button>
         </div>
     </div>
 
