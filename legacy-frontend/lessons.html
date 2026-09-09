@@ -535,37 +535,104 @@
             color: #ffffff;
         }
 
-        /* --- SITEMAP FOOTER --- */
+        /* --- ENTERPRISE FOOTER --- */
         .footer-wrapper {
-            background-color: #ffffff;
-            border-top: 1px solid #edf2f7;
-            padding: 40px 10% 30px 10%;
-            width: 100%;
+            background: #ffffff !important;
+            border-top: 1px solid #e2e8f0 !important;
+            padding: 60px 10% 32px !important;
             margin-top: auto;
+            width: 100%;
         }
 
         .footer-grid-row {
-            display: grid;
-            grid-template-columns: 2fr 1fr 1fr;
-            gap: 40px;
+            display: grid !important;
+            grid-template-columns: 2fr 1.1fr 1.1fr 1.2fr !important;
+            gap: 36px !important;
+            margin-bottom: 40px !important;
         }
 
         .footer-brand-side p {
-            font-family: 'Inter', sans-serif;
-            font-size: 0.9rem;
-            color: #718096;
-            line-height: 1.5;
-            margin-top: 12px;
-            max-width: 340px;
+            font-size: 0.88rem !important;
+            color: #64748b !important;
+            line-height: 1.6 !important;
+            margin: 12px 0 16px !important;
         }
 
-        .footer-column h4 { font-size: 0.95rem; font-weight: 700; color: #1a202c; margin-bottom: 14px; }
-        .footer-column ul { list-style: none; }
-        .footer-column ul li { margin-bottom: 8px; }
-        .footer-column ul li a { text-decoration: none; font-family: 'Inter', sans-serif; font-size: 0.9rem; color: #718096; }
-        .footer-column ul li a:hover { color: var(--nav-active); }
-        .footer-bottom-bar { border-top: 1px solid #edf2f7; padding-top: 20px; text-align: center; }
-        .footer-bottom-bar p { font-family: 'Inter', sans-serif; font-size: 0.85rem; color: #a0aec0; }
+        .legal-entity-details {
+            font-size: 0.8rem;
+            color: #64748b;
+            line-height: 1.55;
+            border-top: 1px solid #f1f5f9;
+            padding-top: 12px;
+        }
+
+        .legal-entity-details strong {
+            color: #0f172a;
+        }
+
+        .footer-column h4 {
+            font-size: 0.95rem !important;
+            font-weight: 700 !important;
+            color: #0f172a !important;
+            margin-bottom: 16px !important;
+            letter-spacing: -0.01em;
+        }
+
+        .footer-column ul {
+            list-style: none !important;
+        }
+
+        .footer-column ul li {
+            margin-bottom: 10px !important;
+        }
+
+        .footer-column ul li a,
+        .footer-column ul li button {
+            text-decoration: none !important;
+            font-size: 0.88rem !important;
+            color: #64748b !important;
+            transition: color 0.2s;
+            background: none;
+            border: none;
+            padding: 0;
+            cursor: pointer;
+            font-family: inherit;
+        }
+
+        .footer-column ul li a:hover,
+        .footer-column ul li button:hover {
+            color: var(--accent-purple, #6d28d9) !important;
+        }
+
+        .footer-bottom-bar {
+            border-top: 1px solid #f1f5f9 !important;
+            padding-top: 24px !important;
+            display: flex !important;
+            justify-content: space-between !important;
+            align-items: center !important;
+            flex-wrap: wrap !important;
+            gap: 12px !important;
+            font-size: 0.82rem !important;
+            color: #94a3b8 !important;
+        }
+
+        @media (max-width: 900px) {
+            .footer-grid-row {
+                grid-template-columns: 1fr 1fr !important;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .footer-grid-row {
+                grid-template-columns: 1fr !important;
+                gap: 28px !important;
+            }
+
+            .footer-bottom-bar {
+                flex-direction: column !important;
+                text-align: center !important;
+            }
+        }
 
         @media (max-width: 1024px) {
             .media-grid { grid-template-columns: repeat(2, 1fr); }
@@ -868,30 +935,50 @@
         </div>
     </div>
 
-    <footer class="footer-wrapper">
+    <footer class="footer-wrapper" aria-label="Main Footer">
         <div class="footer-grid-row">
             <div class="footer-brand-side">
-                <a href="index.html" class="brand-logo" style="text-decoration:none; color:#0f172a; font-weight:700;">ChemLearn</a>
-                <p>Master chemistry concepts through interactive lessons, quizzes, and comprehensive study materials.</p>
+                <a href="index.html" class="brand-logo footer-logo">ChemLearn <span>AI</span></a>
+                <p>Master Malaysian SPM Form 4 &amp; 5 Chemistry through interactive simulations, qualitative salt analysis, and automated KSSM essay evaluations.</p>
+                <div class="legal-entity-details">
+                    <strong>ChemLearn Educational Technologies Sdn. Bhd.</strong><br>
+                    SSM Reg. No.: 202401038492 (1542381-X)<br>
+                    Level 14, Menara Southgate, No. 2 Jalan Dua, Off Jalan Chan Sow Lin, 55200 Kuala Lumpur, Malaysia<br>
+                    Official Support: <a href="mailto:support@chemlearn.my" style="color:var(--accent-purple, #6d28d9); font-weight:600;">support@chemlearn.my</a>
+                </div>
             </div>
             <div class="footer-column">
-                <h4>Quick Links</h4>
+                <h4>Syllabus &amp; Notes</h4>
                 <ul>
-                    <li><a href="lessons.html">Browse Lessons</a></li>
-                    <li><a href="quizzes.html">Take Quizzes</a></li>
-                    <li><a href="resources.html">Study Resources</a></li>
+                    <li><a href="lessons.html">Form 4 Lessons</a></li>
+                    <li><a href="quizzes.html">Practice Quizzes</a></li>
+                    <li><a href="resources.html">Study Guides &amp; Formulas</a></li>
+                    <li><a href="experiments/chapter-8.html">Chapter 8 Notes</a></li>
                 </ul>
             </div>
             <div class="footer-column">
-                <h4>Legal</h4>
+                <h4>Interactive Labs</h4>
                 <ul>
-                    <li><a href="privacy-policy.html">Privacy Policy</a></li>
+                    <li><a href="experiments/qualitative-sim.html">Salt Analysis Matrix</a></li>
+                    <li><a href="experiments/essay-grader.html">AI Essay Grader</a></li>
+                    <li><a href="experiments/alloy-sim.html">Alloy Lattice Physics</a></li>
+                    <li><a href="experiments/titration-sim.html">Acid-Base Titration</a></li>
+                    <li><a href="experiments/srs-flashcards.html">SM-2 Flashcards</a></li>
+                </ul>
+            </div>
+            <div class="footer-column">
+                <h4>Legal &amp; Trust</h4>
+                <ul>
+                    <li><a href="privacy-policy.html">Privacy Policy (PDPA)</a></li>
                     <li><a href="terms-of-service.html">Terms of Service</a></li>
+                    <li><button type="button" id="footerCookiePrefsBtn" onclick="if(window.openPreferences){window.openPreferences();}else{window.location.href='index.html#cookie-prefs';}">Cookie Settings</button></li>
+                    <li><a href="thank-you.html">Getting Started</a></li>
                 </ul>
             </div>
         </div>
         <div class="footer-bottom-bar">
-            <p>&copy; 2026 ChemLearn. All rights reserved.</p>
+            <p>&copy; 2026 ChemLearn Educational Technologies Sdn. Bhd. All rights reserved.</p>
+            <p>Independent supplementary revision software aligned with KSSM curriculum. Not affiliated with Lembaga Peperiksaan Malaysia.</p>
         </div>
     </footer>
 
