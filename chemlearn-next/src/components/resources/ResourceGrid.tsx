@@ -57,18 +57,6 @@ const RESOURCES_DATA: ResourceItem[] = [
       { label: 'Download Comic', url: '/downloads/comic-alloys.jpg', type: 'image' },
     ],
   },
-  {
-    id: 'res-alloys-4',
-    topicId: 'alloys',
-    topicLabel: '8.1 Alloys',
-    topicTagColor: 'text-purple-600',
-    topicBgColor: 'bg-purple-100/80',
-    title: 'Interstellar Superalloys',
-    description: 'Discover how alloying transforms ordinary metals into stronger, more durable, and versatile materials that are widely used in modern technology, construction, transportation, and everyday products.',
-    buttons: [
-      { label: 'Download Infographic Note', url: '/downloads/infographic-alloys.jpg', type: 'image' },
-    ],
-  },
 
   // 8.2 Glass
   {
@@ -108,18 +96,6 @@ const RESOURCES_DATA: ResourceItem[] = [
       { label: 'Download Infographic Note', url: '/downloads/infographic-glass.jpg', type: 'image' },
     ],
   },
-  {
-    id: 'res-glass-4',
-    topicId: 'glass',
-    topicLabel: '8.2 Glass',
-    topicTagColor: 'text-emerald-600',
-    topicBgColor: 'bg-emerald-100/80',
-    title: 'Journey Through Glass',
-    description: 'Understand the structure, properties, and classifications of glass materials through comprehensive summary charts and exam notes.',
-    buttons: [
-      { label: 'Download Notes (English)', url: '/downloads/notes-glass-en.jpg', type: 'image' },
-    ],
-  },
 
   // 8.3 Ceramics
   {
@@ -145,6 +121,7 @@ const RESOURCES_DATA: ResourceItem[] = [
     description: 'Explore traditional and advanced ceramics, high-temperature superconductors, and structural applications across modern technology.',
     buttons: [
       { label: 'Download Infographic Note', url: '/downloads/infographic-ceramics.jpg', type: 'image' },
+      { label: 'Download Notes (Part 1)', url: '/downloads/notes-ceramics-p1.jpg', type: 'image' },
       { label: 'Download Notes (Part 2)', url: '/downloads/notes-ceramics-p2.jpg', type: 'image' },
     ],
   },
@@ -174,7 +151,6 @@ const RESOURCES_DATA: ResourceItem[] = [
     description: 'Explore fiber-reinforced polymers, reinforced concrete, and advanced superconductors with real-world applications.',
     buttons: [
       { label: 'Download Infographic Note', url: '/downloads/infographic-composites.jpg', type: 'image' },
-      { label: 'Download Comic', url: '/downloads/comic-composites.jpg', type: 'image' },
     ],
   },
 ];
