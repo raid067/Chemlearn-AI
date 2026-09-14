@@ -641,7 +641,7 @@ export function evaluateQuizAnswers(
       });
     } else {
       const structured = q as AuthoritativeStructuredQuestion;
-      const maxMarks = structured.marks || 2;
+      const maxMarks = structured.marks !== undefined ? structured.marks : 2;
       const grading = gradeStructuredDeterministic(
         typeof studentAnswer === 'string' ? studentAnswer : String(studentAnswer || ''),
         structured.expectedAnswer,
@@ -663,7 +663,7 @@ export function evaluateQuizAnswers(
 
   const maxPossible = type === 'MCQ'
     ? total
-    : questions.reduce((sum, q) => sum + ((q as AuthoritativeStructuredQuestion).marks || 2), 0);
+    : questions.reduce((sum, q) => sum + ((q as AuthoritativeStructuredQuestion).marks !== undefined ? (q as AuthoritativeStructuredQuestion).marks! : 2), 0);
   const percentage = maxPossible > 0 ? Math.round((score / maxPossible) * 100) : 0;
   return { score, percentage, total, breakdown };
 }
