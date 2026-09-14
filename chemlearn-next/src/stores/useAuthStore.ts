@@ -75,8 +75,8 @@ export const useAuthStore = create<AuthState>((set) => ({
             const db = getFirestore(app);
             const docSnap = await getDoc(doc(db, 'teachers', user.uid));
             isTeacher = docSnap.exists();
-          } catch (e) {
-            console.warn("Failed to check teacher document status:", e);
+          } catch {
+            // Ignore error
           }
         }
 
