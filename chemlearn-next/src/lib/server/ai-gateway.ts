@@ -140,14 +140,17 @@ function getCachedResponse<T>(key: string): T | null {
   return entry.data as T;
 }
 
+let nextIdempotencyCleanup = 0;
+
 function setCachedResponse<T>(key: string, data: T, ttlMs = 45000): void {
-  if (idempotencyCache.size > 300) {
-    const now = Date.now();
+  const now = Date.now();
+  if (idempotencyCache.size > 300 && now > nextIdempotencyCleanup) {
     for (const [k, v] of idempotencyCache.entries()) {
       if (v.expiresAt <= now) idempotencyCache.delete(k);
     }
+    nextIdempotencyCleanup = now + 1000;
   }
-  idempotencyCache.set(key, { data, expiresAt: Date.now() + ttlMs });
+  idempotencyCache.set(key, { data, expiresAt: now + ttlMs });
 }
 
 export interface DistributedIdempotencyRecord {
