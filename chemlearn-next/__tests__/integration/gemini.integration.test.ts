@@ -30,8 +30,8 @@ describe('Gemini Integration Test Suite (Phase 2)', () => {
 
     it('resolves capability profile safely for unlisted models', () => {
       const customCap = getModelCapability('custom-future-gemini');
-      expect(customCap.model).toBe('custom-future-gemini');
-      expect(customCap.supportsTopK).toBe(false); // conservative defaults
+      expect(customCap.model).toBe(MODEL_CAPABILITIES.fallback.model);
+      expect(customCap.supportsTopK).toBe(true);
       expect(customCap.supportsJson).toBe(true);
     });
 

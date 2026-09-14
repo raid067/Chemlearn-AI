@@ -65,19 +65,14 @@ export const GEMINI_MODELS = {
  * Resolves capability profile for a given model string.
  */
 export function getModelCapability(modelName: string): ModelCapability {
-  for (const cap of Object.values(MODEL_CAPABILITIES)) {
-    if (cap.model === modelName) return cap;
-  }
-  return {
-    model: modelName,
-    supportsTemperature: true,
-    supportsTopP: true,
-    supportsTopK: false,
-    supportsMaxOutputTokens: true,
-    supportsJson: true,
-    supportsVision: true,
-    supportsSystemInstruction: true,
-  };
+  // Default to light capabilities if unknown
+  const isPro = modelName.includes('pro');
+  const isFlash = modelName.includes('flash');
+
+  if (isPro) return MODEL_CAPABILITIES.primary;
+  if (isFlash) return MODEL_CAPABILITIES.light;
+
+  return MODEL_CAPABILITIES.fallback;
 }
 
 export interface GeminiCallOptions {
