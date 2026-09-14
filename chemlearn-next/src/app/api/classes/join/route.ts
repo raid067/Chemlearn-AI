@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { requireAuth, AuthError } from '@/lib/server/auth';
 import { adminDb } from '@/lib/firebase-admin';
 import { FieldValue } from 'firebase-admin/firestore';
-import { isRateLimitedAsync } from '@/lib/rate-limit';
+import { isRateLimited } from '@/lib/rate-limit';
 import { joinClassSchema } from '@/lib/validations';
 import { errorResponse } from '../../ai/_helpers';
 import { parseSecureJson, RequestPayloadError, MAX_BODY_LIMITS } from '@/lib/server/request-guard';
@@ -11,7 +11,7 @@ export async function POST(req: NextRequest) {
   try {
     const user = await requireAuth(req);
 
-    if (await isRateLimitedAsync('class-join', user.uid, 5, 60_000)) {
+    if (await isRateLimited('class-join', user.uid, 5, 60_000)) {
       return NextResponse.json(
         { error: 'Too many join attempts. Please wait a minute.' },
         { status: 429 }

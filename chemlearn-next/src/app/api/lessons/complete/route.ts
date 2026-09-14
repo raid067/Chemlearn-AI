@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireAuth, AuthError } from '@/lib/server/auth';
 import { awardXPEvent, updateAuthoritativeStreak } from '@/lib/server/gamification';
-import { isRateLimitedAsync } from '@/lib/rate-limit';
+import { isRateLimited } from '@/lib/rate-limit';
 import { CHAPTERS } from '@/lib/constants';
 import { errorResponse } from '../../ai/_helpers';
 import { parseSecureJson, RequestPayloadError, MAX_BODY_LIMITS } from '@/lib/server/request-guard';
@@ -17,7 +17,7 @@ export async function POST(req: NextRequest) {
     const user = await requireAuth(req);
 
     // Rate limit: 10 completions per minute per student
-    if (await isRateLimitedAsync('lesson-complete', user.uid, 10, 60_000)) {
+    if (await isRateLimited('lesson-complete', user.uid, 10, 60_000)) {
       return NextResponse.json(
         { error: 'Too many lesson completion requests. Please wait a moment.' },
         { status: 429 }

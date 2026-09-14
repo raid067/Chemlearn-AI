@@ -1,59 +1,59 @@
 /**
- * Simple in-memory rate limiter for API routes.
- * Uses a sliding window counter per user UID.
+ * Distributed rate limiter for API routes.
  * 
- * NOTE: This is per-instance. In a serverless environment (Firebase Hosting / Vercel),
- * each cold start gets its own Map. For production at scale, consider
- * Redis or Firestore-based rate limiting. This still provides meaningful
- * protection against rapid-fire abuse within a single instance.
- * 
- * TODO(production-readiness): Replace this in-memory sliding window limiter with a
- * centralized distributed limiter (e.g. Upstash Redis / Cloud Firestore with TTL)
- * before taking real user traffic. Because Gemini LLM inference incurs direct API
- * costs and quotas, distributed rate limiting is the sole barrier against distributed
- * abuse across auto-scaling serverless container instances.
+ * NOTE: For production at scale, consider Redis or Firestore-based rate limiting.
+ * This file replaces the old in-memory per-instance sliding window with a
+ * centralized distributed limiter (Firestore with TTL) fallback,
+ * protecting against rapid-fire abuse.
  */
-
-interface RateLimitEntry {
-  count: number;
-  resetAt: number;
-}
-
-const limiters = new Map<string, Map<string, RateLimitEntry>>();
+import { adminDb } from '@/lib/firebase-admin';
 
 /**
- * Check if a request should be rate-limited using synchronous in-memory storage.
- * @param key - A unique key for the rate limit bucket (e.g. route name)
- * @param uid - The user's UID
- * @param maxRequests - Maximum requests allowed in the window
- * @param windowMs - Time window in milliseconds
- * @returns true if the request should be BLOCKED, false if allowed
+ * Fallback rate limiter using Cloud Firestore.
+ * Supports TTL index on `resetAt` field if configured.
  */
-export function isRateLimited(
+async function firestoreFallbackRateLimiter(
   key: string,
   uid: string,
-  maxRequests: number = 10,
-  windowMs: number = 60_000
-): boolean {
-  if (!limiters.has(key)) {
-    limiters.set(key, new Map());
-  }
-
-  const bucket = limiters.get(key)!;
+  maxRequests: number,
+  windowMs: number
+): Promise<boolean> {
+  const docRef = adminDb.collection('rate_limits').doc(`${key}_${uid}`);
   const now = Date.now();
-  const entry = bucket.get(uid);
 
-  if (!entry || now >= entry.resetAt) {
-    bucket.set(uid, { count: 1, resetAt: now + windowMs });
-    return false;
-  }
+  try {
+    return await adminDb.runTransaction(async (transaction) => {
+      const doc = await transaction.get(docRef);
 
-  entry.count++;
-  if (entry.count > maxRequests) {
+      if (!doc.exists) {
+        transaction.set(docRef, {
+          count: 1,
+          resetAt: new Date(now + windowMs),
+        });
+        return false;
+      }
+
+      const data = doc.data()!;
+      const resetAt = data.resetAt?.toMillis ? data.resetAt.toMillis() : (data.resetAt || 0);
+
+      if (now >= resetAt) {
+        transaction.set(docRef, {
+          count: 1,
+          resetAt: new Date(now + windowMs),
+        });
+        return false;
+      }
+
+      const newCount = (data.count || 0) + 1;
+      transaction.update(docRef, { count: newCount });
+
+      return newCount > maxRequests;
+    });
+  } catch (err) {
+    console.error('[rate-limit] Firestore fallback transaction failed:', err);
+    // Fail closed on error if we can't verify rate limits
     return true;
   }
-
-  return false;
 }
 
 export class RateLimitError extends Error {
@@ -83,7 +83,7 @@ export interface RateLimitOptions {
  * In development or testing, automatically falls back to in-memory sliding window limiter.
  * @returns true if the request should be BLOCKED, false if allowed
  */
-export async function isRateLimitedAsync(
+export async function isRateLimited(
   key: string,
   uid: string,
   maxRequests: number = 10,
@@ -104,7 +104,7 @@ export async function isRateLimitedAsync(
   }
 
   if (!upstashUrl || !upstashToken) {
-    return isRateLimited(key, uid, maxRequests, windowMs);
+    return await firestoreFallbackRateLimiter(key, uid, maxRequests, windowMs);
   }
 
   try {
@@ -130,8 +130,8 @@ export async function isRateLimitedAsync(
           'RATE_LIMIT_UNAVAILABLE'
         );
       }
-      console.warn('[rate-limit] Upstash Redis request failed, using in-memory limiter');
-      return isRateLimited(key, uid, maxRequests, windowMs);
+      console.warn('[rate-limit] Upstash Redis request failed, using firestore fallback limiter');
+      return await firestoreFallbackRateLimiter(key, uid, maxRequests, windowMs);
     }
 
     const data = (await response.json()) as Array<{ result: number }>;
@@ -158,8 +158,8 @@ export async function isRateLimitedAsync(
         'RATE_LIMIT_UNAVAILABLE'
       );
     }
-    console.warn('[rate-limit] Distributed limiter exception, using in-memory fallback:', err);
-    return isRateLimited(key, uid, maxRequests, windowMs);
+    console.warn('[rate-limit] Distributed limiter exception, using firestore fallback:', err);
+    return await firestoreFallbackRateLimiter(key, uid, maxRequests, windowMs);
   }
 }
 

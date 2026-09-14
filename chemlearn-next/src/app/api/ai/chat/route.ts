@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireAuth, AuthError } from '@/lib/server/auth';
 import { errorResponse } from '../_helpers';
-import { isRateLimitedAsync } from '@/lib/rate-limit';
+import { isRateLimited } from '@/lib/rate-limit';
 import { aiChatSchema } from '@/lib/validations';
 import { validateImageBase64, ImageValidationError } from '@/lib/server/image-validator';
 import { secureGenerateAI, wrapUntrustedInput, SYSTEM_SAFETY_GUARDRAIL, AIGatewayError } from '@/lib/server/ai-gateway';
@@ -36,7 +36,7 @@ export async function POST(req: NextRequest) {
   try {
     const user = await requireAuth(req);
 
-    if (await isRateLimitedAsync('ai-chat', user.uid, 15, 60_000, { failClosedInProduction: true })) {
+    if (await isRateLimited('ai-chat', user.uid, 15, 60_000, { failClosedInProduction: true })) {
       return NextResponse.json({ error: 'Too many requests. Please wait a moment.' }, { status: 429 });
     }
 

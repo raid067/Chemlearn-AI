@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireAuth, AuthError } from '@/lib/server/auth';
 import { errorResponse } from '../_helpers';
-import { isRateLimitedAsync } from '@/lib/rate-limit';
+import { isRateLimited } from '@/lib/rate-limit';
 import { aiFlashcardsSchema } from '@/lib/validations';
 import {
   secureGenerateAI,
@@ -16,7 +16,7 @@ export async function POST(req: NextRequest) {
   try {
     const user = await requireAuth(req);
     
-    if (await isRateLimitedAsync('ai-flashcards', user.uid, 5, 60_000, { failClosedInProduction: true })) {
+    if (await isRateLimited('ai-flashcards', user.uid, 5, 60_000, { failClosedInProduction: true })) {
       return errorResponse('Too many flashcard generation requests. Please wait a moment.', 429);
     }
     

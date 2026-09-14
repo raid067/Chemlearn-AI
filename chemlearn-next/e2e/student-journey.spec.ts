@@ -24,7 +24,7 @@ test.describe('ChemLearn Student Journey & Curriculum Flow', () => {
 
     // Assert
     await expect(page.getByText('Acids, Bases and Salts')).toBeVisible();
-    await expect(page.getByText('Manufactured Substances in Industry')).toBeVisible();
+    await expect(page.getByText('Manufactured Substances in Industry').first()).toBeVisible();
 
     // Verify subtopics are clickable
     const chapter6Link = page.getByRole('link', { name: /chapter 6|acids, bases/i }).first();

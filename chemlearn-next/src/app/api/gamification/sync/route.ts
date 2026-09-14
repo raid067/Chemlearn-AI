@@ -12,7 +12,7 @@ export async function GET(req: NextRequest) {
   try {
     const user = await requireAuth(req);
 
-    if (isRateLimited('gamification-fetch', user.uid, 30, 60_000)) {
+    if (await isRateLimited('gamification-fetch', user.uid, 30, 60_000)) {
       return NextResponse.json(
         { error: 'Too many sync requests. Please wait a moment.' },
         { status: 429 }
