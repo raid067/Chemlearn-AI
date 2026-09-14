@@ -185,6 +185,44 @@ export const KSSM_CURRICULUM_FORM_4: Record<string, KSSMChapter> = {
   },
 };
 
+let isIndexBuilt = false;
+const exactValidTopicSet = new Set<string>();
+const searchValidTopicArray: { chapterTitle: string, subTitle: string }[] = [];
+const scopeSearchArray: { code: string, id: string, title: string, scope: string }[] = [];
+
+function buildCurriculumIndices() {
+  if (isIndexBuilt) return;
+  for (const chapter of Object.values(KSSM_CURRICULUM_FORM_4)) {
+    const chapterId = chapter.id.toLowerCase();
+    const chapterTitle = chapter.title.toLowerCase();
+
+    exactValidTopicSet.add(chapterId);
+    exactValidTopicSet.add(chapterTitle);
+
+    for (const sub of chapter.subtopics) {
+      const subId = sub.id.toLowerCase();
+      const subCode = sub.code.toLowerCase();
+      const subTitle = sub.title.toLowerCase();
+
+      exactValidTopicSet.add(subId);
+      exactValidTopicSet.add(subCode);
+      exactValidTopicSet.add(subTitle);
+
+      searchValidTopicArray.push({ chapterTitle, subTitle });
+
+      const scope = `KSSM Chemistry Form 4 [Chapter ${chapter.chapterNumber}: ${sub.title}]\nLearning Objectives:\n- ${sub.learningObjectives.join('\n- ')}\nKey Concepts: ${sub.keyConcepts.join(', ')}`;
+      scopeSearchArray.push({ code: subCode, id: subId, title: subTitle, scope });
+    }
+  }
+
+  exactValidTopicSet.add('6');
+  exactValidTopicSet.add('8');
+  exactValidTopicSet.add('chapter 6');
+  exactValidTopicSet.add('chapter 8');
+
+  isIndexBuilt = true;
+}
+
 /**
  * Validates whether a topic code, ID, or name belongs to the official KSSM Form 4 Chemistry syllabus.
  */
@@ -192,24 +230,22 @@ export function isValidKSSMTopic(topic: string): boolean {
   if (!topic || typeof topic !== 'string') return false;
   const t = topic.toLowerCase().trim();
 
-  for (const chapter of Object.values(KSSM_CURRICULUM_FORM_4)) {
-    if (t === chapter.id.toLowerCase() || t.includes(chapter.title.toLowerCase())) {
-      return true;
-    }
-    for (const sub of chapter.subtopics) {
-      if (
-        t === sub.id.toLowerCase() ||
-        t === sub.code.toLowerCase() ||
-        t.includes(sub.title.toLowerCase()) ||
-        sub.title.toLowerCase().includes(t)
-      ) {
-        return true;
-      }
-    }
+  buildCurriculumIndices();
+
+  if (exactValidTopicSet.has(t)) {
+    return true;
   }
 
-  // Check common chapter numbers
-  if (t === '6' || t === '8' || t === 'chapter 6' || t === 'chapter 8') return true;
+  for (let i = 0; i < searchValidTopicArray.length; i++) {
+    const item = searchValidTopicArray[i];
+    if (
+      t.includes(item.chapterTitle) ||
+      t.includes(item.subTitle) ||
+      item.subTitle.includes(t)
+    ) {
+      return true;
+    }
+  }
 
   return false;
 }
@@ -220,15 +256,16 @@ export function isValidKSSMTopic(topic: string): boolean {
 export function getAuthoritativeCurriculumScope(query: string): string | null {
   const q = query.toLowerCase().trim();
 
-  for (const chapter of Object.values(KSSM_CURRICULUM_FORM_4)) {
-    for (const sub of chapter.subtopics) {
-      if (
-        q.includes(sub.code.toLowerCase()) ||
-        q.includes(sub.id.toLowerCase()) ||
-        sub.title.toLowerCase().includes(q)
-      ) {
-        return `KSSM Chemistry Form 4 [Chapter ${chapter.chapterNumber}: ${sub.title}]\nLearning Objectives:\n- ${sub.learningObjectives.join('\n- ')}\nKey Concepts: ${sub.keyConcepts.join(', ')}`;
-      }
+  buildCurriculumIndices();
+
+  for (let i = 0; i < scopeSearchArray.length; i++) {
+    const sub = scopeSearchArray[i];
+    if (
+      q.includes(sub.code) ||
+      q.includes(sub.id) ||
+      sub.title.includes(q)
+    ) {
+      return sub.scope;
     }
   }
 
