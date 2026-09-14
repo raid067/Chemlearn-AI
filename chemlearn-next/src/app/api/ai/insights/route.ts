@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireTeacher, AuthError } from '@/lib/server/auth';
 import { errorResponse } from '../_helpers';
-import { isRateLimitedAsync } from '@/lib/rate-limit';
+import { isRateLimited } from '@/lib/rate-limit';
 import { aiInsightsSchema } from '@/lib/validations';
 import { secureGenerateAI, wrapUntrustedInput, SYSTEM_SAFETY_GUARDRAIL, AIGatewayError } from '@/lib/server/ai-gateway';
 import { parseSecureJson, RequestPayloadError, MAX_BODY_LIMITS } from '@/lib/server/request-guard';
@@ -10,7 +10,7 @@ export async function POST(req: NextRequest) {
   try {
     const user = await requireTeacher(req);
     
-    if (await isRateLimitedAsync('ai-insights', user.uid, 5, 60_000, { failClosedInProduction: true })) {
+    if (await isRateLimited('ai-insights', user.uid, 5, 60_000, { failClosedInProduction: true })) {
       return errorResponse('Too many insight generation requests. Please wait a moment.', 429);
     }
     

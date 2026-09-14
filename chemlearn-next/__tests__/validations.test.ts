@@ -1,3 +1,9 @@
+jest.mock('@/lib/firebase-admin', () => {
+  return {
+    adminDb: {}
+  };
+});
+
 import {
   syncGamificationSchema,
   aiChatSchema,

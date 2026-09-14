@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireAuth, AuthError } from '@/lib/server/auth';
-import { isRateLimitedAsync } from '@/lib/rate-limit';
+import { isRateLimited } from '@/lib/rate-limit';
 import { duelAnswerSchema } from '@/lib/validations';
 import { submitDuelAnswer } from '@/lib/server/duels';
 import { parseSecureJson, RequestPayloadError, MAX_BODY_LIMITS } from '@/lib/server/request-guard';
@@ -9,7 +9,7 @@ export async function POST(req: NextRequest) {
   try {
     const user = await requireAuth(req);
 
-    if (await isRateLimitedAsync('duel-answer', user.uid, 60, 60_000)) {
+    if (await isRateLimited('duel-answer', user.uid, 60, 60_000)) {
       return NextResponse.json(
         { error: 'Too many answer submissions. Please slow down.' },
         { status: 429 }
