@@ -478,8 +478,7 @@ export async function gradeStructuredAnswerWithAI(
       maximumMarks: maxMarks,
       studentAnswer,
     });
-  } catch (err) {
-    console.warn('[quizzes] AI Gateway rubric grading unavailable, falling back to deterministic evaluation:', err);
+  } catch {
     return {
       score: deterministic.score,
       maxScore: maxMarks,
