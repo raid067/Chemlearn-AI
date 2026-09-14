@@ -24,7 +24,7 @@ test.describe('ChemLearn Student Journey & Curriculum Flow', () => {
 
     // Assert
     await expect(page.getByText('Acids, Bases and Salts')).toBeVisible();
-    await expect(page.getByText('Manufactured Substances in Industry')).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Manufactured Substances in Industry', exact: true })).toBeVisible();
 
     // Verify subtopics are clickable
     const chapter6Link = page.getByRole('link', { name: /chapter 6|acids, bases/i }).first();
@@ -146,7 +146,7 @@ test.describe('ChemLearn Student Journey & Curriculum Flow', () => {
 
   test('9. Chapter 8 Curriculum: loads Manufactured Substances subtopics', async ({ page }) => {
     await page.goto('/lessons/chapter-8');
-    await expect(page.getByText(/Manufactured Substances in Industry/i)).toBeVisible();
+    await expect(page.getByRole('heading', { name: /Manufactured Substances in Industry/i, exact: true })).toBeVisible();
     await expect(page.getByText(/Alloys/i).first()).toBeVisible();
   });
 
