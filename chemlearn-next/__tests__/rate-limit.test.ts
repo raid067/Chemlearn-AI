@@ -3,26 +3,26 @@ jest.mock('@/lib/firebase-admin', () => {
   return {
     adminDb: {
       collection: () => ({
-        doc: (id) => ({
+        doc: (id: string) => ({
           get: async () => {
             const data = store.get(id);
             return { exists: !!data, data: () => data };
           },
-          set: async (data) => {
+          set: async (data: any) => {
             store.set(id, data);
           },
-          update: async (data) => {
+          update: async (data: any) => {
             const existing = store.get(id) || {};
             store.set(id, { ...existing, ...data });
           }
         })
       }),
-      runTransaction: async (cb) => {
+      runTransaction: async (cb: any) => {
         // Simple mock transaction that just passes a mock transaction object
         const mockTransaction = {
-          get: async (ref) => ref.get(),
-          set: (ref, data) => ref.set(data),
-          update: (ref, data) => ref.update(data),
+          get: async (ref: any) => ref.get(),
+          set: (ref: any, data: any) => ref.set(data),
+          update: (ref: any, data: any) => ref.update(data),
         };
         return cb(mockTransaction);
       }
