@@ -8,7 +8,7 @@ jest.mock('@/lib/firebase-admin', () => ({
   },
 }));
 
-import { wrapUntrustedInput, SYSTEM_SAFETY_GUARDRAIL } from '@/lib/server/ai-gateway';
+import { wrapUntrustedInput, SYSTEM_SAFETY_GUARDRAIL, formatCurriculumContext } from '@/lib/server/ai-gateway';
 
 describe('AI Gateway Security & Boundary Enforcement', () => {
   it('wraps untrusted user input within explicit boundary delimiters', () => {
@@ -33,5 +33,27 @@ describe('AI Gateway Security & Boundary Enforcement', () => {
     expect(SYSTEM_SAFETY_GUARDRAIL).toContain('SPM Chemistry');
     expect(SYSTEM_SAFETY_GUARDRAIL).toContain('<<<USER_INPUT>>>');
     expect(SYSTEM_SAFETY_GUARDRAIL).toContain('dangerous chemical synthesis instructions');
+  });
+});
+
+describe('formatCurriculumContext', () => {
+  it('wraps the context within <CURRICULUM_CONTEXT> tags', () => {
+    const context = 'Acids and Bases';
+    const result = formatCurriculumContext(context);
+    expect(result).toContain('<CURRICULUM_CONTEXT>');
+    expect(result).toContain('</CURRICULUM_CONTEXT>');
+  });
+
+  it('includes strict guidelines including Malaysian KSSM Chemistry syllabus', () => {
+    const result = formatCurriculumContext('Salts');
+    expect(result).toContain('Adhere to the Malaysian KSSM Chemistry syllabus requirements.');
+    expect(result).toContain('Ensure all chemical formulas and terminology are correct.');
+    expect(result).toContain('The level is Form 4/5 Secondary School (Age 16-17).');
+  });
+
+  it('correctly inserts the specific topic context', () => {
+    const topic = 'Rate of Reaction factors';
+    const result = formatCurriculumContext(topic);
+    expect(result).toContain(`Specific Topic Context:\n${topic}`);
   });
 });
