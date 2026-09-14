@@ -178,7 +178,6 @@ export async function generateGeminiText(
 
       // If model not found or unavailable, automatically fall back to stable generation model
       if ((errMsg.includes('404') || errMsg.includes('not found')) && currentModel !== GEMINI_MODELS.FALLBACK) {
-        console.warn(`[Gemini] Model ${currentModel} returned 404/not found. Retrying with fallback model ${GEMINI_MODELS.FALLBACK}`);
         currentModel = GEMINI_MODELS.FALLBACK;
       }
 
