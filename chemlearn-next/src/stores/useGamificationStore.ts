@@ -49,8 +49,6 @@ export const useGamificationStore = create<GamificationState>()(
       levelUpModalTrigger: false,
 
       addXP: async (amount: number, reason: string, action?: GamificationAction) => {
-        console.log(`[Gamification] Award XP requested (${amount} for: ${reason}, action: ${action || 'none'})`);
-
         // Local fallback for guest / unauthenticated session
         const { xp, level } = get();
         const newXP = xp + amount;
