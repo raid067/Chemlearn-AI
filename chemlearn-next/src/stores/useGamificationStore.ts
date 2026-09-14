@@ -18,7 +18,7 @@ interface GamificationState {
   levelUpModalTrigger: boolean;
   
   // Actions
-  addXP: (amount: number, reason: string, action?: GamificationAction) => Promise<void>;
+  addXP: (amount: number, reason?: string, action?: GamificationAction) => Promise<void>;
   incrementStreak: () => void;
   unlockBadge: (badge: Badge) => void;
   dismissLevelUp: () => void;
@@ -48,7 +48,7 @@ export const useGamificationStore = create<GamificationState>()(
       badges: [],
       levelUpModalTrigger: false,
 
-      addXP: async (amount: number, reason: string, action?: GamificationAction) => {
+      addXP: async (amount: number) => {
         // Local fallback for guest / unauthenticated session
         const { xp, level } = get();
         const newXP = xp + amount;
