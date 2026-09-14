@@ -478,7 +478,7 @@ export async function gradeStructuredAnswerWithAI(
       maximumMarks: maxMarks,
       studentAnswer,
     });
-  } catch (err) {
+  } catch {
     return {
       score: deterministic.score,
       maxScore: maxMarks,
