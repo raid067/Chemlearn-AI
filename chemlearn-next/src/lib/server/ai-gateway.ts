@@ -116,8 +116,18 @@ export function wrapUntrustedInput(input: string, label = 'USER_INPUT'): string 
  * Wraps authoritative curriculum context to ensure the AI prioritizes KSSM syllabus source of truth.
  */
 export function formatCurriculumContext(context: string): string {
-  const sanitized = context.replace(/<<</g, '< < <').replace(/>>>/g, '> > >');
-  return `<<<CURRICULUM_CONTEXT>>>\n${sanitized}\n<<<END_CURRICULUM_CONTEXT>>>`;
+  const sanitized = context.replace(/</g, '< ').replace(/>/g, ' >');
+  return `
+<CURRICULUM_CONTEXT>
+Follow these guidelines strictly:
+1. Adhere to the Malaysian KSSM Chemistry syllabus requirements.
+2. Ensure all chemical formulas and terminology are correct.
+3. The level is Form 4/5 Secondary School (Age 16-17).
+
+Specific Topic Context:
+${sanitized}
+</CURRICULUM_CONTEXT>
+`;
 }
 
 // ── Multi-Tier Distributed Idempotency (Phase 3) ────────────────────────────
