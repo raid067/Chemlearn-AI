@@ -116,6 +116,7 @@ export function wrapUntrustedInput(input: string, label = 'USER_INPUT'): string 
  * Wraps authoritative curriculum context to ensure the AI prioritizes KSSM syllabus source of truth.
  */
 export function formatCurriculumContext(context: string): string {
+  const sanitized = context.replace(/</g, '< ').replace(/>/g, ' >');
   return `
 <CURRICULUM_CONTEXT>
 Follow these guidelines strictly:
@@ -124,7 +125,7 @@ Follow these guidelines strictly:
 3. The level is Form 4/5 Secondary School (Age 16-17).
 
 Specific Topic Context:
-${context}
+${sanitized}
 </CURRICULUM_CONTEXT>
 `;
 }
