@@ -140,6 +140,43 @@ function getCachedResponse<T>(key: string): T | null {
   return entry.data as T;
 }
 
+// ── Local Pub-Sub for Cross-Request Idempotency Synchronization ─────────────
+type ResolveFunc = (value: unknown) => void;
+const idempotencyListeners = new Map<string, ResolveFunc[]>();
+
+function subscribeToIdempotency(key: string): { promise: Promise<unknown>; unsubscribe: () => void } {
+  let resolveFn: ResolveFunc;
+  const promise = new Promise<unknown>((resolve) => {
+    resolveFn = resolve;
+    const listeners = idempotencyListeners.get(key) || [];
+    listeners.push(resolve);
+    idempotencyListeners.set(key, listeners);
+  });
+
+  return {
+    promise,
+    unsubscribe: () => {
+      const listeners = idempotencyListeners.get(key);
+      if (listeners) {
+        const filtered = listeners.filter((fn) => fn !== resolveFn);
+        if (filtered.length === 0) {
+          idempotencyListeners.delete(key);
+        } else {
+          idempotencyListeners.set(key, filtered);
+        }
+      }
+    },
+  };
+}
+
+function publishIdempotencyCompletion(key: string, data: unknown) {
+  const listeners = idempotencyListeners.get(key);
+  if (listeners) {
+    listeners.forEach((resolve) => resolve(data));
+    idempotencyListeners.delete(key);
+  }
+}
+
 function setCachedResponse<T>(key: string, data: T, ttlMs = 45000): void {
   if (idempotencyCache.size > 300) {
     const now = Date.now();
@@ -148,6 +185,7 @@ function setCachedResponse<T>(key: string, data: T, ttlMs = 45000): void {
     }
   }
   idempotencyCache.set(key, { data, expiresAt: Date.now() + ttlMs });
+  publishIdempotencyCompletion(key, data);
 }
 
 export interface DistributedIdempotencyRecord {
@@ -559,24 +597,40 @@ export async function secureGenerateAI<T>(options: SecureGenerateAIOptions<T>): 
     }
 
     if (claim.status === 'in_progress') {
-      // Await potential resolution from simultaneous request (up to 3 seconds)
-      for (let i = 0; i < 15; i++) {
-        await new Promise((res) => setTimeout(res, 200));
-        const cached = getCachedResponse<T>(distributedDocId);
-        if (cached !== null) {
-          logAITelemetry({
-            requestId,
-            endpoint,
-            taskType: taskType || 'generic',
-            model: modelName,
-            success: true,
-            durationMs: Date.now() - startTime,
-            statusCode: 200,
-            cached: true,
-          });
-          return cached;
-        }
+      // Check cache one more time in case it resolved between the transaction and here
+      let cached = getCachedResponse<T>(distributedDocId);
+
+      if (!cached) {
+        // Await potential resolution from simultaneous request (up to 3 seconds) using pub-sub
+        const sub = subscribeToIdempotency(distributedDocId);
+
+        let timeoutId: NodeJS.Timeout | undefined;
+        const pubsubTimeout = new Promise<null>((resolve) => {
+          timeoutId = setTimeout(() => resolve(null), 3000);
+        });
+
+        await Promise.race([sub.promise, pubsubTimeout]);
+
+        if (timeoutId) clearTimeout(timeoutId);
+        sub.unsubscribe(); // Ensure cleanup if timeout occurred
+
+        cached = getCachedResponse<T>(distributedDocId);
       }
+
+      if (cached !== null) {
+        logAITelemetry({
+          requestId,
+          endpoint,
+          taskType: taskType || 'generic',
+          model: modelName,
+          success: true,
+          durationMs: Date.now() - startTime,
+          statusCode: 200,
+          cached: true,
+        });
+        return cached;
+      }
+
       throw new AIGatewayError(
         'An identical request is currently being processed. Please wait a moment.',
         429,
