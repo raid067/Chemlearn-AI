@@ -211,7 +211,7 @@ export async function finishDuelPlayer(
       });
       txResult.rewardStatus = 'awarded';
     } catch (err) {
-      console.error('[duels] Failed to award winner XP event:', err);
+      console.warn('[duels] Failed to award winner XP event:', err);
       await duelRef.update({
         rewardStatus: 'failed',
         rewardError: err instanceof Error ? err.message : String(err),
