@@ -185,6 +185,20 @@ export const KSSM_CURRICULUM_FORM_4: Record<string, KSSMChapter> = {
   },
 };
 
+const EXACT_MATCH_TOPICS = new Set<string>(['6', '8', 'chapter 6', 'chapter 8']);
+const TITLE_TOPICS: string[] = [];
+
+// Pre-compute exact matches and titles
+for (const chapter of Object.values(KSSM_CURRICULUM_FORM_4)) {
+  EXACT_MATCH_TOPICS.add(chapter.id.toLowerCase());
+  TITLE_TOPICS.push(chapter.title.toLowerCase());
+  for (const sub of chapter.subtopics) {
+    EXACT_MATCH_TOPICS.add(sub.id.toLowerCase());
+    EXACT_MATCH_TOPICS.add(sub.code.toLowerCase());
+    TITLE_TOPICS.push(sub.title.toLowerCase());
+  }
+}
+
 /**
  * Validates whether a topic code, ID, or name belongs to the official KSSM Form 4 Chemistry syllabus.
  */
@@ -192,24 +206,15 @@ export function isValidKSSMTopic(topic: string): boolean {
   if (!topic || typeof topic !== 'string') return false;
   const t = topic.toLowerCase().trim();
 
-  for (const chapter of Object.values(KSSM_CURRICULUM_FORM_4)) {
-    if (t === chapter.id.toLowerCase() || t.includes(chapter.title.toLowerCase())) {
-      return true;
-    }
-    for (const sub of chapter.subtopics) {
-      if (
-        t === sub.id.toLowerCase() ||
-        t === sub.code.toLowerCase() ||
-        t.includes(sub.title.toLowerCase()) ||
-        sub.title.toLowerCase().includes(t)
-      ) {
-        return true;
-      }
-    }
+  if (EXACT_MATCH_TOPICS.has(t)) {
+    return true;
   }
 
-  // Check common chapter numbers
-  if (t === '6' || t === '8' || t === 'chapter 6' || t === 'chapter 8') return true;
+  for (const title of TITLE_TOPICS) {
+    if (t.includes(title) || title.includes(t)) {
+      return true;
+    }
+  }
 
   return false;
 }
