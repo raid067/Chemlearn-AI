@@ -1298,8 +1298,10 @@
 
             if (containerDom) containerDom.style.display = 'none';
             if (mediaDom) {
+                mediaDom.onerror = null;
                 mediaDom.pause();
-                mediaDom.src = '';
+                mediaDom.removeAttribute('src');
+                mediaDom.load();
             }
             if (iframeDom) {
                 iframeDom.src = '';
@@ -1339,7 +1341,7 @@
             </div>
             <div
                 style="width: 100%; aspect-ratio: 16/9; background: black; display: flex; align-items: center; justify-content: center;">
-                <video id="playerMediaDom" controls
+                <video id="playerMediaDom" controls playsinline preload="metadata"
                     style="display: none; width: 100%; height: 100%; object-fit: contain;"></video>
                 <iframe id="playerIframeDom" style="display: none; width: 100%; height: 100%; border: none;"
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
