@@ -295,15 +295,7 @@
 }
         .quiz-choice-btn:hover { background: #f1f5f9; border-color: #cbd5e1; }
 
-        /* --- FOOTER SITE MAP --- */
-        .footer-wrapper { background-color: #ffffff; border-top: 1px solid #edf2f7; padding: 40px 10% 30px 10%; width: 100%; margin-top: auto; }
-        .footer-grid-row { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 40px; }
-        .footer-brand-side p { font-size: 0.9rem; color: #718096; margin-top: 12px; max-width: 340px; line-height: 1.5; }
-        .footer-column h4 { font-size: 0.95rem; font-weight: 700; color: #1a202c; margin-bottom: 14px; }
-        .footer-column ul { list-style: none; }
-        .footer-column ul li { margin-bottom: 8px; }
-        .footer-column ul li a { text-decoration: none; font-size: 0.9rem; color: #718096; }
-        .footer-bottom-bar { border-top: 1px solid #edf2f7; padding-top: 20px; text-align: center; color: #a0aec0; font-size: 0.85rem; }
+        /* --- FOOTER SITE MAP (See Enterprise Footer below) --- */
 
         @media (max-width: 1024px) { .grid-container { grid-template-columns: repeat(2, 1fr); } .intro-billboard { grid-column: span 2; } }
         @media (max-width: 720px) { .grid-container { grid-template-columns: 1fr; } .intro-billboard { grid-column: span 1; } .global-navbar { flex-direction: column; gap: 14px; } .gamification-hud { flex-direction: column; gap: 10px; } }
@@ -436,6 +428,21 @@
             grid-template-columns: 2fr 1.1fr 1.1fr 1.2fr !important;
             gap: 36px !important;
             margin-bottom: 40px !important;
+        }
+
+        .footer-logo {
+            font-size: 1.35rem;
+            font-weight: 700;
+            color: #0f172a;
+            text-decoration: none;
+            letter-spacing: -0.02em;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .footer-logo span {
+            color: var(--accent-purple, #6d28d9);
         }
 
         .footer-brand-side p {
@@ -1384,39 +1391,6 @@
     </div>
 
     <script>
-    function filterExperiments(category, element) {
-
-    // Update active button
-    document.querySelectorAll('.pill-btn').forEach(btn => {
-        btn.classList.remove('active');
-    });
-    element.classList.add('active');
-
-    // Show introduction
-    const intro = document.getElementById('introHubPanel');
-
-    if (category === "intro") {
-        intro.style.display = "block";
-
-        document.querySelectorAll('.resource-card').forEach(card => {
-            card.style.display = "none";
-        });
-
-        return;
-    }
-
-    intro.style.display = "none";
-
-    document.querySelectorAll('.resource-card').forEach(card => {
-        if (card.dataset.topic === category) {
-            card.style.display = "flex";
-        } else {
-            card.style.display = "none";
-        }
-    });
-}
-</script>
-  <script>
         // --- 1. STATE MANAGEMENT (Pulls saved data from LocalStorage on load) ---
         let userXP = parseInt(localStorage.getItem('chemLearn_userXP')) || 0;
         let userLevel = parseInt(localStorage.getItem('chemLearn_userLevel')) || 1;
