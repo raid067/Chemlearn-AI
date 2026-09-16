@@ -1251,16 +1251,29 @@
                     iframeDom.src = '';
                 }
                 if (mediaDom) {
-                    mediaDom.onerror = () => {
-                        console.warn('Video failed to load:', normalized);
-                        alert('Could not load video: "' + normalized + '". Please ensure the video file is in your website folder or enter a valid YouTube link.');
-                    };
+                    // Prepend / for relative root files if needed
+                    if (!normalized.startsWith('http://') && !normalized.startsWith('https://') && !normalized.startsWith('/')) {
+                        normalized = '/' + normalized;
+                    }
+
+                    mediaDom.onerror = null;
                     mediaDom.src = normalized;
                     mediaDom.style.display = 'block';
-                    mediaDom.load();
-                    mediaDom.play().catch((err) => {
-                        console.log('Autoplay deferred until user interaction:', err);
-                    });
+
+                    mediaDom.onerror = (e) => {
+                        // Only handle real unrecoverable errors (MEDIA_ERR_SRC_NOT_SUPPORTED)
+                        if (mediaDom.error && mediaDom.error.code === 4) {
+                            console.warn('Video source not supported:', normalized, mediaDom.error);
+                        }
+                    };
+
+                    const playPromise = mediaDom.play();
+                    if (playPromise !== undefined) {
+                        playPromise.catch((err) => {
+                            // Autoplay without user gesture or muted policy
+                            console.log('Playback paused awaiting user interaction:', err);
+                        });
+                    }
                 }
             }
 
