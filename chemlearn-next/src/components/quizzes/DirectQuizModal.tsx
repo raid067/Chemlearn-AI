@@ -3,9 +3,8 @@ import { useState } from 'react';
 import Modal from '@/components/ui/Modal';
 import { useQuizStore } from '@/stores/useQuizStore';
 import { CheckCircle, XCircle, Loader2, Award } from 'lucide-react';
-import { MCQQuestion } from '@/types/quiz';
+import type { MCQQuestion, QuestionGradingResult, QuizGradingResponse } from '@/types/quiz';
 import { useGamificationStore } from '@/stores/useGamificationStore';
-import { QuestionGradingResult, QuizGradingResponse } from '@/lib/server/quizzes';
 
 export default function DirectQuizModal() {
   const { 

@@ -2975,7 +2975,11 @@
             if (!md) return '';
             if (typeof marked !== 'undefined' && marked.parse) {
                 try {
-                    return marked.parse(md);
+                    const parsed = marked.parse(md);
+                    if (typeof DOMPurify !== 'undefined' && DOMPurify.sanitize) {
+                        return DOMPurify.sanitize(parsed);
+                    }
+                    return parsed;
                 } catch(e) {}
             }
             let html = md

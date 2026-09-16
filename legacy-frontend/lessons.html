@@ -1,14 +1,17 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ChemLearn | Interactive Lessons</title>
-    
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-    
+    <link
+        href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap"
+        rel="stylesheet">
+
     <style>
         :root {
             --bg-base: #fdfcff;
@@ -18,17 +21,17 @@
             --accent-purple: #6d28d9;
             --nav-active: #b85ee6;
             --border-light: #f1f0f7;
-            
+
             /* High-Vibrancy Sub-topic Palettes */
             --color-alloys: #7c3aed;
             --bg-alloys: #f3e8ff;
-            
+
             --color-glass: #059669;
             --bg-glass: #ecfdf5;
-            
+
             --color-ceramics: #d97706;
             --bg-ceramics: #fef3c7;
-            
+
             --color-composites: #2563eb;
             --bg-composites: #eff6ff;
         }
@@ -58,7 +61,7 @@
             width: 100vw;
             height: 100vh;
             background: #fdfcff;
-            z-index: 99999; 
+            z-index: 99999;
             overflow-y: auto;
             transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.4s;
         }
@@ -84,8 +87,13 @@
         }
 
         @keyframes skeleton-shimmer {
-            0% { background-position: 200% 0; }
-            100% { background-position: -200% 0; }
+            0% {
+                background-position: 200% 0;
+            }
+
+            100% {
+                background-position: -200% 0;
+            }
         }
 
         .skeleton-nav {
@@ -136,8 +144,13 @@
         }
 
         @media (max-width: 768px) {
-            .skeleton-nav-links { display: none; }
-            .skeleton-grid { grid-template-columns: 1fr; }
+            .skeleton-nav-links {
+                display: none;
+            }
+
+            .skeleton-grid {
+                grid-template-columns: 1fr;
+            }
         }
 
         /* --- GLOBAL NAVBAR --- */
@@ -180,8 +193,14 @@
             transition: color 0.2s;
         }
 
-        .center-nav-links a:hover { color: var(--nav-active); }
-        .center-nav-links a.active { color: var(--nav-active); font-weight: 600; }
+        .center-nav-links a:hover {
+            color: var(--nav-active);
+        }
+
+        .center-nav-links a.active {
+            color: var(--nav-active);
+            font-weight: 600;
+        }
 
         .center-nav-links a.active::after {
             content: '';
@@ -292,17 +311,70 @@
             transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        .pill-btn[data-target="all"]:hover { border-color: #c084fc; background: #faf5ff; color: #6d28d9; }
-        .pill-btn[data-target="alloys"]:hover { border-color: var(--color-alloys); background: var(--bg-alloys); color: var(--color-alloys); }
-        .pill-btn[data-target="glass"]:hover { border-color: var(--color-glass); background: var(--bg-glass); color: var(--color-glass); }
-        .pill-btn[data-target="ceramics"]:hover { border-color: var(--color-ceramics); background: var(--bg-ceramics); color: var(--color-ceramics); }
-        .pill-btn[data-target="composites"]:hover { border-color: var(--color-composites); background: var(--bg-composites); color: var(--color-composites); }
+        .pill-btn[data-target="all"]:hover {
+            border-color: #c084fc;
+            background: #faf5ff;
+            color: #6d28d9;
+        }
 
-        .pill-btn.active[data-target="all"] { border-color: #c084fc; background: #6d28d9; color: #ffffff; box-shadow: 0 10px 20px rgba(109, 40, 217, 0.2); }
-        .pill-btn.active[data-target="alloys"] { border-color: var(--color-alloys); background: var(--color-alloys); color: #ffffff; box-shadow: 0 10px 20px rgba(124, 58, 237, 0.2); }
-        .pill-btn.active[data-target="glass"] { border-color: var(--color-glass); background: var(--color-glass); color: #ffffff; box-shadow: 0 10px 20px rgba(5, 150, 105, 0.2); }
-        .pill-btn.active[data-target="ceramics"] { border-color: var(--color-ceramics); background: var(--color-ceramics); color: #ffffff; box-shadow: 0 10px 20px rgba(217, 119, 6, 0.2); }
-        .pill-btn.active[data-target="composites"] { border-color: var(--color-composites); background: var(--color-composites); color: #ffffff; box-shadow: 0 10px 20px rgba(37, 99, 233, 0.2); }
+        .pill-btn[data-target="alloys"]:hover {
+            border-color: var(--color-alloys);
+            background: var(--bg-alloys);
+            color: var(--color-alloys);
+        }
+
+        .pill-btn[data-target="glass"]:hover {
+            border-color: var(--color-glass);
+            background: var(--bg-glass);
+            color: var(--color-glass);
+        }
+
+        .pill-btn[data-target="ceramics"]:hover {
+            border-color: var(--color-ceramics);
+            background: var(--bg-ceramics);
+            color: var(--color-ceramics);
+        }
+
+        .pill-btn[data-target="composites"]:hover {
+            border-color: var(--color-composites);
+            background: var(--bg-composites);
+            color: var(--color-composites);
+        }
+
+        .pill-btn.active[data-target="all"] {
+            border-color: #c084fc;
+            background: #6d28d9;
+            color: #ffffff;
+            box-shadow: 0 10px 20px rgba(109, 40, 217, 0.2);
+        }
+
+        .pill-btn.active[data-target="alloys"] {
+            border-color: var(--color-alloys);
+            background: var(--color-alloys);
+            color: #ffffff;
+            box-shadow: 0 10px 20px rgba(124, 58, 237, 0.2);
+        }
+
+        .pill-btn.active[data-target="glass"] {
+            border-color: var(--color-glass);
+            background: var(--color-glass);
+            color: #ffffff;
+            box-shadow: 0 10px 20px rgba(5, 150, 105, 0.2);
+        }
+
+        .pill-btn.active[data-target="ceramics"] {
+            border-color: var(--color-ceramics);
+            background: var(--color-ceramics);
+            color: #ffffff;
+            box-shadow: 0 10px 20px rgba(217, 119, 6, 0.2);
+        }
+
+        .pill-btn.active[data-target="composites"] {
+            border-color: var(--color-composites);
+            background: var(--color-composites);
+            color: #ffffff;
+            box-shadow: 0 10px 20px rgba(37, 99, 233, 0.2);
+        }
 
         /* --- INTERACTIVE MEDIA LEARNING CENTER --- */
         .media-learning-center {
@@ -343,7 +415,8 @@
         .media-thumbnail-wrapper {
             position: relative;
             width: 100%;
-            padding-bottom: 56.25%; /* 16:9 Aspect Ratio */
+            padding-bottom: 56.25%;
+            /* 16:9 Aspect Ratio */
             border-radius: 10px;
             overflow: hidden;
             margin-bottom: 12px;
@@ -353,27 +426,62 @@
         }
 
         /* --- VIDEO THUMBNAIL PICTURE ASSIGNMENTS --- */
-        .thumb-alloy-1 { background: url('calloys1.png') center/cover no-repeat, linear-gradient(135deg, #4c1d95, #7c3aed); }
-        .thumb-alloy-2 { background: url('calloys2.png') center/cover no-repeat, linear-gradient(135deg, #4c1d95, #7c3aed); }
-        .thumb-alloy-3 { background: url('calloys3.png') center/cover no-repeat, linear-gradient(135deg, #4c1d95, #7c3aed); }
-        
-        .thumb-glass-1 { background: url('cglass1.png') center/cover no-repeat, linear-gradient(135deg, #064e3b, #059669); }
-        .thumb-glass-2 { background: url('cglass2.png') center/cover no-repeat, linear-gradient(135deg, #064e3b, #059669); }
-        .thumb-glass-3 { background: url('cglass3.png') center/cover no-repeat, linear-gradient(135deg, #064e3b, #059669); }
-        
-        .thumb-ceramic-1 { background: url('cceramics1.png') center/cover no-repeat, linear-gradient(135deg, #9a3412, #ea580c); }
-        .thumb-ceramic-2 { background: url('cceramics2.png') center/cover no-repeat, linear-gradient(135deg, #9a3412, #ea580c); }
-        .thumb-ceramic-3 { background: url('cceramics3.png') center/cover no-repeat, linear-gradient(135deg, #9a3412, #ea580c); }
-        
-        .thumb-composite-1 { background: url('ccomposites1.png') center/cover no-repeat, linear-gradient(135deg, #1e3a8a, #2563eb); }
-        .thumb-composite-2 { background: url('ccomposites2.png') center/cover no-repeat, linear-gradient(135deg, #1e3a8a, #2563eb); }
-        .thumb-composite-3 { background: url('ccomposites3.png') center/cover no-repeat, linear-gradient(135deg, #1e3a8a, #2563eb); }
+        .thumb-alloy-1 {
+            background: url('calloys1.png') center/cover no-repeat, linear-gradient(135deg, #4c1d95, #7c3aed);
+        }
+
+        .thumb-alloy-2 {
+            background: url('calloys2.png') center/cover no-repeat, linear-gradient(135deg, #4c1d95, #7c3aed);
+        }
+
+        .thumb-alloy-3 {
+            background: url('calloys3.png') center/cover no-repeat, linear-gradient(135deg, #4c1d95, #7c3aed);
+        }
+
+        .thumb-glass-1 {
+            background: url('cglass1.png') center/cover no-repeat, linear-gradient(135deg, #064e3b, #059669);
+        }
+
+        .thumb-glass-2 {
+            background: url('cglass2.png') center/cover no-repeat, linear-gradient(135deg, #064e3b, #059669);
+        }
+
+        .thumb-glass-3 {
+            background: url('cglass3.png') center/cover no-repeat, linear-gradient(135deg, #064e3b, #059669);
+        }
+
+        .thumb-ceramic-1 {
+            background: url('cceramics1.png') center/cover no-repeat, linear-gradient(135deg, #9a3412, #ea580c);
+        }
+
+        .thumb-ceramic-2 {
+            background: url('cceramics2.png') center/cover no-repeat, linear-gradient(135deg, #9a3412, #ea580c);
+        }
+
+        .thumb-ceramic-3 {
+            background: url('cceramics3.png') center/cover no-repeat, linear-gradient(135deg, #9a3412, #ea580c);
+        }
+
+        .thumb-composite-1 {
+            background: url('ccomposites1.png') center/cover no-repeat, linear-gradient(135deg, #1e3a8a, #2563eb);
+        }
+
+        .thumb-composite-2 {
+            background: url('ccomposites2.png') center/cover no-repeat, linear-gradient(135deg, #1e3a8a, #2563eb);
+        }
+
+        .thumb-composite-3 {
+            background: url('ccomposites3.png') center/cover no-repeat, linear-gradient(135deg, #1e3a8a, #2563eb);
+        }
 
         /* Subtle grid overlay line effect to maintain the tech look over pictures */
         .media-thumbnail-wrapper::before {
             content: '';
             position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
             opacity: 0.1;
             background-image: radial-gradient(#ffffff 1px, transparent 1px);
             background-size: 12px 12px;
@@ -437,11 +545,22 @@
             letter-spacing: 0.05em;
             transition: color 0.2s;
         }
-        
-        .media-preview-card[data-topic="alloys"] .media-topic-label { color: var(--color-alloys); }
-        .media-preview-card[data-topic="glass"] .media-topic-label { color: var(--color-glass); }
-        .media-preview-card[data-topic="ceramics"] .media-topic-label { color: var(--color-ceramics); }
-        .media-preview-card[data-topic="composites"] .media-topic-label { color: var(--color-composites); }
+
+        .media-preview-card[data-topic="alloys"] .media-topic-label {
+            color: var(--color-alloys);
+        }
+
+        .media-preview-card[data-topic="glass"] .media-topic-label {
+            color: var(--color-glass);
+        }
+
+        .media-preview-card[data-topic="ceramics"] .media-topic-label {
+            color: var(--color-ceramics);
+        }
+
+        .media-preview-card[data-topic="composites"] .media-topic-label {
+            color: var(--color-composites);
+        }
 
         .media-video-title {
             font-size: 0.95rem;
@@ -467,10 +586,21 @@
             fill: #0f172a;
         }
 
-        .media-preview-card[data-topic="alloys"]:hover .media-video-title { color: var(--color-alloys); }
-        .media-preview-card[data-topic="glass"]:hover .media-video-title { color: var(--color-glass); }
-        .media-preview-card[data-topic="ceramics"]:hover .media-video-title { color: var(--color-ceramics); }
-        .media-preview-card[data-topic="composites"]:hover .media-video-title { color: var(--color-composites); }
+        .media-preview-card[data-topic="alloys"]:hover .media-video-title {
+            color: var(--color-alloys);
+        }
+
+        .media-preview-card[data-topic="glass"]:hover .media-video-title {
+            color: var(--color-glass);
+        }
+
+        .media-preview-card[data-topic="ceramics"]:hover .media-video-title {
+            color: var(--color-ceramics);
+        }
+
+        .media-preview-card[data-topic="composites"]:hover .media-video-title {
+            color: var(--color-composites);
+        }
 
         /* --- VIDEO POPUP MODAL ARCHITECTURE --- */
         .chem-video-overlay {
@@ -635,14 +765,24 @@
         }
 
         @media (max-width: 1024px) {
-            .media-grid { grid-template-columns: repeat(2, 1fr); }
+            .media-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
         }
+
         @media (max-width: 720px) {
-            .media-grid { grid-template-columns: 1fr; }
-            .global-navbar { flex-direction: column; gap: 14px; }
+            .media-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .global-navbar {
+                flex-direction: column;
+                gap: 14px;
+            }
         }
     </style>
 </head>
+
 <body>
 
     <div id="custom-loader">
@@ -666,10 +806,11 @@
 
             <!-- Skeleton Hero -->
             <div class="skeleton-hero">
-                <div class="skeleton-box" style="width: 320px; height: 44px; margin: 0 auto 16px auto; border-radius: 10px;"></div>
+                <div class="skeleton-box"
+                    style="width: 320px; height: 44px; margin: 0 auto 16px auto; border-radius: 10px;"></div>
                 <div class="skeleton-box" style="width: 540px; height: 20px; margin: 0 auto 10px auto;"></div>
                 <div class="skeleton-box" style="width: 420px; height: 20px; margin: 0 auto 30px auto;"></div>
-                
+
                 <!-- Skeleton Filter Dock -->
                 <div class="skeleton-filters">
                     <div class="skeleton-box" style="width: 100px; height: 38px; border-radius: 20px;"></div>
@@ -688,7 +829,8 @@
                         <div class="skeleton-box" style="width: 70%; height: 28px;"></div>
                         <div class="skeleton-box" style="width: 100%; height: 16px;"></div>
                         <div class="skeleton-box" style="width: 85%; height: 16px;"></div>
-                        <div class="skeleton-box" style="width: 100%; height: 42px; border-radius: 12px; margin-top: 10px;"></div>
+                        <div class="skeleton-box"
+                            style="width: 100%; height: 42px; border-radius: 12px; margin-top: 10px;"></div>
                     </div>
                 </div>
                 <div class="skeleton-card">
@@ -698,7 +840,8 @@
                         <div class="skeleton-box" style="width: 70%; height: 28px;"></div>
                         <div class="skeleton-box" style="width: 100%; height: 16px;"></div>
                         <div class="skeleton-box" style="width: 85%; height: 16px;"></div>
-                        <div class="skeleton-box" style="width: 100%; height: 42px; border-radius: 12px; margin-top: 10px;"></div>
+                        <div class="skeleton-box"
+                            style="width: 100%; height: 42px; border-radius: 12px; margin-top: 10px;"></div>
                     </div>
                 </div>
                 <div class="skeleton-card">
@@ -708,7 +851,8 @@
                         <div class="skeleton-box" style="width: 70%; height: 28px;"></div>
                         <div class="skeleton-box" style="width: 100%; height: 16px;"></div>
                         <div class="skeleton-box" style="width: 85%; height: 16px;"></div>
-                        <div class="skeleton-box" style="width: 100%; height: 42px; border-radius: 12px; margin-top: 10px;"></div>
+                        <div class="skeleton-box"
+                            style="width: 100%; height: 42px; border-radius: 12px; margin-top: 10px;"></div>
                     </div>
                 </div>
                 <div class="skeleton-card">
@@ -718,7 +862,8 @@
                         <div class="skeleton-box" style="width: 70%; height: 28px;"></div>
                         <div class="skeleton-box" style="width: 100%; height: 16px;"></div>
                         <div class="skeleton-box" style="width: 85%; height: 16px;"></div>
-                        <div class="skeleton-box" style="width: 100%; height: 42px; border-radius: 12px; margin-top: 10px;"></div>
+                        <div class="skeleton-box"
+                            style="width: 100%; height: 42px; border-radius: 12px; margin-top: 10px;"></div>
                     </div>
                 </div>
             </div>
@@ -727,9 +872,11 @@
 
     <nav class="global-navbar">
         <a href="index.html" class="brand-logo">
-            <svg width="20" height="24" viewBox="0 0 22 26" fill="none" xmlns="http://www.w3.org/2000/svg" style="display:inline-block; vertical-align:middle; margin-right:6px;">
-                <path d="M2 2H20M2 24H20M3.5 2C3.5 2 5 10.5 11 13C5 15.5 3.5 24 3.5 24M18.5 2C18.5 2 17 10.5 11 13C17 15.5 18.5 24 18.5 24" 
-                    stroke="#b85ee6" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>
+            <svg width="20" height="24" viewBox="0 0 22 26" fill="none" xmlns="http://www.w3.org/2000/svg"
+                style="display:inline-block; vertical-align:middle; margin-right:6px;">
+                <path
+                    d="M2 2H20M2 24H20M3.5 2C3.5 2 5 10.5 11 13C5 15.5 3.5 24 3.5 24M18.5 2C18.5 2 17 10.5 11 13C17 15.5 18.5 24 18.5 24"
+                    stroke="#b85ee6" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" />
             </svg>
             ChemLearn
         </a>
@@ -741,7 +888,7 @@
             <a href="experiment.html">Experiment</a>
             <a href="dashboard.html">Dashboard</a>
         </div>
-                <div class="right-auth-links">
+        <div class="right-auth-links">
             <button type="button" class="transparent-btn login-btn" id="openLoginBtn">Login</button>
             <button type="button" class="signup-btn" id="openSignupBtn">Sign Up</button>
         </div>
@@ -752,28 +899,50 @@
 
     <section class="hero-section">
         <h1>Chemistry Lessons</h1>
-        <p>Explore interactive media dashboards for Form 4 Chapter 8: Manufactured Substances in Industry with detailed structural profiles.</p>
-        
+        <p>Explore interactive media dashboards for Form 4 Chapter 8: Manufactured Substances in Industry with detailed
+            structural profiles.</p>
+
         <div class="filter-dock">
             <button class="pill-btn active" data-target="all" onclick="filterLessons('all', this)">All Topics</button>
             <button class="pill-btn" data-target="alloys" onclick="filterLessons('alloys', this)">🧪 8.1 Alloys</button>
             <button class="pill-btn" data-target="glass" onclick="filterLessons('glass', this)">🧪 8.2 Glass</button>
-            <button class="pill-btn" data-target="ceramics" onclick="filterLessons('ceramics', this)">🏺 8.3 Ceramics</button>
-            <button class="pill-btn" data-target="composites" onclick="filterLessons('composites', this)">🧱 8.4 Composites</button>
+            <button class="pill-btn" data-target="ceramics" onclick="filterLessons('ceramics', this)">🏺 8.3
+                Ceramics</button>
+            <button class="pill-btn" data-target="composites" onclick="filterLessons('composites', this)">🧱 8.4
+                Composites</button>
+        </div>
+
+        <!-- Put Video Link Bar -->
+        <div
+            style="max-width: 620px; margin: 24px auto 0 auto; display: flex; gap: 8px; padding: 6px; background: white; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.06); border: 1px solid #e2e8f0;">
+            <input type="url" id="customVideoInput"
+                placeholder="Put YouTube or MP4 video link here (e.g. https://www.youtube.com/watch?v=...)..."
+                style="flex: 1; border: none; padding: 10px 16px; border-radius: 12px; font-size: 0.88rem; outline: none; color: #1e293b;">
+            <button type="button" onclick="playCustomVideo()"
+                style="background: var(--accent-purple, #6d28d9); color: white; border: none; padding: 10px 20px; border-radius: 12px; font-weight: 700; font-size: 0.85rem; cursor: pointer; display: flex; align-items: center; gap: 6px; white-space: nowrap;">
+                ▶ Play Video Link
+            </button>
         </div>
     </section>
 
     <div class="media-learning-center" id="mediaCenter">
         <h2 class="media-center-title">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color:var(--accent-purple);"><polygon points="23 7 16 12 23 17 23 7"></polygon><rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect></svg>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                stroke-linecap="round" stroke-linejoin="round" style="color:var(--accent-purple);">
+                <polygon points="23 7 16 12 23 17 23 7"></polygon>
+                <rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect>
+            </svg>
             Media Learning Center
         </h2>
-        
+
         <div class="media-grid">
-            <div class="media-preview-card" data-topic="alloys" onclick="playLessonVideo('song8.1.mp4')">
+            <div class="media-preview-card" data-topic="alloys"
+                onclick="playLessonVideo('song8.1.mp4', '8.1 Alloys Beat')">
                 <div class="media-thumbnail-wrapper thumb-alloy-1">
                     <div class="glass-play-btn">
-                        <svg width="14" height="16" viewBox="0 0 14 16"><path d="M0 0v16l14-8z"/></svg>
+                        <svg width="14" height="16" viewBox="0 0 14 16">
+                            <path d="M0 0v16l14-8z" />
+                        </svg>
                     </div>
                     <div class="duration-tag">01:32</div>
                 </div>
@@ -786,7 +955,9 @@
             <div class="media-preview-card" data-topic="alloys" onclick="playLessonVideo('8.1.1.mp4')">
                 <div class="media-thumbnail-wrapper thumb-alloy-2">
                     <div class="glass-play-btn">
-                        <svg width="14" height="16" viewBox="0 0 14 16"><path d="M0 0v16l14-8z"/></svg>
+                        <svg width="14" height="16" viewBox="0 0 14 16">
+                            <path d="M0 0v16l14-8z" />
+                        </svg>
                     </div>
                     <div class="duration-tag">02:34</div>
                 </div>
@@ -799,7 +970,9 @@
             <div class="media-preview-card" data-topic="alloys" onclick="playLessonVideo('8.1.2.mp4')">
                 <div class="media-thumbnail-wrapper thumb-alloy-3">
                     <div class="glass-play-btn">
-                        <svg width="14" height="16" viewBox="0 0 14 16"><path d="M0 0v16l14-8z"/></svg>
+                        <svg width="14" height="16" viewBox="0 0 14 16">
+                            <path d="M0 0v16l14-8z" />
+                        </svg>
                     </div>
                     <div class="duration-tag">01:44</div>
                 </div>
@@ -809,10 +982,12 @@
                 </div>
             </div>
 
-            <div class="media-preview-card" data-topic="glass" onclick="playLessonVideo('song8.2.mov')">
+            <div class="media-preview-card" data-topic="glass" onclick="playLessonVideo('song8.2.mp4')">
                 <div class="media-thumbnail-wrapper thumb-glass-1">
                     <div class="glass-play-btn">
-                        <svg width="14" height="16" viewBox="0 0 14 16"><path d="M0 0v16l14-8z"/></svg>
+                        <svg width="14" height="16" viewBox="0 0 14 16">
+                            <path d="M0 0v16l14-8z" />
+                        </svg>
                     </div>
                     <div class="duration-tag">01:46</div>
                 </div>
@@ -825,7 +1000,9 @@
             <div class="media-preview-card" data-topic="glass" onclick="playLessonVideo('8.2.1.mp4')">
                 <div class="media-thumbnail-wrapper thumb-glass-2">
                     <div class="glass-play-btn">
-                        <svg width="14" height="16" viewBox="0 0 14 16"><path d="M0 0v16l14-8z"/></svg>
+                        <svg width="14" height="16" viewBox="0 0 14 16">
+                            <path d="M0 0v16l14-8z" />
+                        </svg>
                     </div>
                     <div class="duration-tag">18:34</div>
                 </div>
@@ -838,7 +1015,9 @@
             <div class="media-preview-card" data-topic="glass" onclick="playLessonVideo('8.2.2.mp4')">
                 <div class="media-thumbnail-wrapper thumb-glass-3">
                     <div class="glass-play-btn">
-                        <svg width="14" height="16" viewBox="0 0 14 16"><path d="M0 0v16l14-8z"/></svg>
+                        <svg width="14" height="16" viewBox="0 0 14 16">
+                            <path d="M0 0v16l14-8z" />
+                        </svg>
                     </div>
                     <div class="duration-tag">04:52</div>
                 </div>
@@ -851,7 +1030,9 @@
             <div class="media-preview-card" data-topic="ceramics" onclick="playLessonVideo('song8.3.mp4')">
                 <div class="media-thumbnail-wrapper thumb-ceramic-1">
                     <div class="glass-play-btn">
-                        <svg width="14" height="16" viewBox="0 0 14 16"><path d="M0 0v16l14-8z"/></svg>
+                        <svg width="14" height="16" viewBox="0 0 14 16">
+                            <path d="M0 0v16l14-8z" />
+                        </svg>
                     </div>
                     <div class="duration-tag">01:02</div>
                 </div>
@@ -861,10 +1042,12 @@
                 </div>
             </div>
 
-            <div class="media-preview-card" data-topic="ceramics" onclick="playLessonVideo('8.3.1.mp4')">
+            <div class="media-preview-card" data-topic="ceramics" onclick="playLessonVideo('song8.3.mp4')">
                 <div class="media-thumbnail-wrapper thumb-ceramic-2">
                     <div class="glass-play-btn">
-                        <svg width="14" height="16" viewBox="0 0 14 16"><path d="M0 0v16l14-8z"/></svg>
+                        <svg width="14" height="16" viewBox="0 0 14 16">
+                            <path d="M0 0v16l14-8z" />
+                        </svg>
                     </div>
                     <div class="duration-tag">06:15</div>
                 </div>
@@ -877,7 +1060,9 @@
             <div class="media-preview-card" data-topic="ceramics" onclick="playLessonVideo('8.3.2.mp4')">
                 <div class="media-thumbnail-wrapper thumb-ceramic-3">
                     <div class="glass-play-btn">
-                        <svg width="14" height="16" viewBox="0 0 14 16"><path d="M0 0v16l14-8z"/></svg>
+                        <svg width="14" height="16" viewBox="0 0 14 16">
+                            <path d="M0 0v16l14-8z" />
+                        </svg>
                     </div>
                     <div class="duration-tag">05:05</div>
                 </div>
@@ -890,7 +1075,9 @@
             <div class="media-preview-card" data-topic="composites" onclick="playLessonVideo('song8.4.mp4')">
                 <div class="media-thumbnail-wrapper thumb-composite-1">
                     <div class="glass-play-btn">
-                        <svg width="14" height="16" viewBox="0 0 14 16"><path d="M0 0v16l14-8z"/></svg>
+                        <svg width="14" height="16" viewBox="0 0 14 16">
+                            <path d="M0 0v16l14-8z" />
+                        </svg>
                     </div>
                     <div class="duration-tag">06:21</div>
                 </div>
@@ -903,7 +1090,9 @@
             <div class="media-preview-card" data-topic="composites" onclick="playLessonVideo('8.4.1.mp4')">
                 <div class="media-thumbnail-wrapper thumb-composite-2">
                     <div class="glass-play-btn">
-                        <svg width="14" height="16" viewBox="0 0 14 16"><path d="M0 0v16l14-8z"/></svg>
+                        <svg width="14" height="16" viewBox="0 0 14 16">
+                            <path d="M0 0v16l14-8z" />
+                        </svg>
                     </div>
                     <div class="duration-tag">04:40</div>
                 </div>
@@ -916,7 +1105,9 @@
             <div class="media-preview-card" data-topic="composites" onclick="playLessonVideo('8.4.2.mp4')">
                 <div class="media-thumbnail-wrapper thumb-composite-3">
                     <div class="glass-play-btn">
-                        <svg width="14" height="16" viewBox="0 0 14 16"><path d="M0 0v16l14-8z"/></svg>
+                        <svg width="14" height="16" viewBox="0 0 14 16">
+                            <path d="M0 0v16l14-8z" />
+                        </svg>
                     </div>
                     <div class="duration-tag">05:55</div>
                 </div>
@@ -939,12 +1130,15 @@
         <div class="footer-grid-row">
             <div class="footer-brand-side">
                 <a href="index.html" class="brand-logo footer-logo">ChemLearn <span>AI</span></a>
-                <p>Master Malaysian SPM Form 4 &amp; 5 Chemistry through interactive simulations, qualitative salt analysis, and automated KSSM essay evaluations.</p>
+                <p>Master Malaysian SPM Form 4 &amp; 5 Chemistry through interactive simulations, qualitative salt
+                    analysis, and automated KSSM essay evaluations.</p>
                 <div class="legal-entity-details">
                     <strong>ChemLearn Educational Technologies Sdn. Bhd.</strong><br>
                     SSM Reg. No.: 202401038492 (1542381-X)<br>
-                    Level 14, Menara Southgate, No. 2 Jalan Dua, Off Jalan Chan Sow Lin, 55200 Kuala Lumpur, Malaysia<br>
-                    Official Support: <a href="mailto:support@chemlearn.my" style="color:var(--accent-purple, #6d28d9); font-weight:600;">support@chemlearn.my</a>
+                    Level 14, Menara Southgate, No. 2 Jalan Dua, Off Jalan Chan Sow Lin, 55200 Kuala Lumpur,
+                    Malaysia<br>
+                    Official Support: <a href="mailto:support@chemlearn.my"
+                        style="color:var(--accent-purple, #6d28d9); font-weight:600;">support@chemlearn.my</a>
                 </div>
             </div>
             <div class="footer-column">
@@ -971,20 +1165,23 @@
                 <ul>
                     <li><a href="privacy-policy.html">Privacy Policy (PDPA)</a></li>
                     <li><a href="terms-of-service.html">Terms of Service</a></li>
-                    <li><button type="button" id="footerCookiePrefsBtn" onclick="if(window.openPreferences){window.openPreferences();}else{window.location.href='index.html#cookie-prefs';}">Cookie Settings</button></li>
+                    <li><button type="button" id="footerCookiePrefsBtn"
+                            onclick="if(window.openPreferences){window.openPreferences();}else{window.location.href='index.html#cookie-prefs';}">Cookie
+                            Settings</button></li>
                     <li><a href="thank-you.html">Getting Started</a></li>
                 </ul>
             </div>
         </div>
         <div class="footer-bottom-bar">
             <p>&copy; 2026 ChemLearn Educational Technologies Sdn. Bhd. All rights reserved.</p>
-            <p>Independent supplementary revision software aligned with KSSM curriculum. Not affiliated with Lembaga Peperiksaan Malaysia.</p>
+            <p>Independent supplementary revision software aligned with KSSM curriculum. Not affiliated with Lembaga
+                Peperiksaan Malaysia.</p>
         </div>
     </footer>
 
     <script>
-	    let pagesVisited = parseInt(localStorage.getItem("pagesVisited")) || 0;
-	    pagesVisited++;
+        let pagesVisited = parseInt(localStorage.getItem("pagesVisited")) || 0;
+        pagesVisited++;
 
         window.addEventListener('load', () => {
             const loader = document.getElementById('custom-loader');
@@ -1008,22 +1205,65 @@
             });
         }
 
-        function playLessonVideo(videoUrl) {
+        function parseYt(url) {
+            const m = (url || '').match(/(?:youtu\.be\/|youtube(?:-nocookie)?\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=|shorts\/))([\w-]{11})/i);
+            return m ? m[1] : null;
+        }
+
+        function playLessonVideo(videoUrl, title = 'Lesson Video') {
             const containerDom = document.getElementById('videoOverlay');
             const mediaDom = document.getElementById('playerMediaDom');
-            
-            mediaDom.src = videoUrl;
-            containerDom.classList.add('active');
-            mediaDom.play();
+            const iframeDom = document.getElementById('playerIframeDom');
+            const titleDom = document.getElementById('videoModalTitle');
+            if (titleDom) titleDom.textContent = title;
+
+            const ytId = parseYt(videoUrl);
+            if (ytId) {
+                if (mediaDom) {
+                    mediaDom.style.display = 'none';
+                    mediaDom.pause();
+                    mediaDom.src = '';
+                }
+                if (iframeDom) {
+                    iframeDom.src = 'https://www.youtube-nocookie.com/embed/' + ytId + '?autoplay=1&rel=0';
+                    iframeDom.style.display = 'block';
+                }
+            } else {
+                if (iframeDom) {
+                    iframeDom.style.display = 'none';
+                    iframeDom.src = '';
+                }
+                if (mediaDom) {
+                    mediaDom.src = videoUrl;
+                    mediaDom.style.display = 'block';
+                    mediaDom.play().catch(() => { });
+                }
+            }
+
+            if (containerDom) {
+                containerDom.style.display = 'flex';
+            }
+        }
+
+        function playCustomVideo() {
+            const input = document.getElementById('customVideoInput');
+            if (!input || !input.value.trim()) return;
+            playLessonVideo(input.value.trim(), 'Custom Video Link');
         }
 
         function closeLessonVideo() {
             const containerDom = document.getElementById('videoOverlay');
             const mediaDom = document.getElementById('playerMediaDom');
-            
-            containerDom.classList.remove('active');
-            mediaDom.pause();
-            mediaDom.src = ""; 
+            const iframeDom = document.getElementById('playerIframeDom');
+
+            if (containerDom) containerDom.style.display = 'none';
+            if (mediaDom) {
+                mediaDom.pause();
+                mediaDom.src = '';
+            }
+            if (iframeDom) {
+                iframeDom.src = '';
+            }
         }
     </script>
 
@@ -1043,5 +1283,30 @@
             }
         });
     </script>
+    <!-- Video Player Overlay Modal -->
+    <div id="videoOverlay"
+        style="display: none; position: fixed; inset: 0; z-index: 9999; background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(8px); align-items: center; justify-content: center; padding: 20px;"
+        onclick="closeLessonVideo()">
+        <div style="position: relative; width: 100%; max-width: 860px; background: #0f172a; border-radius: 20px; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); border: 1px solid #334155;"
+            onclick="event.stopPropagation()">
+            <div
+                style="display: flex; justify-content: space-between; align-items: center; padding: 14px 20px; background: rgba(15, 23, 42, 0.9); border-bottom: 1px solid #1e293b;">
+                <span id="videoModalTitle" style="color: white; font-weight: 700; font-size: 0.95rem;">Lesson
+                    Video</span>
+                <button type="button" onclick="closeLessonVideo()"
+                    style="background: transparent; border: none; color: #94a3b8; font-size: 1.5rem; cursor: pointer; padding: 4px 8px; line-height: 1;"
+                    aria-label="Close video">&times;</button>
+            </div>
+            <div
+                style="width: 100%; aspect-ratio: 16/9; background: black; display: flex; align-items: center; justify-content: center;">
+                <video id="playerMediaDom" controls
+                    style="display: none; width: 100%; height: 100%; object-fit: contain;"></video>
+                <iframe id="playerIframeDom" style="display: none; width: 100%; height: 100%; border: none;"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowfullscreen></iframe>
+            </div>
+        </div>
+    </div>
 </body>
+
 </html>

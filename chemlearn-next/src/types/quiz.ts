@@ -35,3 +35,25 @@ export interface ExternalQuiz {
   topic: string;
   emoji: string;
 }
+
+export interface QuestionGradingResult {
+  questionIndex: number;
+  question: string;
+  selectedOption: number | string;
+  correctIndex?: number;
+  expectedAnswer?: string;
+  isCorrect: boolean;
+  explanation: string;
+}
+
+export interface QuizGradingResponse {
+  quizId: string;
+  score: number;
+  total: number;
+  percentage: number;
+  breakdown: QuestionGradingResult[];
+  xpAwarded: number;
+  currentXp: number;
+  currentLevel: number;
+  levelUp: boolean;
+}

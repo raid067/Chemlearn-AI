@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 
 test.describe('ChemLearn Student Journey & Curriculum Flow', () => {
 
-  test('1. Landing Page: displays KSSM SPM Chemistry branding and key navigation links', async ({ page }) => {
+  test('1. Landing Page: displays KSSM SPM Chemistry branding and key navigation links', async ({ page, isMobile }) => {
     // Arrange & Act
     await page.goto('/');
 
@@ -10,6 +10,13 @@ test.describe('ChemLearn Student Journey & Curriculum Flow', () => {
     await expect(page).toHaveTitle(/ChemLearn/i);
     const heading = page.getByRole('heading', { level: 1 });
     await expect(heading).toBeVisible();
+
+    if (isMobile) {
+      const menuBtn = page.getByRole('button', { name: /open main menu/i });
+      if (await menuBtn.isVisible()) {
+        await menuBtn.click();
+      }
+    }
 
     // Check primary navigation links
     await expect(page.getByRole('link', { name: /lessons/i }).first()).toBeVisible();
@@ -23,8 +30,8 @@ test.describe('ChemLearn Student Journey & Curriculum Flow', () => {
     await page.goto('/lessons');
 
     // Assert
-    await expect(page.getByText('Acids, Bases and Salts')).toBeVisible();
-    await expect(page.getByText('Manufactured Substances in Industry')).toBeVisible();
+    await expect(page.getByRole('heading', { name: /Acids, Bases and Salts/i })).toBeVisible();
+    await expect(page.getByRole('heading', { name: /Manufactured Substances in Industry/i })).toBeVisible();
 
     // Verify subtopics are clickable
     const chapter6Link = page.getByRole('link', { name: /chapter 6|acids, bases/i }).first();
@@ -104,9 +111,9 @@ test.describe('ChemLearn Student Journey & Curriculum Flow', () => {
     await page.goto('/experiments');
 
     // Assert: Check simulation lab options
-    await expect(page.getByText(/Thermal Decomposition/i)).toBeVisible();
-    await expect(page.getByText(/Acid Dilution/i)).toBeVisible();
-    await expect(page.getByText(/Salt Analysis/i)).toBeVisible();
+    await expect(page.getByText(/Thermal Decomposition/i).first()).toBeVisible();
+    await expect(page.getByText(/Acid Dilution/i).first()).toBeVisible();
+    await expect(page.getByText(/Salt Analysis/i).first()).toBeVisible();
   });
 
   test('7. Mobile Responsiveness: viewport behaves cleanly without horizontal overflow', async ({ page }) => {
@@ -146,7 +153,7 @@ test.describe('ChemLearn Student Journey & Curriculum Flow', () => {
 
   test('9. Chapter 8 Curriculum: loads Manufactured Substances subtopics', async ({ page }) => {
     await page.goto('/lessons/chapter-8');
-    await expect(page.getByText(/Manufactured Substances in Industry/i)).toBeVisible();
+    await expect(page.getByText(/Manufactured Substances in Industry/i).first()).toBeVisible();
     await expect(page.getByText(/Alloys/i).first()).toBeVisible();
   });
 

@@ -52,6 +52,18 @@ describe('Firestore Security Rules & Permission Enforcement', () => {
       expect(rulesContent).toContain("!(data.role in ['system', 'developer', 'admin'])");
       expect(rulesContent).toContain("!data.keys().hasAny(['systemPrompt', 'systemInstruction', 'admin'");
     });
+
+    it('has exactly ONE match /feedbacks/{feedbackId} block (no duplicate unauthenticated or-bypass)', () => {
+      const feedbackMatches = rulesContent.match(/match \/feedbacks\/\{feedbackId\}/g);
+      expect(feedbackMatches).not.toBeNull();
+      expect(feedbackMatches?.length).toBe(1);
+    });
+
+    it('strictly forbids client XP/level/streak injection in firestore.rules', () => {
+      // Must not allow client to increment their own XP (e.g. <= currentXp + 100)
+      expect(rulesContent).not.toContain("request.resource.data.xp <= currentXp + 100");
+      expect(rulesContent).toContain("!affectedKeys.hasAny(['role', 'admin', 'teacherIds', 'quizScore', 'xp', 'level', 'streak', 'badges'])");
+    });
   });
 
   describe('Rule Predicate Evaluation (Simulated Firestore Engine)', () => {
@@ -61,12 +73,15 @@ describe('Firestore Security Rules & Permission Enforcement', () => {
       newData: Record<string, unknown>
     ): { allowed: boolean; reason?: string } {
       const affectedKeys = Object.keys(newData).filter((k) => newData[k] !== currentData[k]);
-      const allowedUpdateKeys = ['displayName', 'streak', 'lastSeen', 'updatedAt'];
+      const allowedUpdateKeys = [
+        'displayName', 'username', 'photoUrl', 'lastSeen', 'updatedAt',
+        'completedPomodoros', 'dailyChallengeDate', 'dailyChallengeStreak'
+      ];
 
       const hasOnlyAllowed = affectedKeys.every((k) => allowedUpdateKeys.includes(k));
       if (!hasOnlyAllowed) return { allowed: false, reason: 'Disallowed keys modified' };
 
-      if (affectedKeys.some((k) => ['xp', 'quizScore', 'level', 'role', 'teacherIds'].includes(k))) {
+      if (affectedKeys.some((k) => ['xp', 'quizScore', 'level', 'streak', 'badges', 'role', 'admin', 'teacherIds'].includes(k))) {
         return { allowed: false, reason: 'Authoritative fields cannot be updated by student' };
       }
 
@@ -236,5 +251,94 @@ describe('Firestore Security Rules & Permission Enforcement', () => {
       };
       expect(simulateChatMessage(oversizedMsg).allowed).toBe(false);
     });
+
+    it('DENIES direct client streak modification on student document', () => {
+      const current = { displayName: 'Student A', streak: 3 };
+      const modified = { displayName: 'Student A', streak: 100 };
+      const res = simulateStudentUpdate(current, modified);
+      expect(res.allowed).toBe(false);
+    });
+
+    it('DENIES direct client level modification on student document', () => {
+      const current = { displayName: 'Student A', level: 1 };
+      const modified = { displayName: 'Student A', level: 99 };
+      const res = simulateStudentUpdate(current, modified);
+      expect(res.allowed).toBe(false);
+    });
+
+    it('DENIES direct client badges modification on student document', () => {
+      const current = { displayName: 'Student A', badges: [] };
+      const modified = { displayName: 'Student A', badges: ['speed_demon', 'grandmaster'] };
+      const res = simulateStudentUpdate(current, modified);
+      expect(res.allowed).toBe(false);
+    });
+
+    // 5. Feedback document creation evaluation
+    function simulateFeedbackCreate(
+      auth: { uid: string } | null,
+      data: Record<string, unknown>
+    ): { allowed: boolean; reason?: string } {
+      if (!auth) return { allowed: false, reason: 'Unauthenticated writes not allowed' };
+      if (data.uid !== auth.uid) return { allowed: false, reason: 'Feedback UID mismatch' };
+      const allowedKeys = ['uid', 'userName', 'text', 'rating', 'timestamp'];
+      if (!Object.keys(data).every((k) => allowedKeys.includes(k))) {
+        return { allowed: false, reason: 'Disallowed keys in feedback' };
+      }
+      if (typeof data.rating !== 'number' || data.rating < 1 || data.rating > 5 || !Number.isInteger(data.rating)) {
+        return { allowed: false, reason: 'Invalid rating (must be integer 1-5)' };
+      }
+      if (typeof data.text !== 'string' || data.text.length === 0 || data.text.length > 2000) {
+        return { allowed: false, reason: 'Invalid text length' };
+      }
+      if (typeof data.userName !== 'string' || data.userName.length > 100) {
+        return { allowed: false, reason: 'Invalid userName' };
+      }
+      return { allowed: true };
+    }
+
+    it('ACCEPTS valid authenticated feedback with rating 1-5', () => {
+      const auth = { uid: 'student-123' };
+      const doc = {
+        uid: 'student-123',
+        userName: 'Ahmad',
+        text: 'The SPM Chapter 6 lesson was crystal clear!',
+        rating: 5,
+        timestamp: Date.now(),
+      };
+      expect(simulateFeedbackCreate(auth, doc).allowed).toBe(true);
+    });
+
+    it('DENIES unauthenticated feedback creation', () => {
+      const doc = {
+        uid: 'anonymous',
+        userName: 'Anon',
+        text: 'Spam text',
+        rating: 5,
+        timestamp: Date.now(),
+      };
+      expect(simulateFeedbackCreate(null, doc).allowed).toBe(false);
+    });
+
+    it('DENIES feedback creation with rating out of bounds or spoofed UID', () => {
+      const auth = { uid: 'student-123' };
+      const wrongUid = {
+        uid: 'student-999',
+        userName: 'Ahmad',
+        text: 'Hello',
+        rating: 5,
+        timestamp: Date.now(),
+      };
+      expect(simulateFeedbackCreate(auth, wrongUid).allowed).toBe(false);
+
+      const invalidRating = {
+        uid: 'student-123',
+        userName: 'Ahmad',
+        text: 'Hello',
+        rating: 10,
+        timestamp: Date.now(),
+      };
+      expect(simulateFeedbackCreate(auth, invalidRating).allowed).toBe(false);
+    });
   });
 });
+

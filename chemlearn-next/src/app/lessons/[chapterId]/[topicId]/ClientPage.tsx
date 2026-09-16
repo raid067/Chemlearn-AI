@@ -8,6 +8,7 @@ import { marked } from 'marked';
 import { sanitizeHtml } from '@/lib/sanitize';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { useGamificationStore } from '@/stores/useGamificationStore';
+import LessonVideoPlayer from '@/components/lessons/LessonVideoPlayer';
 
 export default function TopicPage({ params }: { params: Promise<{ chapterId: string, topicId: string }> }) {
   const unwrappedParams = use(params);
@@ -134,6 +135,15 @@ export default function TopicPage({ params }: { params: Promise<{ chapterId: str
           </span>
           <h1 className="text-4xl font-extrabold text-slate-900 tracking-tight">{topic.title}</h1>
         </div>
+
+        {/* Lesson Video Section with Put Video Link capability */}
+        <LessonVideoPlayer
+          chapterId={chapter.id}
+          topicId={topic.id}
+          topicTitle={topic.title}
+          defaultVideoUrl={(topic as { videoUrl?: string }).videoUrl}
+          chapterColor={chapter.color}
+        />
 
         {/* Prose (Markdown Content) */}
         <article 

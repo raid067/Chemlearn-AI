@@ -11,6 +11,7 @@ export const chapter6 = {
       title: '6.1 Role of Water in Showing Acidic and Alkaline Properties',
       estimatedTime: '15 min',
       difficulty: 'Easy',
+      videoUrl: 'https://www.youtube.com/watch?v=ANi709MYnWg',
       content: `
 # The Role of Water
 
@@ -36,6 +37,7 @@ The $H^+$ ions produced cause the blue litmus paper to turn red, proving the aci
       title: '6.2 pH Value',
       estimatedTime: '20 min',
       difficulty: 'Medium',
+      videoUrl: 'https://www.youtube.com/watch?v=Xeuyc55LqiY',
       content: `
 # Understanding pH Value
 
@@ -106,6 +108,7 @@ A weak acid **ionises partially** in water to produce a low concentration of hyd
       title: '6.7 Neutralisation',
       estimatedTime: '25 min',
       difficulty: 'Medium',
+      videoUrl: 'https://www.youtube.com/watch?v=2Tz86E1Vlqg',
       content: `# Neutralisation\n\nThe reaction between an acid and a base to form salt and water only. $H^+ + OH^- \\rightarrow H_2O$`,
     },
     {
@@ -120,6 +123,7 @@ A weak acid **ionises partially** in water to produce a low concentration of hyd
       title: '6.9 Preparation of Salts',
       estimatedTime: '30 min',
       difficulty: 'Hard',
+      videoUrl: 'https://www.youtube.com/watch?v=Gk7D1vM0K6s',
       content: `# Preparation of Salts\n\nSoluble salts (SPA and non-SPA) and insoluble salts (precipitation method).`,
     },
     {
@@ -134,6 +138,7 @@ A weak acid **ionises partially** in water to produce a low concentration of hyd
       title: '6.11 Qualitative Analysis',
       estimatedTime: '35 min',
       difficulty: 'Hard',
+      videoUrl: 'https://www.youtube.com/watch?v=F0vA7Y4g1QY',
       content: `# Qualitative Analysis\n\nIdentifying cations, anions, and gases through chemical tests.`,
     }
   ]

@@ -44,27 +44,8 @@ export interface ClientSanitizedQuestion {
   marks?: number;
 }
 
-export interface QuestionGradingResult {
-  questionIndex: number;
-  question: string;
-  selectedOption: number | string;
-  correctIndex?: number;
-  expectedAnswer?: string;
-  isCorrect: boolean;
-  explanation: string;
-}
-
-export interface QuizGradingResponse {
-  quizId: string;
-  score: number;
-  total: number;
-  percentage: number;
-  breakdown: QuestionGradingResult[];
-  xpAwarded: number;
-  currentXp: number;
-  currentLevel: number;
-  levelUp: boolean;
-}
+import type { QuestionGradingResult, QuizGradingResponse } from '@/types/quiz';
+export type { QuestionGradingResult, QuizGradingResponse };
 
 const SCRIPT_CHAR_MAP: Record<string, string> = {
   '⁰': '0', '¹': '1', '²': '2', '³': '3', '⁴': '4',

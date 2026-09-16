@@ -310,7 +310,6 @@ export default function ResourceGrid() {
             {/* Modal Content */}
             <div className="flex-1 overflow-y-auto p-4 flex items-center justify-center bg-slate-100">
               {activePreview.type === 'image' ? (
-                // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={activePreview.url}
                   alt={activePreview.title}

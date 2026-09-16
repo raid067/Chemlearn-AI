@@ -11,6 +11,7 @@ export const chapter8 = {
       title: '8.1 Alloys',
       estimatedTime: '20 min',
       difficulty: 'Medium',
+      videoUrl: 'https://www.youtube.com/watch?v=kYJc7pW8x2c',
       content: `
 # Understanding Alloys
 
@@ -37,6 +38,7 @@ Pure metals are often soft and easily corroded. Alloying improves their properti
       title: '8.2 Glass',
       estimatedTime: '15 min',
       difficulty: 'Easy',
+      videoUrl: 'https://www.youtube.com/watch?v=kM6Vf0cI8fE',
       content: `
 # Types of Glass
 
@@ -70,6 +72,7 @@ Glass is mainly composed of silica (silicon dioxide, $SiO_2$) obtained from sand
       title: '8.3 Ceramics',
       estimatedTime: '15 min',
       difficulty: 'Easy',
+      videoUrl: 'https://www.youtube.com/watch?v=5rTvhNf8Fsw',
       content: `
 # Ceramics
 
@@ -94,6 +97,7 @@ The main component of clay is **kaolin** (hydrated aluminium silicate).
       title: '8.4 Composite Materials',
       estimatedTime: '20 min',
       difficulty: 'Medium',
+      videoUrl: 'https://www.youtube.com/watch?v=aGgQY_wF5kI',
       content: `
 # Composite Materials
 
