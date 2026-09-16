@@ -38,6 +38,9 @@ jobs:
       - name: Run Unit & Regression Tests
         run: npm test -- --runInBand
 
+      - name: Run Red Team Security & AI Safety Tests
+        run: npm run test:redteam
+
       - name: Install Playwright Browsers
         run: npx playwright install --with-deps chromium
 

@@ -4,6 +4,31 @@ import Modal from '../ui/Modal';
 import { useUIStore } from '@/stores/useUIStore';
 import { useAuthStore } from '@/stores/useAuthStore';
 
+function formatAuthError(err: unknown): string {
+  if (!err || typeof err !== 'object') return 'Authentication failed. Please try again.';
+  const code = (err as { code?: string }).code || '';
+  switch (code) {
+    case 'auth/invalid-credential':
+    case 'auth/wrong-password':
+    case 'auth/user-not-found':
+      return 'Incorrect email or password. Please verify your credentials and try again.';
+    case 'auth/email-already-in-use':
+      return 'An account with this email address already exists. Please Sign In instead.';
+    case 'auth/weak-password':
+      return 'Password is too weak. Please use at least 6 characters.';
+    case 'auth/invalid-email':
+      return 'Please enter a valid email address.';
+    case 'auth/too-many-requests':
+      return 'Too many attempts. Access is temporarily blocked to protect your account. Please wait a moment and try again.';
+    case 'auth/network-request-failed':
+      return 'Network error. Please check your internet connection and try again.';
+    default: {
+      const raw = (err as Error).message || '';
+      return raw.replace(/^Firebase:\s*/i, '').replace(/\(auth\/[^)]+\)\.?/i, '').trim() || 'Authentication failed. Please try again.';
+    }
+  }
+}
+
 export default function AuthModal() {
   const { activeModal, closeModal, authMode, setAuthMode } = useUIStore();
   const { signIn, signUp, loading } = useAuthStore();
@@ -28,7 +53,7 @@ export default function AuthModal() {
       setPassword('');
       setDisplayName('');
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Authentication failed');
+      setError(formatAuthError(err));
     }
   };
 

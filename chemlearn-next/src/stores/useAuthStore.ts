@@ -4,6 +4,7 @@ import {
   createUserWithEmailAndPassword,
   signOut as firebaseSignOut,
   onAuthStateChanged,
+  updateProfile,
   User,
   IdTokenResult,
 } from 'firebase/auth';
@@ -13,6 +14,7 @@ interface AuthState {
   user: User | null;
   claims: Record<string, unknown>;
   isTeacher: boolean;
+  isAdmin: boolean;
   loading: boolean;
   initialized: boolean;
   signIn: (email: string, password: string) => Promise<void>;
@@ -25,6 +27,7 @@ export const useAuthStore = create<AuthState>((set) => ({
   user: null,
   claims: {},
   isTeacher: false,
+  isAdmin: false,
   loading: false,
   initialized: false,
 
@@ -41,11 +44,18 @@ export const useAuthStore = create<AuthState>((set) => ({
     set({ loading: true });
     try {
       const cred = await createUserWithEmailAndPassword(auth, email, password);
+      if (displayName && cred.user) {
+        try {
+          await updateProfile(cred.user, { displayName });
+        } catch (e) {
+          console.warn('Could not update user profile displayName:', e);
+        }
+      }
       const { getFirestore, doc, setDoc, serverTimestamp } = await import('firebase/firestore');
       const db = getFirestore(app);
       await setDoc(doc(db, 'students', cred.user.uid), {
         email,
-        displayName,
+        displayName: displayName || email.split('@')[0],
         xp: 0,
         quizScore: 0,
         streak: 0,
@@ -58,7 +68,7 @@ export const useAuthStore = create<AuthState>((set) => ({
 
   signOut: async () => {
     await firebaseSignOut(auth);
-    set({ user: null, claims: {} });
+    set({ user: null, claims: {}, isTeacher: false, isAdmin: false });
   },
 
   init: () => {
@@ -69,6 +79,7 @@ export const useAuthStore = create<AuthState>((set) => ({
         
         // Check if user is a teacher (custom claims first to avoid unnecessary Firestore read)
         let isTeacher = Boolean(tokenResult.claims?.teacher);
+        const isAdmin = Boolean(tokenResult.claims?.admin);
         if (!isTeacher) {
           try {
             const { getDoc, doc, getFirestore } = await import('firebase/firestore');
@@ -80,7 +91,7 @@ export const useAuthStore = create<AuthState>((set) => ({
           }
         }
 
-        set({ user, claims: tokenResult.claims as Record<string, unknown>, isTeacher, initialized: true });
+        set({ user, claims: tokenResult.claims as Record<string, unknown>, isTeacher, isAdmin, initialized: true });
         
         // Listen to student data to populate dashboard
         import('firebase/firestore').then(({ doc, onSnapshot, getFirestore }) => {

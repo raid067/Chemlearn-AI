@@ -47,11 +47,13 @@ export function sanitizeHtml(dirty: string): string {
       .replace(/javascript\s*:/gi, '');
   }
 
-  return DOMPurify.sanitize(dirty, {
+  const preCleaned = dirty.replace(/javascript\s*:/gi, '');
+
+  return DOMPurify.sanitize(preCleaned, {
     ALLOWED_TAGS: CHEMISTRY_ALLOWED_TAGS,
     ALLOWED_ATTR: CHEMISTRY_ALLOWED_ATTR,
     ALLOW_DATA_ATTR: false,
     FORBID_TAGS: ['script', 'style', 'iframe', 'object', 'embed', 'form', 'input'],
-    FORBID_ATTR: ['onerror', 'onload', 'onclick', 'onmouseover', 'style'],
+    FORBID_ATTR: ['onerror', 'onload', 'onclick', 'onmouseover', 'style', 'href'],
   });
 }

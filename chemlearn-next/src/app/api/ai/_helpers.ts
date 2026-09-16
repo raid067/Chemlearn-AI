@@ -13,7 +13,7 @@ export async function verifyAuth(req: NextRequest): Promise<string> {
 }
 
 export function errorResponse(error: unknown, defaultStatus = 400) {
-  if (error instanceof RateLimitError) {
+  if (typeof RateLimitError === 'function' && error instanceof RateLimitError) {
     return NextResponse.json(
       { error: error.code, message: error.message },
       { status: error.statusCode }

@@ -1,0 +1,118 @@
+[
+  {
+    "id": "abuse-001",
+    "category": "api-abuse",
+    "name": "Missing Required Parameters",
+    "description": "POST /api/ai/chat with completely empty payload.",
+    "severity": "MEDIUM",
+    "input": {
+      "endpoint": "/api/ai/chat",
+      "body": {}
+    },
+    "expectedBehavior": "400 Bad Request indicating question or image is required.",
+    "assertions": {
+      "type": "status_code",
+      "expectedStatus": 400
+    }
+  },
+  {
+    "id": "abuse-002",
+    "category": "api-abuse",
+    "name": "Invalid Payload Types (Type Confusion)",
+    "description": "Supplying array or number for string parameter 'question'.",
+    "severity": "MEDIUM",
+    "input": {
+      "endpoint": "/api/ai/chat",
+      "body": { "question": [1, 2, 3, 4] }
+    },
+    "expectedBehavior": "400 Bad Request with Zod schema validation error.",
+    "assertions": {
+      "type": "status_code",
+      "expectedStatus": 400
+    }
+  },
+  {
+    "id": "abuse-003",
+    "category": "api-abuse",
+    "name": "Oversized Request Body (> MAX_BODY_LIMIT)",
+    "description": "Submitting payload exceeding maximum content length bounds.",
+    "severity": "HIGH",
+    "input": {
+      "endpoint": "/api/ai/chat",
+      "bodySize": 6000000
+    },
+    "expectedBehavior": "413 Payload Too Large or 400 Payload Exceeded Limit.",
+    "assertions": {
+      "type": "status_code",
+      "expectedStatus": 413
+    }
+  },
+  {
+    "id": "abuse-004",
+    "category": "api-abuse",
+    "name": "Extremely Long Prompt (> 50,000 Characters)",
+    "description": "Submitting question string of 50,000 repeating characters to cause compute/memory DOS.",
+    "severity": "HIGH",
+    "input": {
+      "endpoint": "/api/ai/chat",
+      "promptLength": 50000
+    },
+    "expectedBehavior": "400 Bad Request rejected by Zod length constraint or Request Guard.",
+    "assertions": {
+      "type": "status_code",
+      "expectedStatus": 400
+    }
+  },
+  {
+    "id": "abuse-005",
+    "category": "api-abuse",
+    "name": "Malformed JSON Body",
+    "description": "Sending broken JSON syntax string.",
+    "severity": "LOW",
+    "input": {
+      "endpoint": "/api/ai/chat",
+      "raw": "{\"question\": \"broken, missing close brace"
+    },
+    "expectedBehavior": "400 Bad Request with MALFORMED_JSON code.",
+    "assertions": {
+      "type": "status_code",
+      "expectedStatus": 400
+    }
+  },
+  {
+    "id": "abuse-006",
+    "category": "api-abuse",
+    "name": "Prototype Pollution Key Injection",
+    "description": "Injecting '__proto__', 'constructor', or 'prototype' keys into JSON payload.",
+    "severity": "HIGH",
+    "input": {
+      "endpoint": "/api/ai/chat",
+      "body": {
+        "question": "What is NaCl?",
+        "__proto__": { "admin": true },
+        "constructor": { "prototype": { "isAdmin": true } }
+      }
+    },
+    "expectedBehavior": "Payload parsed safely without prototype pollution; unknown keys ignored or rejected.",
+    "assertions": {
+      "type": "status_code",
+      "expectedStatus": 200
+    }
+  },
+  {
+    "id": "abuse-007",
+    "category": "api-abuse",
+    "name": "Rapid Burst Rate Limiting (100 Requests)",
+    "description": "Simulates 100 concurrent rapid requests against rate limiter.",
+    "severity": "CRITICAL",
+    "input": {
+      "endpoint": "/api/ai/chat",
+      "burstCount": 100
+    },
+    "expectedBehavior": "429 Too Many Requests triggered to protect upstream Gemini quota.",
+    "assertions": {
+      "type": "status_code",
+      "expectedStatus": 429
+    }
+  }
+]

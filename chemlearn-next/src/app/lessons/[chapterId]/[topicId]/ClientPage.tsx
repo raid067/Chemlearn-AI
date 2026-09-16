@@ -97,8 +97,9 @@ export default function TopicPage({ params }: { params: Promise<{ chapterId: str
       }
 
       const data = await res.json();
-      if (data.answer) {
-        setAiResponse(data.answer);
+      const answer = data.answer || data.response;
+      if (answer) {
+        setAiResponse(answer);
       } else {
         setAiResponse('Sorry, I could not generate an answer right now.');
       }

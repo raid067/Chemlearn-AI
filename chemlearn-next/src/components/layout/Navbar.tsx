@@ -5,13 +5,13 @@ import { useAuthStore } from '@/stores/useAuthStore';
 import { useUIStore } from '@/stores/useUIStore';
 import { NAV_LINKS } from '@/lib/constants';
 import { cn } from '@/lib/utils';
-import { Menu } from 'lucide-react';
+import { Menu, ShieldCheck, GraduationCap } from 'lucide-react';
 
 import ChemLearnLogo from '@/components/ChemLearnLogo';
 
 export default function Navbar() {
   const pathname = usePathname();
-  const { user, signOut } = useAuthStore();
+  const { user, signOut, isAdmin, isTeacher } = useAuthStore();
   const { toggleMobileMenu, openModal, setAuthMode } = useUIStore();
 
   return (
@@ -41,6 +41,24 @@ export default function Navbar() {
         </div>
         
       <div className="flex items-center gap-4">
+        {isAdmin && (
+          <Link
+            href="/admin/red-team"
+            className="hidden md:inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold uppercase tracking-wider rounded-lg bg-red-50 text-red-700 border border-red-200 hover:bg-red-100 transition-colors shadow-xs"
+          >
+            <ShieldCheck className="w-3.5 h-3.5" />
+            Admin
+          </Link>
+        )}
+        {isTeacher && !isAdmin && (
+          <Link
+            href="/teacher"
+            className="hidden md:inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold uppercase tracking-wider rounded-lg bg-purple-50 text-purple-700 border border-purple-200 hover:bg-purple-100 transition-colors shadow-xs"
+          >
+            <GraduationCap className="w-3.5 h-3.5" />
+            Teacher
+          </Link>
+        )}
         {user ? (
           <button
             onClick={() => signOut()}

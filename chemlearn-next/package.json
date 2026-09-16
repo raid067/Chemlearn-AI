@@ -9,6 +9,9 @@
     "lint": "eslint",
     "typecheck": "node --max-old-space-size=4096 ./node_modules/typescript/bin/tsc --noEmit",
     "test": "jest",
+    "test:redteam": "jest redteam --runInBand",
+    "redteam:report": "node scripts/generate-redteam-report.js",
+    "set-admin": "node scripts/set-admin.js",
     "test:e2e": "playwright test"
   },
   "dependencies": {

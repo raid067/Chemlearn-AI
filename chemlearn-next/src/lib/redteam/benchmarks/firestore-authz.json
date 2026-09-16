@@ -1,0 +1,225 @@
+[
+  {
+    "id": "fs-s2s-001",
+    "category": "firestore-authz",
+    "name": "Student A Modifies Student B Profile",
+    "description": "Student attempts to write or update another student's document in /students/{targetUid}.",
+    "severity": "CRITICAL",
+    "input": {
+      "collection": "students",
+      "callerUid": "student_alice_001",
+      "targetDocId": "student_bob_002",
+      "operation": "update",
+      "payload": { "displayName": "Hacked Bob" }
+    },
+    "expectedBehavior": "DENIED (isOwner check fails: callerUid != targetDocId)",
+    "assertions": {
+      "type": "denied"
+    }
+  },
+  {
+    "id": "fs-s2s-002",
+    "category": "firestore-authz",
+    "name": "Student A Deletes Student B Document",
+    "description": "Student attempts to execute delete on another student's record.",
+    "severity": "CRITICAL",
+    "input": {
+      "collection": "students",
+      "callerUid": "student_alice_001",
+      "targetDocId": "student_bob_002",
+      "operation": "delete"
+    },
+    "expectedBehavior": "DENIED (only the owner or admin can delete)",
+    "assertions": {
+      "type": "denied"
+    }
+  },
+  {
+    "id": "fs-s2t-001",
+    "category": "firestore-authz",
+    "name": "Student Escalates Role to Teacher / Admin",
+    "description": "Student updates their own user profile to inject role: 'teacher' or admin: true.",
+    "severity": "CRITICAL",
+    "input": {
+      "collection": "users",
+      "callerUid": "student_alice_001",
+      "targetDocId": "student_alice_001",
+      "operation": "update",
+      "payload": { "role": "teacher", "admin": true }
+    },
+    "expectedBehavior": "DENIED (validUserUpdate strictly prohibits 'role' or 'admin' in affectedKeys)",
+    "assertions": {
+      "type": "denied"
+    }
+  },
+  {
+    "id": "fs-s2t-002",
+    "category": "firestore-authz",
+    "name": "Student Direct Write to Teachers Collection",
+    "description": "Student attempts to add a document to /teachers/{uid}.",
+    "severity": "CRITICAL",
+    "input": {
+      "collection": "teachers",
+      "callerUid": "student_alice_001",
+      "targetDocId": "student_alice_001",
+      "operation": "create",
+      "payload": { "verified": true }
+    },
+    "expectedBehavior": "DENIED (/teachers writes are explicitly set to false - Admin SDK only)",
+    "assertions": {
+      "type": "denied"
+    }
+  },
+  {
+    "id": "fs-s2t-003",
+    "category": "firestore-authz",
+    "name": "Student Direct Write to Classes Collection",
+    "description": "Student attempts to modify class roster or teacherId in /classes/{classId}.",
+    "severity": "HIGH",
+    "input": {
+      "collection": "classes",
+      "callerUid": "student_alice_001",
+      "targetDocId": "class_4_sc1",
+      "operation": "update",
+      "payload": { "teacherId": "student_alice_001" }
+    },
+    "expectedBehavior": "DENIED (/classes writes are forbidden to client SDKs)",
+    "assertions": {
+      "type": "denied"
+    }
+  },
+  {
+    "id": "fs-gam-001",
+    "category": "firestore-authz",
+    "name": "Direct Client XP Injection (Set XP = 999999999)",
+    "description": "Student attempts to mutate XP directly on their student profile.",
+    "severity": "HIGH",
+    "input": {
+      "collection": "students",
+      "callerUid": "student_alice_001",
+      "targetDocId": "student_alice_001",
+      "operation": "update",
+      "payload": { "xp": 999999999 }
+    },
+    "expectedBehavior": "DENIED (validStudentUpdate forbids 'xp' modification)",
+    "assertions": {
+      "type": "denied"
+    }
+  },
+  {
+    "id": "fs-gam-002",
+    "category": "firestore-authz",
+    "name": "Direct Client Level Injection (Set Level = 100)",
+    "description": "Student attempts to mutate level directly on their student profile.",
+    "severity": "HIGH",
+    "input": {
+      "collection": "students",
+      "callerUid": "student_alice_001",
+      "targetDocId": "student_alice_001",
+      "operation": "update",
+      "payload": { "level": 100 }
+    },
+    "expectedBehavior": "DENIED (validStudentUpdate forbids 'level' modification)",
+    "assertions": {
+      "type": "denied"
+    }
+  },
+  {
+    "id": "fs-gam-003",
+    "category": "firestore-authz",
+    "name": "Direct Client Streak Injection (Set Streak = 999999)",
+    "description": "Student attempts to mutate streak count on student profile.",
+    "severity": "HIGH",
+    "input": {
+      "collection": "students",
+      "callerUid": "student_alice_001",
+      "targetDocId": "student_alice_001",
+      "operation": "update",
+      "payload": { "streak": 999999 }
+    },
+    "expectedBehavior": "DENIED (validStudentUpdate forbids 'streak' modification)",
+    "assertions": {
+      "type": "denied"
+    }
+  },
+  {
+    "id": "fs-gam-004",
+    "category": "firestore-authz",
+    "name": "Direct Client QuizScore & Badges Modification",
+    "description": "Student attempts to write quizScore or badges on student record.",
+    "severity": "HIGH",
+    "input": {
+      "collection": "students",
+      "callerUid": "student_alice_001",
+      "targetDocId": "student_alice_001",
+      "operation": "update",
+      "payload": { "quizScore": 5000, "badges": ["legendary_master"] }
+    },
+    "expectedBehavior": "DENIED (validStudentUpdate forbids 'quizScore' and 'badges')",
+    "assertions": {
+      "type": "denied"
+    }
+  },
+  {
+    "id": "fs-duel-001",
+    "category": "firestore-authz",
+    "name": "Duel Opponent Score Tampering",
+    "description": "Player 1 attempts to alter Player 2 score or their own score in /duels/{id}.",
+    "severity": "CRITICAL",
+    "input": {
+      "collection": "duels",
+      "callerUid": "player_1_uid",
+      "targetDocId": "duel_match_101",
+      "operation": "update",
+      "payload": {
+        "player1": { "score": 999, "uid": "player_1_uid" },
+        "player2": { "score": 0, "uid": "player_2_uid" }
+      }
+    },
+    "expectedBehavior": "DENIED (isPlayer1Update requires score to match existing score exactly)",
+    "assertions": {
+      "type": "denied"
+    }
+  },
+  {
+    "id": "fs-duel-002",
+    "category": "firestore-authz",
+    "name": "Duel Winner & RewardStatus Modification",
+    "description": "Participant attempts to declare themselves winnerUid or award rewardStatus directly.",
+    "severity": "CRITICAL",
+    "input": {
+      "collection": "duels",
+      "callerUid": "player_1_uid",
+      "targetDocId": "duel_match_101",
+      "operation": "update",
+      "payload": {
+        "winnerUid": "player_1_uid",
+        "rewardStatus": "awarded"
+      }
+    },
+    "expectedBehavior": "DENIED (rules prohibit affected.hasAny(['winnerUid', 'rewardStatus']))",
+    "assertions": {
+      "type": "denied"
+    }
+  },
+  {
+    "id": "fs-duel-003",
+    "category": "firestore-authz",
+    "name": "Duel Question Forgery",
+    "description": "Participant attempts to overwrite duel questions array with trivial questions.",
+    "severity": "HIGH",
+    "input": {
+      "collection": "duels",
+      "callerUid": "player_1_uid",
+      "targetDocId": "duel_match_101",
+      "operation": "update",
+      "payload": {
+        "questions": [{ "question": "1+1?", "options": ["2"], "correct": 0 }]
+      }
+    },
+    "expectedBehavior": "DENIED (rules prohibit affected.hasAny(['questions']))",
+    "assertions": {
+      "type": "denied"
+    }
+  }
+]

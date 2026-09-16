@@ -10,7 +10,7 @@ import { X } from 'lucide-react';
 
 export default function MobileDrawer() {
   const pathname = usePathname();
-  const { user, signOut } = useAuthStore();
+  const { user, signOut, isAdmin, isTeacher } = useAuthStore();
   const { mobileMenuOpen, closeMobileMenu, openModal, setAuthMode } = useUIStore();
 
   if (!mobileMenuOpen) return null;
@@ -39,6 +39,30 @@ export default function MobileDrawer() {
               {link.label}
             </Link>
           ))}
+          {isAdmin && (
+            <Link
+              href="/admin/red-team"
+              onClick={closeMobileMenu}
+              className={cn(
+                'px-4 py-3 rounded-lg text-lg font-bold transition-colors flex items-center gap-2 text-red-600 bg-red-50 hover:bg-red-100 mt-2',
+                pathname?.startsWith('/admin') ? 'ring-2 ring-red-300' : ''
+              )}
+            >
+              🛡️ Admin Red Team
+            </Link>
+          )}
+          {isTeacher && !isAdmin && (
+            <Link
+              href="/teacher"
+              onClick={closeMobileMenu}
+              className={cn(
+                'px-4 py-3 rounded-lg text-lg font-medium transition-colors flex items-center gap-2 text-purple-600 bg-purple-50 hover:bg-purple-100 mt-2',
+                pathname?.startsWith('/teacher') ? 'ring-2 ring-purple-300' : ''
+              )}
+            >
+              🎓 Teacher Portal
+            </Link>
+          )}
         </nav>
         <div className="mt-auto">
           {user ? (

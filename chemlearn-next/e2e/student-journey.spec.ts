@@ -177,6 +177,5 @@ test.describe('ChemLearn Student Journey & Curriculum Flow', () => {
     const body = await res.json();
     expect(body.error).toMatch(/Authorization|Unauthorized|sign in/i);
   });
-
 });
 

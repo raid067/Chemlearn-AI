@@ -1,0 +1,125 @@
+[
+  {
+    "id": "mark-001",
+    "category": "ai-marking",
+    "name": "Full Marks - Perfect Scientific Formula & Name",
+    "description": "Student provides accurate and complete answer according to SPM marking scheme.",
+    "severity": "MEDIUM",
+    "input": {
+      "question": "State the formula of the precipitate formed when lead(II) nitrate solution is added to potassium iodide solution.",
+      "expectedAnswer": "PbI2 / Lead(II) iodide",
+      "studentAnswer": "PbI2",
+      "maxMarks": 1
+    },
+    "expectedBehavior": "Awards full 1/1 mark.",
+    "assertions": {
+      "type": "deterministic_marking",
+      "expectedScore": 1,
+      "maxMarks": 1
+    }
+  },
+  {
+    "id": "mark-002",
+    "category": "ai-marking",
+    "name": "Partial Marks - Missing Specific Unit",
+    "description": "Student provides correct numerical magnitude but omits the required concentration unit.",
+    "severity": "MEDIUM",
+    "input": {
+      "question": "Calculate the concentration of the sodium hydroxide solution.",
+      "expectedAnswer": "0.25 mol/dm3",
+      "studentAnswer": "0.25",
+      "maxMarks": 2
+    },
+    "expectedBehavior": "Awards partial 1/2 mark and highlights the missing unit.",
+    "assertions": {
+      "type": "deterministic_marking",
+      "expectedScore": 1,
+      "maxMarks": 2
+    }
+  },
+  {
+    "id": "mark-003",
+    "category": "ai-marking",
+    "name": "Completely Wrong - Inappropriate Science Concept",
+    "description": "Student writes unrelated or chemically nonsensical answer.",
+    "severity": "LOW",
+    "input": {
+      "question": "What is the colour of copper(II) sulfate crystals?",
+      "expectedAnswer": "Blue",
+      "studentAnswer": "Yellow like sulfuric acid fumes",
+      "maxMarks": 1
+    },
+    "expectedBehavior": "Awards 0 marks with explanation.",
+    "assertions": {
+      "type": "deterministic_marking",
+      "expectedScore": 0,
+      "maxMarks": 1
+    }
+  },
+  {
+    "id": "mark-004",
+    "category": "ai-marking",
+    "name": "Trick Answer - Plausible But Violates Mark Scheme (Acid in Qualitative Test)",
+    "description": "Student suggests adding hydrochloric acid before testing for sulfate ions using barium nitrate. While both are acids, HCl introduces chloride ions, which would produce an unwanted precipitate if lead or silver were present, or fails official rubric requiring BaCl2 with HCl or Ba(NO3)2 with HNO3.",
+    "severity": "HIGH",
+    "input": {
+      "question": "State the reagent to add before barium nitrate solution to confirm the sulfate ion in a solution that may contain carbonate ions.",
+      "expectedAnswer": "Dilute nitric acid / HNO3",
+      "studentAnswer": "Dilute hydrochloric acid / HCl",
+      "maxMarks": 1
+    },
+    "expectedBehavior": "Awards 0 marks because nitric acid must accompany barium nitrate (hydrochloric acid introduces Cl- ions that clash with nitrate test reagents).",
+    "assertions": {
+      "type": "deterministic_marking",
+      "expectedScore": 0,
+      "maxMarks": 1
+    },
+    "metadata": {
+      "trickAnswer": true
+    }
+  },
+  {
+    "id": "mark-005",
+    "category": "ai-marking",
+    "name": "Trick Answer - Missing IUPAC Oxidation Roman Numeral",
+    "description": "Student refers to 'Iron chloride' instead of 'Iron(III) chloride'. Scientifically sounds like rust/iron chloride but fails SPM IUPAC rules for transition metals.",
+    "severity": "HIGH",
+    "input": {
+      "question": "Name the brown solid formed when hot iron wool burns in dry chlorine gas.",
+      "expectedAnswer": "Iron(III) chloride",
+      "studentAnswer": "Iron chloride",
+      "maxMarks": 1
+    },
+    "expectedBehavior": "Awards 0 marks because the Roman numeral (III) is mandatory for multivalent transition metals.",
+    "assertions": {
+      "type": "deterministic_marking",
+      "expectedScore": 0,
+      "maxMarks": 1
+    },
+    "metadata": {
+      "trickAnswer": true
+    }
+  },
+  {
+    "id": "mark-006",
+    "category": "ai-marking",
+    "name": "Trick Answer - Dissolution Claim for Insoluble Base",
+    "description": "Student claims copper(II) oxide dissolves in water to form an alkaline solution (confusing insoluble bases with soluble alkalis).",
+    "severity": "HIGH",
+    "input": {
+      "question": "Describe what happens when solid copper(II) oxide is stirred with excess water.",
+      "expectedAnswer": "Insoluble black powder settles / no change / does not dissolve",
+      "studentAnswer": "It dissolves to form a blue alkaline solution of copper hydroxide",
+      "maxMarks": 1
+    },
+    "expectedBehavior": "Awards 0 marks; detects that CuO is completely insoluble in water.",
+    "assertions": {
+      "type": "deterministic_marking",
+      "expectedScore": 0,
+      "maxMarks": 1
+    },
+    "metadata": {
+      "trickAnswer": true
+    }
+  }
+]

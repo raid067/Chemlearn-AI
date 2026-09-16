@@ -1,0 +1,282 @@
+[
+  {
+    "id": "chem-f4-c1-en",
+    "category": "chemistry-accuracy",
+    "name": "Form 4 Ch 1: Scientific Method & Lab Safety (EN)",
+    "description": "Standard safety procedure for chemical spillage in the laboratory.",
+    "severity": "MEDIUM",
+    "input": "State the immediate action to take if concentrated sulfuric acid is spilled on your skin in the laboratory.",
+    "expectedBehavior": "Advise washing immediately under running water / safety shower for at least 10-15 minutes, then report to the teacher.",
+    "assertions": {
+      "type": "contains_keywords",
+      "target": ["running water", "rinse", "teacher"]
+    },
+    "metadata": {
+      "form": 4,
+      "chapter": 1,
+      "topic": "Introduction to Chemistry",
+      "difficulty": "SPM",
+      "language": "English"
+    }
+  },
+  {
+    "id": "chem-f4-c2-en",
+    "category": "chemistry-accuracy",
+    "name": "Form 4 Ch 2: Matter & Atomic Structure (EN)",
+    "description": "Definition and identification of isotopes in SPM Chemistry.",
+    "severity": "HIGH",
+    "input": "Define the term 'isotopes' and state one medical use of cobalt-60.",
+    "expectedBehavior": "Atoms of the same element having the same number of protons but different number of neutrons (or same proton number but different nucleon number); Cobalt-60 is used in radiotherapy/radiotherapy cancer treatment or sterilization.",
+    "assertions": {
+      "type": "contains_keywords",
+      "target": ["proton", "neutron", "cancer", "radiotherapy"]
+    },
+    "metadata": {
+      "form": 4,
+      "chapter": 2,
+      "topic": "Matter and Atomic Structure",
+      "difficulty": "SPM",
+      "language": "English"
+    }
+  },
+  {
+    "id": "chem-f4-c2-bm",
+    "category": "chemistry-accuracy",
+    "name": "Form 4 Ch 2: Struktur Atom & Isotop (BM)",
+    "description": "Takrifan isotop dan kegunaan dalam KSSM SPM Bahasa Melayu.",
+    "severity": "HIGH",
+    "input": "Apakah maksud isotop dan nyatakan satu kegunaan karbon-14.",
+    "expectedBehavior": "Atom-atom bagi unsur yang sama yang mempunyai nombor proton yang sama tetapi nombor nukleon/bilangan neutron yang berbeza. Karbon-14 digunakan untuk menganggar usia fosil/artifak purba (pentarikhan radiokarbon).",
+    "assertions": {
+      "type": "contains_keywords",
+      "target": ["proton", "neutron", "fosil", "artifak", "usia"]
+    },
+    "metadata": {
+      "form": 4,
+      "chapter": 2,
+      "topic": "Jirim dan Struktur Atom",
+      "difficulty": "SPM",
+      "language": "Bahasa Melayu"
+    }
+  },
+  {
+    "id": "chem-f4-c3-en",
+    "category": "chemistry-accuracy",
+    "name": "Form 4 Ch 3: Chemical Formulae & Equations (EN)",
+    "description": "Calculation of empirical formula from mass data.",
+    "severity": "HIGH",
+    "input": "When 2.4 g of magnesium reacts completely with excess oxygen, 4.0 g of magnesium oxide is formed. Determine the empirical formula of magnesium oxide. (RAM: Mg = 24, O = 16)",
+    "expectedBehavior": "Moles of Mg = 2.4/24 = 0.1 mol; Mass of O = 4.0 - 2.4 = 1.6 g; Moles of O = 1.6/16 = 0.1 mol; Mole ratio Mg:O = 1:1; Empirical formula = MgO.",
+    "assertions": {
+      "type": "contains_keywords",
+      "target": ["mgo", "0.1", "1:1"]
+    },
+    "metadata": {
+      "form": 4,
+      "chapter": 3,
+      "topic": "Chemical Formulae and Equations",
+      "difficulty": "SPM",
+      "language": "English"
+    }
+  },
+  {
+    "id": "chem-f4-c4-bm",
+    "category": "chemistry-accuracy",
+    "name": "Form 4 Ch 4: Jadual Berkala Unsur (BM)",
+    "description": "Kereaktifan unsur Kumpulan 1 menuruni kumpulan.",
+    "severity": "HIGH",
+    "input": "Terangkan mengapa kereaktifan logam Kumpulan 1 (logam alkali) meningkat apabila menuruni kumpulan.",
+    "expectedBehavior": "Apabila menuruni kumpulan, saiz atom bertambah, petala berisi elektron bertambah, jarak antara nukleus dan elektron valens bertambah, daya tarikan nukleus terhadap elektron valens semakin lemah, maka elektron valens lebih mudah dilepaskan untuk mencapai susunan oktet yang stabil.",
+    "assertions": {
+      "type": "contains_keywords",
+      "target": ["saiz atom", "elektron valens", "daya tarikan", "mudah melepaskan"]
+    },
+    "metadata": {
+      "form": 4,
+      "chapter": 4,
+      "topic": "Jadual Berkala Unsur",
+      "difficulty": "SPM",
+      "language": "Bahasa Melayu"
+    }
+  },
+  {
+    "id": "chem-f4-c5-en",
+    "category": "chemistry-accuracy",
+    "name": "Form 4 Ch 5: Chemical Bonds (EN)",
+    "description": "Comparison of electrical conductivity between ionic and covalent compounds.",
+    "severity": "HIGH",
+    "input": "Explain why sodium chloride conducts electricity in molten or aqueous state, but solid sodium chloride and liquid tetrachloromethane do not.",
+    "expectedBehavior": "In molten/aqueous state, sodium chloride contains free moving ions. In solid state, ions are held in fixed lattice positions. Tetrachloromethane consists of neutral covalent molecules without free ions or electrons.",
+    "assertions": {
+      "type": "contains_keywords",
+      "target": ["free moving ions", "solid", "molecules", "lattice"]
+    },
+    "metadata": {
+      "form": 4,
+      "chapter": 5,
+      "topic": "Chemical Bonds",
+      "difficulty": "SPM",
+      "language": "English"
+    }
+  },
+  {
+    "id": "chem-f4-c6-en",
+    "category": "chemistry-accuracy",
+    "name": "Form 4 Ch 6: Acids, Bases and Salts (EN)",
+    "description": "Qualitative analysis confirmation test for sulfate ions.",
+    "severity": "CRITICAL",
+    "input": "Describe the chemical test to confirm the presence of sulfate ions (SO4 2-) in a colorless aqueous solution.",
+    "expectedBehavior": "Add dilute hydrochloric acid (or dilute nitric acid), followed by barium chloride solution (or barium nitrate solution). A white precipitate of barium sulfate (BaSO4) is formed.",
+    "assertions": {
+      "type": "contains_keywords",
+      "target": ["barium", "white precipitate", "baso4", "hydrochloric"]
+    },
+    "metadata": {
+      "form": 4,
+      "chapter": 6,
+      "topic": "Acids, Bases and Salts",
+      "difficulty": "SPM",
+      "language": "English"
+    }
+  },
+  {
+    "id": "chem-f4-c7-bm",
+    "category": "chemistry-accuracy",
+    "name": "Form 4 Ch 7: Kadar Tindak Balas (BM)",
+    "description": "Teori perlanggaran dan faktor saiz bahan tindak balas.",
+    "severity": "HIGH",
+    "input": "Menggunakan teori perlanggaran, terangkan mengapa ketulan zink kecil bertindak balas lebih cepat dengan asid hidroklorik berbanding ketulan zink besar.",
+    "expectedBehavior": "Ketulan zink kecil mempunyai jumlah luas permukaan terdedah yang lebih besar. Frekuensi perlanggaran antara atom zink dan ion hidrogen bertambah. Frekuensi perlanggaran berkesan bertambah, maka kadar tindak balas meningkat.",
+    "assertions": {
+      "type": "contains_keywords",
+      "target": ["luas permukaan", "frekuensi perlanggaran", "perlanggaran berkesan"]
+    },
+    "metadata": {
+      "form": 4,
+      "chapter": 7,
+      "topic": "Kadar Tindak Balas",
+      "difficulty": "SPM",
+      "language": "Bahasa Melayu"
+    }
+  },
+  {
+    "id": "chem-f4-c8-en",
+    "category": "chemistry-accuracy",
+    "name": "Form 4 Ch 8: Manufactured Substances in Industry (EN)",
+    "description": "Composition and hardness of bronze alloy.",
+    "severity": "MEDIUM",
+    "input": "State the composition of bronze and explain why bronze is harder than pure copper.",
+    "expectedBehavior": "Bronze consists of copper (approx 88-90%) and tin (approx 10-12%). The presence of tin atoms of different sizes disrupts the orderly arrangement of copper atoms, preventing the layers of atoms from sliding easily over one another when a force is applied.",
+    "assertions": {
+      "type": "contains_keywords",
+      "target": ["copper", "tin", "slide", "layers", "size"]
+    },
+    "metadata": {
+      "form": 4,
+      "chapter": 8,
+      "topic": "Manufactured Substances in Industry",
+      "difficulty": "SPM",
+      "language": "English"
+    }
+  },
+  {
+    "id": "chem-f5-c1-en",
+    "category": "chemistry-accuracy",
+    "name": "Form 5 Ch 1: Redox Equilibria (EN)",
+    "description": "Rusting of iron and sacrificial metal protection.",
+    "severity": "HIGH",
+    "input": "Explain how attaching a magnesium block to an underground iron pipe prevents the pipe from rusting.",
+    "expectedBehavior": "Magnesium is more electropositive (has a more negative E° value) than iron. Magnesium acts as a sacrificial anode, releasing electrons preferentially (Mg -> Mg2+ + 2e-) and prevents iron from being oxidized to Fe2+.",
+    "assertions": {
+      "type": "contains_keywords",
+      "target": ["electropositive", "sacrificial", "oxidized", "iron", "electrons"]
+    },
+    "metadata": {
+      "form": 5,
+      "chapter": 1,
+      "topic": "Redox Equilibria",
+      "difficulty": "SPM",
+      "language": "English"
+    }
+  },
+  {
+    "id": "chem-f5-c2-bm",
+    "category": "chemistry-accuracy",
+    "name": "Form 5 Ch 2: Sebatian Karbon (BM)",
+    "description": "Tindak balas penapaian glukosa dan penyediaan etanol.",
+    "severity": "HIGH",
+    "input": "Tuliskan persamaan kimia bagi penapaian glukosa menggunakan yis untuk menghasilkan etanol, dan nyatakan fungsi yis.",
+    "expectedBehavior": "C6H12O6 -> 2C2H5OH + 2CO2. Yis merembeskan enzim zimase yang bertindak sebagai mangkin biologi untuk menguraikan glukosa kepada etanol dan gas karbon dioksida.",
+    "assertions": {
+      "type": "contains_keywords",
+      "target": ["c6h12o6", "c2h5oh", "co2", "zimase", "enzim"]
+    },
+    "metadata": {
+      "form": 5,
+      "chapter": 2,
+      "topic": "Sebatian Karbon",
+      "difficulty": "SPM",
+      "language": "Bahasa Melayu"
+    }
+  },
+  {
+    "id": "chem-f5-c3-en",
+    "category": "chemistry-accuracy",
+    "name": "Form 5 Ch 3: Thermochemistry (EN)",
+    "description": "Heat of neutralization calculation and comparison between strong and weak acids.",
+    "severity": "HIGH",
+    "input": "Why is the heat of neutralization between ethanoic acid (CH3COOH) and sodium hydroxide (-55 kJ/mol) lower than that between hydrochloric acid and sodium hydroxide (-57 kJ/mol)?",
+    "expectedBehavior": "Ethanoic acid is a weak acid that ionizes partially in water. A portion of the heat energy released during neutralization is absorbed to completely ionize the undissociated ethanoic acid molecules.",
+    "assertions": {
+      "type": "contains_keywords",
+      "target": ["weak acid", "partially", "absorbed", "ionize"]
+    },
+    "metadata": {
+      "form": 5,
+      "chapter": 3,
+      "topic": "Thermochemistry",
+      "difficulty": "SPM",
+      "language": "English"
+    }
+  },
+  {
+    "id": "chem-f5-c4-en",
+    "category": "chemistry-accuracy",
+    "name": "Form 5 Ch 4: Polymer Chemistry (EN)",
+    "description": "Vulcanization of natural rubber and sulfur cross-links.",
+    "severity": "MEDIUM",
+    "input": "Explain how the vulcanization of rubber improves its elasticity and resistance to heat.",
+    "expectedBehavior": "Sulfur atoms form cross-links between the long polyisoprene rubber chains. The sulfur cross-links prevent the polymer chains from sliding easily over one another and help them return to their original positions after being stretched.",
+    "assertions": {
+      "type": "contains_keywords",
+      "target": ["sulfur", "cross-link", "chains", "sliding", "elasticity"]
+    },
+    "metadata": {
+      "form": 5,
+      "chapter": 4,
+      "topic": "Polymer Chemistry",
+      "difficulty": "SPM",
+      "language": "English"
+    }
+  },
+  {
+    "id": "chem-f5-c5-bm",
+    "category": "chemistry-accuracy",
+    "name": "Form 5 Ch 5: Kimia Pengguna dan Industri (BM)",
+    "description": "Tindakan pencucian sabun berbanding detergen dalam air liat.",
+    "severity": "HIGH",
+    "input": "Terangkan mengapa detergen lebih berkesan berbanding sabun semasa mencuci kotoran dalam air liat.",
+    "expectedBehavior": "Air liat mengandungi ion kalsium (Ca2+) dan ion magnesium (Mg2+). Sabun bertindak balas dengan ion Ca2+/Mg2+ membentuk mendakan keladak (scum) yang tidak larut. Detergen tidak membentuk kekat/keladak kerana garam kalsium atau magnesium detergen larut dalam air.",
+    "assertions": {
+      "type": "contains_keywords",
+      "target": ["air liat", "ca2+", "mg2+", "kekat", "keladak", "scum"]
+    },
+    "metadata": {
+      "form": 5,
+      "chapter": 5,
+      "topic": "Kimia Pengguna dan Industri",
+      "difficulty": "SPM",
+      "language": "Bahasa Melayu"
+    }
+  }
+]

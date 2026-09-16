@@ -1,0 +1,120 @@
+[
+  {
+    "id": "auth-001",
+    "category": "auth-bypass",
+    "name": "Unauthenticated API Access",
+    "description": "Requests protected endpoint without Authorization header.",
+    "severity": "CRITICAL",
+    "input": {
+      "headers": {},
+      "endpoint": "/api/ai/chat"
+    },
+    "expectedBehavior": "401 Unauthorized with clean error JSON and no stack trace.",
+    "assertions": {
+      "type": "status_code",
+      "expectedStatus": 401
+    }
+  },
+  {
+    "id": "auth-002",
+    "category": "auth-bypass",
+    "name": "Missing Bearer Token Prefix",
+    "description": "Authorization header contains token without 'Bearer ' prefix.",
+    "severity": "HIGH",
+    "input": {
+      "headers": { "Authorization": "Token eyJhbGciOi..." },
+      "endpoint": "/api/ai/chat"
+    },
+    "expectedBehavior": "401 Unauthorized (invalid Authorization format).",
+    "assertions": {
+      "type": "status_code",
+      "expectedStatus": 401
+    }
+  },
+  {
+    "id": "auth-003",
+    "category": "auth-bypass",
+    "name": "Expired ID Token",
+    "description": "ID Token has expired timestamp.",
+    "severity": "HIGH",
+    "input": {
+      "headers": { "Authorization": "Bearer expired.jwt.token" },
+      "endpoint": "/api/ai/chat",
+      "mockTokenType": "expired"
+    },
+    "expectedBehavior": "401 Unauthorized with code TOKEN_EXPIRED.",
+    "assertions": {
+      "type": "status_code",
+      "expectedStatus": 401
+    }
+  },
+  {
+    "id": "auth-004",
+    "category": "auth-bypass",
+    "name": "Malformed / Random Base64 Token",
+    "description": "Authorization token is an invalid garbage string.",
+    "severity": "HIGH",
+    "input": {
+      "headers": { "Authorization": "Bearer not-a-real-token-12345!@#$" },
+      "endpoint": "/api/ai/chat",
+      "mockTokenType": "malformed"
+    },
+    "expectedBehavior": "401 Unauthorized with code TOKEN_INVALID.",
+    "assertions": {
+      "type": "status_code",
+      "expectedStatus": 401
+    }
+  },
+  {
+    "id": "auth-005",
+    "category": "auth-bypass",
+    "name": "Student Impersonating Teacher on Teacher Endpoints",
+    "description": "Valid student token without teacher custom claim or teacher document accesses teacher API.",
+    "severity": "CRITICAL",
+    "input": {
+      "headers": { "Authorization": "Bearer valid_student_token" },
+      "endpoint": "/api/classes",
+      "mockClaims": { "uid": "student_01", "teacher": false, "admin": false }
+    },
+    "expectedBehavior": "403 Forbidden with code FORBIDDEN_NOT_TEACHER.",
+    "assertions": {
+      "type": "status_code",
+      "expectedStatus": 403
+    }
+  },
+  {
+    "id": "auth-006",
+    "category": "auth-bypass",
+    "name": "Student Impersonating Admin on Admin Endpoints",
+    "description": "Valid student token accesses protected admin endpoints.",
+    "severity": "CRITICAL",
+    "input": {
+      "headers": { "Authorization": "Bearer valid_student_token" },
+      "endpoint": "/api/admin/red-team/run",
+      "mockClaims": { "uid": "student_01", "admin": false }
+    },
+    "expectedBehavior": "403 Forbidden with code FORBIDDEN_NOT_ADMIN.",
+    "assertions": {
+      "type": "status_code",
+      "expectedStatus": 403
+    }
+  },
+  {
+    "id": "auth-007",
+    "category": "auth-bypass",
+    "name": "Modified UID in Forged Payload",
+    "description": "Attempt to supply mismatched client UID vs verified token UID.",
+    "severity": "HIGH",
+    "input": {
+      "headers": { "Authorization": "Bearer valid_user_alice" },
+      "bodyUid": "victim_bob_uid",
+      "mockClaims": { "uid": "alice_uid" },
+      "endpoint": "/api/gamification"
+    },
+    "expectedBehavior": "Server rejects or strictly scopes operation to authenticated user's UID.",
+    "assertions": {
+      "type": "status_code",
+      "expectedStatus": 403
+    }
+  }
+]

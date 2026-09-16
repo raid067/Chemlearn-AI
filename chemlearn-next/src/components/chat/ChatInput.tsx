@@ -79,7 +79,7 @@ export default function ChatInput() {
       addMessage({
         id: `bot-${Date.now()}`,
         role: 'assistant',
-        content: data.answer || 'Sorry, I encountered an error processing your request.',
+        content: data.answer || data.response || 'Sorry, I encountered an error processing your request.',
         timestamp: new Date()
       });
 
