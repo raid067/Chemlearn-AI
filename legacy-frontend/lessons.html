@@ -1256,24 +1256,20 @@
                         normalized = '/' + normalized;
                     }
 
+                    mediaDom.onloadeddata = null;
                     mediaDom.onerror = null;
-                    mediaDom.src = normalized;
                     mediaDom.style.display = 'block';
+                    mediaDom.src = normalized;
 
-                    mediaDom.onerror = (e) => {
-                        // Only handle real unrecoverable errors (MEDIA_ERR_SRC_NOT_SUPPORTED)
-                        if (mediaDom.error && mediaDom.error.code === 4) {
-                            console.warn('Video source not supported:', normalized, mediaDom.error);
+                    mediaDom.onloadeddata = () => {
+                        const playPromise = mediaDom.play();
+                        if (playPromise !== undefined) {
+                            playPromise.catch((err) => {
+                                // Handled gracefully: browser autoplay policy pauses until user taps play button
+                                console.log('Autoplay waiting for user gesture:', err);
+                            });
                         }
                     };
-
-                    const playPromise = mediaDom.play();
-                    if (playPromise !== undefined) {
-                        playPromise.catch((err) => {
-                            // Autoplay without user gesture or muted policy
-                            console.log('Playback paused awaiting user interaction:', err);
-                        });
-                    }
                 }
             }
 
