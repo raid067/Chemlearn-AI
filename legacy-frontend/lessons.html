@@ -1251,9 +1251,14 @@
                     iframeDom.src = '';
                 }
                 if (mediaDom) {
-                    // Prepend / for relative root files if needed
-                    if (!normalized.startsWith('http://') && !normalized.startsWith('https://') && !normalized.startsWith('/')) {
-                        normalized = '/' + normalized;
+                    if (window.location.protocol === 'file:') {
+                        // In local file:// preview, keep relative path so it loads from the same folder
+                        if (normalized.startsWith('/')) normalized = normalized.replace(/^\/+/, '');
+                    } else {
+                        // On web server / Firebase Hosting, ensure leading slash for root resolution
+                        if (!normalized.startsWith('http://') && !normalized.startsWith('https://') && !normalized.startsWith('/')) {
+                            normalized = '/' + normalized;
+                        }
                     }
 
                     mediaDom.onloadeddata = null;
