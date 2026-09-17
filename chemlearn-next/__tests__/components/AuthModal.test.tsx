@@ -110,4 +110,54 @@ describe('AuthModal Component (User Journeys & Form State)', () => {
     const submitButton = screen.getByRole('button', { name: /Processing.../i });
     expect(submitButton).toBeDisabled();
   });
+
+  it('triggers Google sign in when Continue with Google button is clicked', async () => {
+    const mockSignInWithGoogle = jest.fn().mockResolvedValueOnce(undefined);
+    useAuthStore.setState({ signInWithGoogle: mockSignInWithGoogle });
+    render(<AuthModal />);
+
+    const googleBtn = screen.getByRole('button', { name: /Continue with Google/i });
+    fireEvent.click(googleBtn);
+
+    await waitFor(() => {
+      expect(mockSignInWithGoogle).toHaveBeenCalledTimes(1);
+      expect(useUIStore.getState().activeModal).toBeNull();
+    });
+  });
+
+  it('allows toggling password visibility', () => {
+    render(<AuthModal />);
+
+    const passwordInput = document.querySelector('input[type="password"]') as HTMLInputElement;
+    expect(passwordInput).toBeInTheDocument();
+
+    const toggleBtn = screen.getByRole('button', { name: /Show password/i });
+    fireEvent.click(toggleBtn);
+
+    const revealedInput = document.querySelector('input[type="text"]') as HTMLInputElement;
+    expect(revealedInput).toBeInTheDocument();
+  });
+
+  it('switches to Reset Password mode and triggers resetPassword flow', async () => {
+    const mockResetPassword = jest.fn().mockResolvedValueOnce(undefined);
+    useAuthStore.setState({ resetPassword: mockResetPassword });
+    render(<AuthModal />);
+
+    const forgotBtn = screen.getByRole('button', { name: /Forgot password\?/i });
+    fireEvent.click(forgotBtn);
+
+    expect(useUIStore.getState().authMode).toBe('reset');
+    expect(screen.getByRole('dialog', { name: /Reset Password/i })).toBeInTheDocument();
+
+    const emailInput = screen.getByRole('textbox');
+    fireEvent.change(emailInput, { target: { value: 'forgot@example.com' } });
+
+    const sendLinkBtn = screen.getByRole('button', { name: /Send Reset Link/i });
+    fireEvent.click(sendLinkBtn);
+
+    await waitFor(() => {
+      expect(mockResetPassword).toHaveBeenCalledWith('forgot@example.com');
+      expect(screen.getByText(/Password Reset Email Sent/i)).toBeInTheDocument();
+    });
+  });
 });

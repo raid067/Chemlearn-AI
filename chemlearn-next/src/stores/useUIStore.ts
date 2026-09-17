@@ -11,12 +11,12 @@ type ModalType = 'auth' | 'share' | 'settings' | 'parent' | null;
 
 interface UIState {
   activeModal: ModalType;
-  authMode: 'signin' | 'signup';
+  authMode: 'signin' | 'signup' | 'reset';
   mobileMenuOpen: boolean;
   toasts: Toast[];
   openModal: (modal: ModalType) => void;
   closeModal: () => void;
-  setAuthMode: (mode: 'signin' | 'signup') => void;
+  setAuthMode: (mode: 'signin' | 'signup' | 'reset') => void;
   toggleMobileMenu: () => void;
   closeMobileMenu: () => void;
   showToast: (title: string, description: string, icon?: string) => void;

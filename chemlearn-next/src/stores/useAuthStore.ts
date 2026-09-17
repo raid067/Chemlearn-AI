@@ -2,6 +2,9 @@ import { create } from 'zustand';
 import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
+  signInWithPopup,
+  GoogleAuthProvider,
+  sendPasswordResetEmail,
   signOut as firebaseSignOut,
   onAuthStateChanged,
   updateProfile,
@@ -19,6 +22,8 @@ interface AuthState {
   initialized: boolean;
   signIn: (email: string, password: string) => Promise<void>;
   signUp: (email: string, password: string, displayName: string) => Promise<void>;
+  signInWithGoogle: () => Promise<void>;
+  resetPassword: (email: string) => Promise<void>;
   signOut: () => Promise<void>;
   init: () => () => void;
 }
@@ -61,6 +66,47 @@ export const useAuthStore = create<AuthState>((set) => ({
         streak: 0,
         createdAt: serverTimestamp(),
       });
+    } finally {
+      set({ loading: false });
+    }
+  },
+
+  signInWithGoogle: async () => {
+    set({ loading: true });
+    try {
+      const provider = new GoogleAuthProvider();
+      provider.setCustomParameters({ prompt: 'select_account' });
+      const cred = await signInWithPopup(auth, provider);
+      
+      if (cred.user) {
+        const { getFirestore, doc, getDoc, setDoc, serverTimestamp } = await import('firebase/firestore');
+        const db = getFirestore(app);
+        const studentDocRef = doc(db, 'students', cred.user.uid);
+        const snap = await getDoc(studentDocRef);
+        
+        // If student document does not exist yet, provision it safely complying with firestore.rules validStudentCreate
+        if (!snap.exists()) {
+          const email = cred.user.email || '';
+          const displayName = cred.user.displayName || email.split('@')[0] || 'Student';
+          await setDoc(studentDocRef, {
+            email,
+            displayName,
+            xp: 0,
+            quizScore: 0,
+            streak: 0,
+            createdAt: serverTimestamp(),
+          });
+        }
+      }
+    } finally {
+      set({ loading: false });
+    }
+  },
+
+  resetPassword: async (email: string) => {
+    set({ loading: true });
+    try {
+      await sendPasswordResetEmail(auth, email.trim());
     } finally {
       set({ loading: false });
     }
