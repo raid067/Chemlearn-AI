@@ -68,12 +68,12 @@ export async function POST(req: NextRequest) {
       });
     }
 
+    const taskType = imageBase64 ? 'tutorVision' : 'tutor';
     const response = await secureGenerateAI<string>({
       uid: user.uid,
       endpoint: 'ai-chat',
-      taskType: imageBase64 ? 'tutorVision' : 'tutor',
+      taskType,
       prompt: content,
-      maxDailyQuota: 60,
     });
 
     return NextResponse.json({ response, answer: response });

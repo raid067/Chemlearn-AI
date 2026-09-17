@@ -607,9 +607,10 @@ export async function secureGenerateAI<T>(options: SecureGenerateAIOptions<T>): 
     throw err;
   }
 
-  // 4. Timeout wrapper
+  // 4. Timeout wrapper with explicit timer disposal to prevent orphaned timers
+  let timeoutId: NodeJS.Timeout | null = null;
   const timeoutPromise = new Promise<never>((_, reject) => {
-    setTimeout(() => {
+    timeoutId = setTimeout(() => {
       reject(new AIGatewayError('AI generation timed out. Please try again.', 504, 'AI_TIMEOUT'));
     }, timeoutMs);
   });
@@ -732,6 +733,10 @@ export async function secureGenerateAI<T>(options: SecureGenerateAIOptions<T>): 
       502,
       'AI_INVALID_OUTPUT'
     );
+  } finally {
+    if (timeoutId) {
+      clearTimeout(timeoutId);
+    }
   }
 }
 

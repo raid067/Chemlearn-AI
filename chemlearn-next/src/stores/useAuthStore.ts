@@ -79,23 +79,27 @@ export const useAuthStore = create<AuthState>((set) => ({
       const cred = await signInWithPopup(auth, provider);
       
       if (cred.user) {
-        const { getFirestore, doc, getDoc, setDoc, serverTimestamp } = await import('firebase/firestore');
-        const db = getFirestore(app);
-        const studentDocRef = doc(db, 'students', cred.user.uid);
-        const snap = await getDoc(studentDocRef);
-        
-        // If student document does not exist yet, provision it safely complying with firestore.rules validStudentCreate
-        if (!snap.exists()) {
-          const email = cred.user.email || '';
-          const displayName = cred.user.displayName || email.split('@')[0] || 'Student';
-          await setDoc(studentDocRef, {
-            email,
-            displayName,
-            xp: 0,
-            quizScore: 0,
-            streak: 0,
-            createdAt: serverTimestamp(),
-          });
+        try {
+          const { getFirestore, doc, getDoc, setDoc, serverTimestamp } = await import('firebase/firestore');
+          const db = getFirestore(app);
+          const studentDocRef = doc(db, 'students', cred.user.uid);
+          const snap = await getDoc(studentDocRef);
+          
+          // If student document does not exist yet, provision it safely complying with firestore.rules validStudentCreate
+          if (!snap.exists()) {
+            const email = cred.user.email || '';
+            const displayName = cred.user.displayName || email.split('@')[0] || 'Student';
+            await setDoc(studentDocRef, {
+              email,
+              displayName,
+              xp: 0,
+              quizScore: 0,
+              streak: 0,
+              createdAt: serverTimestamp(),
+            });
+          }
+        } catch (dbErr) {
+          console.warn('[useAuthStore] Non-fatal student profile auto-provisioning warning:', dbErr);
         }
       }
     } finally {
