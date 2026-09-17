@@ -6,20 +6,14 @@ import { TestCategory } from '@/lib/redteam/types';
 export async function POST(req: NextRequest) {
   try {
     // Enforce admin privileges
-    // In local development/test environments, allow bypass if header is set or dev environment
+    // In local development/test environments, allow bypass ONLY if explicit x-redteam-admin-key header matches
     const devHeader = req.headers.get('x-redteam-admin-key');
     const isDev = process.env.NODE_ENV !== 'production';
 
-    if (!isDev || devHeader !== 'dev-admin-override') {
-      try {
-        await requireAdmin(req);
-      } catch (authErr) {
-        if (!isDev) {
-          throw authErr;
-        }
-        // In local development without live Firebase token, log and permit local audit
-        console.warn('[Red Team API] Running in development mode with dev admin authorization.');
-      }
+    if (isDev && devHeader === 'dev-admin-override') {
+      console.warn('[Red Team API] Authorized via development admin override key header.');
+    } else {
+      await requireAdmin(req);
     }
 
     const body = await req.json().catch(() => ({}));

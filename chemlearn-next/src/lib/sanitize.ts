@@ -41,10 +41,17 @@ export function sanitizeHtml(dirty: string): string {
     return dirty
       .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
       .replace(/<iframe\b[^<]*(?:(?!<\/iframe>)<[^<]*)*<\/iframe>/gi, '')
+      .replace(/<object\b[^<]*(?:(?!<\/object>)<[^<]*)*<\/object>/gi, '')
+      .replace(/<embed\b[^<]*(?:(?!<\/embed>)<[^<]*)*<\/embed>/gi, '')
+      .replace(/<form\b[^<]*(?:(?!<\/form>)<[^<]*)*<\/form>/gi, '')
       .replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, '')
+      .replace(/<input\b[^>]*>/gi, '')
+      .replace(/<base\b[^>]*>/gi, '')
+      .replace(/<link\b[^>]*>/gi, '')
       .replace(/style\s*=\s*(["'][^"']*["']|[^\s>]+)/gi, '')
       .replace(/on\w+\s*=\s*(["'][^"']*["']|[^\s>]+)/gi, '')
-      .replace(/javascript\s*:/gi, '');
+      .replace(/j\s*a\s*v\s*a\s*s\s*c\s*r\s*i\s*p\s*t\s*:/gi, '')
+      .replace(/data\s*:\s*text\/html/gi, '');
   }
 
   const preCleaned = dirty.replace(/javascript\s*:/gi, '');

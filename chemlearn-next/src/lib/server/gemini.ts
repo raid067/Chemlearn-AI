@@ -20,7 +20,7 @@ export interface ModelCapability {
 
 export const MODEL_CAPABILITIES: Record<'primary' | 'light' | 'fallback', ModelCapability> = {
   primary: {
-    model: process.env.GEMINI_MODEL_DEFAULT || 'gemini-3.8-flash',
+    model: process.env.GEMINI_MODEL_DEFAULT || 'gemini-2.5-flash',
     supportsTemperature: true,
     supportsTopP: true,
     supportsTopK: true,
@@ -30,7 +30,7 @@ export const MODEL_CAPABILITIES: Record<'primary' | 'light' | 'fallback', ModelC
     supportsSystemInstruction: true,
   },
   light: {
-    model: process.env.GEMINI_MODEL_LIGHT || 'gemini-3.5-flash-lite',
+    model: process.env.GEMINI_MODEL_LIGHT || 'gemini-2.0-flash-lite',
     supportsTemperature: true,
     supportsTopP: true,
     supportsTopK: true,
@@ -180,6 +180,7 @@ export async function generateGeminiText(
       if ((errMsg.includes('404') || errMsg.includes('not found')) && currentModel !== GEMINI_MODELS.FALLBACK) {
         console.warn(`[Gemini] Model ${currentModel} returned 404/not found. Retrying with fallback model ${GEMINI_MODELS.FALLBACK}`);
         currentModel = GEMINI_MODELS.FALLBACK;
+        continue;
       }
 
       if (attempt < maxRetries && isTransientGeminiError(err)) {

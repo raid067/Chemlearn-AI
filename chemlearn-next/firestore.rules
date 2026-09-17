@@ -156,7 +156,9 @@ service cloud.firestore {
 
     // ── Students Collection ───────────────────────────────────────────────────
     match /students/{userId} {
-      allow read: if isAuthenticated();
+      allow read: if isOwner(userId)
+                  || isAdmin()
+                  || (isAuthenticated() && 'teacherIds' in resource.data && request.auth.uid in resource.data.teacherIds);
       allow create: if isOwner(userId) && validStudentCreate();
       allow update: if isOwner(userId) && validStudentUpdate();
       allow delete: if isOwner(userId) || isAdmin();

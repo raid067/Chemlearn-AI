@@ -3,6 +3,7 @@ import { requireAuth, AuthError } from '@/lib/server/auth';
 import { gradeChallengeSubmission } from '@/lib/server/quizzes';
 import { errorResponse } from '../../ai/_helpers';
 import { parseSecureJson, RequestPayloadError, MAX_BODY_LIMITS } from '@/lib/server/request-guard';
+import { isRateLimitedAsync } from '@/lib/rate-limit';
 import { z } from 'zod';
 
 const challengeSubmitSchema = z.object({
@@ -15,6 +16,10 @@ const challengeSubmitSchema = z.object({
 export async function POST(req: NextRequest) {
   try {
     const user = await requireAuth(req);
+
+    if (await isRateLimitedAsync('challenge-submit', user.uid, 10, 60_000)) {
+      return NextResponse.json({ error: 'Too many challenge submissions. Please wait a moment.' }, { status: 429 });
+    }
 
     const body = await parseSecureJson(req, MAX_BODY_LIMITS.JSON_DEFAULT);
     const validation = challengeSubmitSchema.safeParse(body);

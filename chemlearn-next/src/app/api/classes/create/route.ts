@@ -6,6 +6,7 @@ import { randomInt } from 'crypto';
 import { createClassSchema } from '@/lib/validations';
 import { errorResponse } from '../../ai/_helpers';
 import { parseSecureJson, RequestPayloadError, MAX_BODY_LIMITS } from '@/lib/server/request-guard';
+import { isRateLimitedAsync } from '@/lib/rate-limit';
 
 function generateInviteCode(length = 6) {
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
@@ -20,6 +21,10 @@ export async function POST(req: NextRequest) {
   try {
     const user = await requireTeacher(req);
     const uid = user.uid;
+
+    if (await isRateLimitedAsync('class-create', uid, 10, 60_000)) {
+      return NextResponse.json({ error: 'Too many class creation attempts. Please wait a moment.' }, { status: 429 });
+    }
 
     const body = await parseSecureJson(req, MAX_BODY_LIMITS.JSON_DEFAULT);
     const validation = createClassSchema.safeParse(body);

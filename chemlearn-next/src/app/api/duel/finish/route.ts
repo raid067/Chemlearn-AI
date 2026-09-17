@@ -3,10 +3,15 @@ import { requireAuth, AuthError } from '@/lib/server/auth';
 import { duelFinishSchema } from '@/lib/validations';
 import { finishDuelPlayer } from '@/lib/server/duels';
 import { parseSecureJson, RequestPayloadError, MAX_BODY_LIMITS } from '@/lib/server/request-guard';
+import { isRateLimitedAsync } from '@/lib/rate-limit';
 
 export async function POST(req: NextRequest) {
   try {
     const user = await requireAuth(req);
+
+    if (await isRateLimitedAsync('duel-finish', user.uid, 20, 60_000)) {
+      return NextResponse.json({ error: 'Too many duel finish attempts. Please wait a moment.' }, { status: 429 });
+    }
 
     const body = await parseSecureJson(req, MAX_BODY_LIMITS.JSON_DEFAULT);
     const validation = duelFinishSchema.safeParse(body);

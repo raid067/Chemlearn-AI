@@ -354,6 +354,35 @@ export function gradeStructuredDeterministic(
   );
 
   if (expectedKeywords.length > 0) {
+    // Academic Rubric Guard: Check for critical chemical contradictions/errors that invalidate partial marks
+    const studentLower = studentAnswer.toLowerCase();
+    const expectedLower = expectedAnswer.toLowerCase();
+
+    // 1. Missing oxidation numeral for transition metals (e.g. Iron chloride vs Iron(III) chloride)
+    const isMissingOxidationNumeral =
+      /\((ii|iii|iv|v|vi)\)/i.test(expectedLower) && !/\((ii|iii|iv|v|vi)\)/i.test(studentLower);
+
+    // 2. Contradictory acid / reagent (e.g. HCl when HNO3 is required)
+    const isAcidConflict =
+      (expectedLower.includes('nitric') && studentLower.includes('hydrochloric')) ||
+      (expectedLower.includes('nitric') && studentLower.includes('sulfuric')) ||
+      (expectedLower.includes('hno3') && studentLower.includes('hcl'));
+
+    // 3. Contradictory solubility claim
+    const isSolubilityContradiction =
+      (expectedLower.includes('insoluble') || expectedLower.includes('does not dissolve')) &&
+      studentLower.includes('dissolves') && !studentLower.includes('does not dissolve');
+
+    if (isMissingOxidationNumeral || isAcidConflict || isSolubilityContradiction) {
+      return {
+        score: 0,
+        isCorrect: false,
+        feedback: isMissingOxidationNumeral
+          ? 'Incorrect: Missing transition metal oxidation number (e.g. Roman numeral like (II) or (III)).'
+          : `Incorrect: Chemical contradiction detected. Expected: ${expectedAnswer}`,
+      };
+    }
+
     const studentWords = new Set(
       normStudent
         .replace(/[^a-z0-9\s]/g, ' ')
@@ -665,6 +694,10 @@ export async function gradeQuizSubmission(
   }
 
   const quizData = quizSnap.data() as AuthoritativeQuizDoc;
+  if (quizData.uid && quizData.uid !== uid) {
+    throw new Error('Unauthorized quiz access: You cannot submit answers for another student\'s quiz.');
+  }
+
   const questions = quizData.questions || [];
   const { score, percentage, total, breakdown } = evaluateQuizAnswers(questions, quizData.type, answers);
 

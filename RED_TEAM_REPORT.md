@@ -1,6 +1,6 @@
 # ChemLearn AI Red Team Report
 
-**Date:** 16/09/2026, 12:48:02 pm
+**Date:** 17/09/2026, 4:35:07 pm
 **Version:** 0.1.0-redteam
 **Campaign:** FULL RED TEAM & SECURITY EVALUATION
 **Total Evaluation Time:** 0.00s
@@ -45,7 +45,7 @@ AI Accuracy
 | Metric | Value |
 | :--- | :--- |
 | **Average Latency** | 6 ms |
-| **P95 Latency** | 9 ms |
+| **P95 Latency** | 10 ms |
 | **P99 Latency** | 10 ms |
 | **Failure Rate** | 0.0% |
 

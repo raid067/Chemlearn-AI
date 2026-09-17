@@ -61,8 +61,8 @@ export async function submitDuelAnswer(
     if (!doc.exists) throw new Error('Match vanished');
 
     const data = doc.data() || {};
-    if (data.status !== 'playing' && data.status !== 'waiting') {
-      throw new Error('Match is not active');
+    if (data.status !== 'playing') {
+      throw new Error('Match is not active: Cannot submit answers until opponent has joined.');
     }
 
     // Check match age/timeout (15 minutes maximum per duel session)
