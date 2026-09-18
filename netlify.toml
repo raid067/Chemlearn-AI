@@ -1,0 +1,32 @@
+﻿[build]
+  publish = "legacy-frontend"
+
+[[redirects]]
+  from = "/resources"
+  to = "/resources.html"
+  status = 200
+
+[[redirects]]
+  from = "/posters"
+  to = "/posters.html"
+  status = 200
+
+[[redirects]]
+  from = "/lessons"
+  to = "/lessons.html"
+  status = 200
+
+[[redirects]]
+  from = "/quizzes"
+  to = "/quizzes.html"
+  status = 200
+
+[[redirects]]
+  from = "/dashboard"
+  to = "/dashboard.html"
+  status = 200
+
+[[redirects]]
+  from = "/experiment"
+  to = "/experiment.html"
+  status = 200
