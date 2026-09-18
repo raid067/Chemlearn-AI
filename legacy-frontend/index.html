@@ -2633,7 +2633,6 @@
             updateDoc,
             limit
         } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
-        import { getAI, getGenerativeModel, GoogleAIBackend } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-ai.js";
         import {
             getAuth,
             createUserWithEmailAndPassword,
@@ -2939,19 +2938,9 @@
             });
         }
 
-        // --- GEMINI AI CHAT ENGINE & SPM KNOWLEDGE REASONER ---
+        // --- SPM KNOWLEDGE REASONER (Secure Offline & Server Gateway Protected) ---
         let ai = null;
         let model = null;
-        try {
-            ai = getAI(app, {
-                backend: new GoogleAIBackend()
-            });
-            model = getGenerativeModel(ai, {
-                model: "gemini-2.5-flash"
-            });
-        } catch (initErr) {
-            console.warn("Firebase AI Logic client initialized in offline-resilient mode:", initErr);
-        }
 
         async function generateWithRetry(modelInstance, promptText, retries = 2) {
             if (!modelInstance) throw new Error("AI_NOT_AVAILABLE");

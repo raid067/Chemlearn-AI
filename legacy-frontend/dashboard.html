@@ -2206,16 +2206,7 @@
     <script type="module">
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
         import { getFirestore, doc, getDoc, updateDoc, increment, collection, query, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
-        import { getAI, getGenerativeModel, GoogleAIBackend } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-ai.js";
-
-        import { app, auth, db, model } from "./js/firebase-config.js";// Initialize AI if available
-        let ai, geminiModel;
-        try {
-            ai = getAI(app, { backend: new GoogleAIBackend() });
-            geminiModel = getGenerativeModel(ai, { model: "gemini-2.5-flash" });
-        } catch (e) {
-            console.warn("AI module not found, AI features might be disabled", e);
-        }
+        import { app, auth, db } from "./js/firebase-config.js";
 
         // UI Elements
         const navName = document.getElementById("navName");
