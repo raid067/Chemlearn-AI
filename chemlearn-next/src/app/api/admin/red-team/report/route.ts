@@ -5,18 +5,7 @@ import { generateMarkdownReport, generateJsonReport } from '@/lib/redteam/report
 
 export async function GET(req: NextRequest) {
   try {
-    const isDev = process.env.NODE_ENV !== 'production';
-    const devHeader = req.headers.get('x-redteam-admin-key');
-
-    if (!isDev || devHeader !== 'dev-admin-override') {
-      try {
-        await requireAdmin(req);
-      } catch (authErr) {
-        if (!isDev) {
-          throw authErr;
-        }
-      }
-    }
+    await requireAdmin(req);
 
     const { searchParams } = new URL(req.url);
     const format = searchParams.get('format') || 'markdown';

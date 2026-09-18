@@ -22,9 +22,19 @@ export const aiChatSchema = z.object({
   message: 'Question or image is required',
 });
 
+export const difficultyEnum = z.enum(['Easy', 'Medium', 'Hard', 'Hard (HOTS)'], {
+  message: 'Difficulty must be Easy, Medium, or Hard',
+});
+
+export const quizTypeEnum = z.enum(['MCQ', 'Structured'], {
+  message: 'Type must be MCQ or Structured',
+});
+
 export const aiDuelSchema = z.object({
   topic: z.string().trim().max(100).default('General Chemistry').optional(),
   matchId: z.string().trim().max(32).optional(),
+  difficulty: difficultyEnum.optional(),
+  type: quizTypeEnum.optional(),
 }).strict();
 
 export const aiFlashcardsSchema = z.object({
@@ -51,8 +61,8 @@ export const aiNotesSchema = z.object({
 
 export const aiQuizSchema = z.object({
   topic: z.string().trim().min(1, 'Topic is required').max(100),
-  difficulty: z.string().trim().min(1, 'Difficulty is required').max(50),
-  type: z.string().trim().min(1, 'Type is required').max(50),
+  difficulty: difficultyEnum,
+  type: quizTypeEnum,
 }).strict();
 
 export const aiWorksheetSchema = z.object({

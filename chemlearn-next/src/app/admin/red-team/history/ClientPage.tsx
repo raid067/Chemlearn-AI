@@ -5,22 +5,17 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { HistoricalRun } from '@/lib/redteam/types';
+import { auth } from '@/lib/firebase';
 import {
   History,
   ArrowLeft,
-  ShieldCheck,
   ShieldAlert,
-  Calendar,
-  Layers,
-  CheckCircle2,
-  XCircle,
   TrendingUp,
-  Cpu,
 } from 'lucide-react';
 
 export default function RedTeamHistoryClientPage() {
   const router = useRouter();
-  const { user, isAdmin, initialized } = useAuthStore();
+  const { isAdmin, initialized } = useAuthStore();
   const [history, setHistory] = useState<HistoricalRun[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [selectedRuns, setSelectedRuns] = useState<string[]>([]);
@@ -30,17 +25,26 @@ export default function RedTeamHistoryClientPage() {
 
   useEffect(() => {
     if (hasAccess) {
-      fetch('/api/admin/red-team/history', {
-        headers: { 'x-redteam-admin-key': 'dev-admin-override' },
-      })
-        .then((res) => res.json())
-        .then((data) => {
+      (async () => {
+        try {
+          const token = await auth.currentUser?.getIdToken();
+          const headers: Record<string, string> = {};
+          if (token) {
+            headers['Authorization'] = `Bearer ${token}`;
+          } else {
+            headers['x-redteam-admin-key'] = 'dev-admin-override';
+          }
+          const res = await fetch('/api/admin/red-team/history', { headers });
+          const data = await res.json();
           if (data.history) {
             setHistory(data.history);
           }
-        })
-        .catch((err) => console.error('Failed to load history:', err))
-        .finally(() => setLoading(false));
+        } catch (err) {
+          console.error('Failed to load history:', err);
+        } finally {
+          setLoading(false);
+        }
+      })();
     }
   }, [hasAccess]);
 

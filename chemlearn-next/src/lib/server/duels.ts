@@ -23,7 +23,13 @@ export async function storeAuthoritativeDuel(
   creatorUid: string,
   questions: ServerDuelQuestion[]
 ): Promise<void> {
-  await adminDb.collection('server_duels').doc(matchId).set({
+  const docRef = adminDb.collection('server_duels').doc(matchId);
+  const existing = await docRef.get();
+  if (existing.exists) {
+    throw new Error(`Match ${matchId} already exists. Cannot overwrite authoritative duel.`);
+  }
+
+  await docRef.set({
     matchId,
     creatorUid,
     questions,

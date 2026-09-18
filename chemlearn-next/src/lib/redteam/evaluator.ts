@@ -1,5 +1,5 @@
 import { TestCase, TestResult, TestExecutionRecord } from './types';
-import { normalizeChemistryAnswer, gradeStructuredDeterministic } from '@/lib/server/quizzes';
+import { gradeStructuredDeterministic } from '@/lib/server/quizzes';
 import { sanitizeHtml } from '@/lib/sanitize';
 
 /**

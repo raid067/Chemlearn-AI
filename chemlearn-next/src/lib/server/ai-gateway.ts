@@ -391,29 +391,44 @@ export async function enforceAIQuota(
   });
 }
 
+/** Maximum quota refunds allowed per user per Malaysian day to prevent infinite refund exploit loops */
+export const MAX_DAILY_AI_REFUNDS = 10;
+
 /**
  * Refunds daily AI quota if downstream AI generation or schema validation fails.
- * Guarantees students are never penalized for upstream AI outages, timeouts, or malformed responses.
+ * Guarantees students are not penalized for transient AI outages while strictly
+ * bounding refunds with a failure budget to prevent infinite refund exploit loops.
  */
 export async function refundAIQuota(
   uid: string,
   endpoint: string,
-  taskType?: AITaskType
-): Promise<void> {
+  taskType?: AITaskType,
+  failureBudget = MAX_DAILY_AI_REFUNDS
+): Promise<boolean> {
   const todayStr = getMalaysianDateString();
   const usageDocId = `${uid}_${todayStr}`;
   const usageRef = adminDb.collection('ai_usage').doc(usageDocId);
 
   try {
-    await adminDb.runTransaction(async (transaction) => {
+    return await adminDb.runTransaction(async (transaction) => {
       const doc = await transaction.get(usageRef);
-      if (!doc.exists) return;
+      if (!doc.exists) return false;
       const data = doc.data() || {};
       const currentTotal = Number(data.totalRequests) || 0;
-      if (currentTotal <= 0) return;
+      if (currentTotal <= 0) return false;
+
+      // Bound refunds with failure budget to stop unbounded free AI generation loops
+      const currentRefunds = Number(data.totalRefunds) || 0;
+      if (currentRefunds >= failureBudget) {
+        console.warn(
+          `[AI Gateway] Quota refund denied for ${uid}: failure budget exhausted (${currentRefunds}/${failureBudget})`
+        );
+        return false;
+      }
 
       const updates: Record<string, unknown> = {
         totalRequests: Math.max(0, currentTotal - 1),
+        totalRefunds: currentRefunds + 1,
         updatedAt: FieldValue.serverTimestamp(),
       };
 
@@ -425,9 +440,11 @@ export async function refundAIQuota(
       }
 
       transaction.set(usageRef, updates, { merge: true });
+      return true;
     });
   } catch (err) {
     console.warn(`[AI Gateway] Quota refund skipped for ${uid}:`, err);
+    return false;
   }
 }
 

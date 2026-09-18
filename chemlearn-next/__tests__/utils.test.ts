@@ -1,6 +1,22 @@
-import { escapeHtml, formatTime, getLevelTitle, calcTotalXP, cn } from '@/lib/utils';
+import { escapeHtml, formatTime, getLevelTitle, calcTotalXP, cn, generateMatchId } from '@/lib/utils';
 
 describe('Utility Functions', () => {
+  describe('generateMatchId', () => {
+    it('generates a 6-character uppercase alphanumeric string', () => {
+      const id = generateMatchId();
+      expect(id).toHaveLength(6);
+      expect(id).toMatch(/^[A-Z0-9]{6}$/);
+    });
+
+    it('generates unique random IDs across multiple calls', () => {
+      const ids = new Set<string>();
+      for (let i = 0; i < 100; i++) {
+        ids.add(generateMatchId());
+      }
+      expect(ids.size).toBe(100);
+    });
+  });
+
   describe('formatTime', () => {
     it('formats seconds correctly', () => {
       expect(formatTime(0)).toBe('00:00');

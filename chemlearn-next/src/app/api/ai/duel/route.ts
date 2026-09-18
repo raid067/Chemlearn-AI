@@ -5,6 +5,7 @@ import { isRateLimitedAsync } from '@/lib/rate-limit';
 import { aiDuelSchema } from '@/lib/validations';
 import { storeAuthoritativeDuel, ServerDuelQuestion } from '@/lib/server/duels';
 import { generateMatchId } from '@/lib/utils';
+import { adminDb } from '@/lib/firebase-admin';
 import {
   secureGenerateAI,
   wrapUntrustedInput,
@@ -38,7 +39,20 @@ export async function POST(req: NextRequest) {
     }
 
     const topic = validation.data.topic || 'General Chemistry';
-    const matchId = validation.data.matchId || generateMatchId();
+    let matchId = validation.data.matchId;
+
+    if (matchId) {
+      // Disallow arbitrary client-provided matchId overwrites to prevent multiplayer duel hijacking
+      const [serverSnap, clientSnap] = await Promise.all([
+        adminDb.collection('server_duels').doc(matchId).get(),
+        adminDb.collection('duels').doc(matchId).get(),
+      ]);
+      if (serverSnap.exists || clientSnap.exists) {
+        return errorResponse('Match ID already exists or is in use. Overwrite prohibited.', 409);
+      }
+    } else {
+      matchId = generateMatchId();
+    }
 
     const safeTopic = wrapUntrustedInput(topic, 'DUEL_TOPIC');
     const prompt = `${SYSTEM_SAFETY_GUARDRAIL}

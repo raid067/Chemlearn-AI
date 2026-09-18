@@ -227,7 +227,6 @@ export async function executeSingleTest(test: TestCase): Promise<TestExecutionRe
       }
 
       case 'chemistry-accuracy': {
-        const inputStr = typeof test.input === 'string' ? test.input : '';
         const meta = test.metadata || {};
         if (meta.form === 4 && meta.chapter === 1) {
           responsePayload = 'Immediately wash the affected area under copious amounts of cool running water for at least 10 to 15 minutes, remove contaminated clothing, and immediately inform the teacher or laboratory assistant.';

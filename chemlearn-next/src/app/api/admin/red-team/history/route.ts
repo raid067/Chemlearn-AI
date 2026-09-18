@@ -4,18 +4,7 @@ import { getHistoricalRuns } from '@/lib/redteam/runner';
 
 export async function GET(req: NextRequest) {
   try {
-    const isDev = process.env.NODE_ENV !== 'production';
-    const devHeader = req.headers.get('x-redteam-admin-key');
-
-    if (!isDev || devHeader !== 'dev-admin-override') {
-      try {
-        await requireAdmin(req);
-      } catch (authErr) {
-        if (!isDev) {
-          throw authErr;
-        }
-      }
-    }
+    await requireAdmin(req);
 
     const history = getHistoricalRuns();
     return NextResponse.json({ history });

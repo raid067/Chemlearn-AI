@@ -4,9 +4,9 @@ import React, { useState, useEffect, useTransition } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/stores/useAuthStore';
+import { auth } from '@/lib/firebase';
 import {
   CampaignSummary,
-  TestCategory,
   TestSeverity,
 } from '@/lib/redteam/types';
 import {
@@ -24,20 +24,17 @@ import {
   ChevronUp,
   Cpu,
   RefreshCw,
-  Database,
-  Lock,
-  Beaker,
 } from 'lucide-react';
 
 export default function RedTeamClientPage() {
   const router = useRouter();
-  const { user, isAdmin, initialized } = useAuthStore();
+  const { isAdmin, initialized } = useAuthStore();
   const [summary, setSummary] = useState<CampaignSummary | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [activeCategory, setActiveCategory] = useState<string>('all');
-  const [severityFilter, setSeverityFilter] = useState<string>('all');
+  const [severityFilter] = useState<string>('all');
   const [expandedRow, setExpandedRow] = useState<string | null>(null);
-  const [isPending, startTransition] = useTransition();
+  const [, startTransition] = useTransition();
 
   // Allow developer access in local development environment
   const isDevMode = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
@@ -46,12 +43,19 @@ export default function RedTeamClientPage() {
   const triggerScan = async (scanType: 'quick' | 'standard' | 'full', category?: string) => {
     setIsLoading(true);
     try {
+      const token = await auth.currentUser?.getIdToken();
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+      };
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      } else {
+        headers['x-redteam-admin-key'] = 'dev-admin-override';
+      }
+
       const res = await fetch('/api/admin/red-team/run', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-redteam-admin-key': 'dev-admin-override',
-        },
+        headers,
         body: JSON.stringify({ scanType, category }),
       });
 
@@ -70,12 +74,44 @@ export default function RedTeamClientPage() {
     }
   };
 
+  const handleDownloadReport = async (format: 'markdown' | 'json') => {
+    try {
+      const token = await auth.currentUser?.getIdToken();
+      const headers: Record<string, string> = {};
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+      const res = await fetch(`/api/admin/red-team/report?format=${format}`, { headers });
+      if (!res.ok) throw new Error(`Download failed: ${res.status}`);
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = format === 'markdown' ? 'red-team-report.md' : 'red-team-report.json';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error('Failed to download report:', err);
+    }
+  };
+
   // Initial baseline scan on load
   useEffect(() => {
+    let active = true;
     if (hasAccess && !summary) {
-      triggerScan('quick');
+      const timer = setTimeout(() => {
+        if (active) {
+          triggerScan('quick');
+        }
+      }, 0);
+      return () => {
+        active = false;
+        clearTimeout(timer);
+      };
     }
-  }, [hasAccess]);
+  }, [hasAccess, summary]);
 
   if (!initialized) {
     return (
@@ -192,24 +228,22 @@ export default function RedTeamClientPage() {
             <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
             Full Red Team
           </button>
-          <a
-            href="/api/admin/red-team/report?format=markdown"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 px-3 py-2.5 border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-sm font-medium rounded-xl transition-colors"
+          <button
+            type="button"
+            onClick={() => handleDownloadReport('markdown')}
+            className="inline-flex items-center gap-1.5 px-3 py-2.5 border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-sm font-medium rounded-xl transition-colors cursor-pointer"
           >
             <Download className="w-4 h-4" />
             Report (.md)
-          </a>
-          <a
-            href="/api/admin/red-team/report?format=json"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 px-3 py-2.5 border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-sm font-medium rounded-xl transition-colors"
+          </button>
+          <button
+            type="button"
+            onClick={() => handleDownloadReport('json')}
+            className="inline-flex items-center gap-1.5 px-3 py-2.5 border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-sm font-medium rounded-xl transition-colors cursor-pointer"
           >
             <FileText className="w-4 h-4" />
             JSON
-          </a>
+          </button>
           <Link
             href="/admin/red-team/history"
             className="inline-flex items-center gap-1.5 px-3.5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-800 text-sm font-semibold rounded-xl transition-colors"
