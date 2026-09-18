@@ -1,0 +1,958 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chapter 6 Infographic Posters | ChemLearn AI</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-base: #070a13;
+            --bg-card: rgba(15, 23, 42, 0.75);
+            --border-glow: rgba(0, 240, 255, 0.25);
+            --cyan-glow: #00f0ff;
+            --blue-glow: #3b82f6;
+            --purple-glow: #a855f7;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: var(--bg-base);
+            color: var(--text-main);
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background-image: 
+                radial-gradient(circle at 20% 15%, rgba(0, 240, 255, 0.08) 0%, transparent 40%),
+                radial-gradient(circle at 80% 60%, rgba(168, 85, 247, 0.08) 0%, transparent 45%);
+            background-attachment: fixed;
+        }
+
+        /* --- GLOBAL NAVBAR --- */
+        .global-navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 40px;
+            background: rgba(10, 15, 29, 0.85);
+            backdrop-filter: blur(16px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .brand-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.25rem;
+            font-weight: 800;
+            color: #ffffff;
+            text-decoration: none;
+            letter-spacing: -0.02em;
+        }
+
+        .center-nav-links {
+            display: flex;
+            gap: 28px;
+            align-items: center;
+        }
+
+        .center-nav-links a {
+            text-decoration: none;
+            color: #94a3b8;
+            font-size: 0.92rem;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+
+        .center-nav-links a:hover,
+        .center-nav-links a.active {
+            color: var(--cyan-glow);
+            text-shadow: 0 0 12px rgba(0, 240, 255, 0.5);
+        }
+
+        .right-auth-links {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+        }
+
+        .lang-switch-btn {
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(0, 240, 255, 0.3);
+            color: var(--cyan-glow);
+            padding: 7px 16px;
+            border-radius: 20px;
+            font-size: 0.82rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .lang-switch-btn:hover {
+            background: rgba(0, 240, 255, 0.15);
+            box-shadow: 0 0 15px rgba(0, 240, 255, 0.3);
+        }
+
+        /* --- HERO SECTION --- */
+        .poster-hero {
+            text-align: center;
+            padding: 50px 20px 30px;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .chapter-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(0, 240, 255, 0.1);
+            border: 1px solid rgba(0, 240, 255, 0.3);
+            color: var(--cyan-glow);
+            font-size: 0.8rem;
+            font-weight: 700;
+            padding: 6px 16px;
+            border-radius: 30px;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            margin-bottom: 18px;
+            box-shadow: 0 0 20px rgba(0, 240, 255, 0.15);
+        }
+
+        .poster-hero h1 {
+            font-size: 2.8rem;
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            margin-bottom: 14px;
+            background: linear-gradient(135deg, #ffffff 40%, #00f0ff 80%, #a855f7 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .poster-hero p {
+            color: #94a3b8;
+            font-size: 1.05rem;
+            max-width: 720px;
+            margin: 0 auto 30px;
+            line-height: 1.6;
+        }
+
+        /* --- FILTER BAR --- */
+        .filter-container {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            max-width: 1100px;
+            margin: 0 auto 40px;
+            padding: 0 20px;
+        }
+
+        .subtopic-pill {
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #cbd5e1;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.84rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            backdrop-filter: blur(8px);
+        }
+
+        .subtopic-pill:hover,
+        .subtopic-pill.active {
+            background: rgba(0, 240, 255, 0.12);
+            border-color: var(--cyan-glow);
+            color: #ffffff;
+            box-shadow: 0 0 15px rgba(0, 240, 255, 0.25);
+            transform: translateY(-1px);
+        }
+
+        /* --- POSTER GRID --- */
+        .posters-grid-section {
+            max-width: 1300px;
+            margin: 0 auto 60px;
+            padding: 0 30px;
+            width: 100%;
+        }
+
+        .grid-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            padding-bottom: 14px;
+        }
+
+        .grid-header h2 {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .view-mode-toggle {
+            display: flex;
+            gap: 6px;
+            background: rgba(15, 23, 42, 0.9);
+            padding: 4px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .mode-btn {
+            background: transparent;
+            border: none;
+            color: #94a3b8;
+            padding: 6px 14px;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .mode-btn.active {
+            background: var(--cyan-glow);
+            color: #090d16;
+            box-shadow: 0 0 12px rgba(0, 240, 255, 0.4);
+        }
+
+        .posters-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+            gap: 32px;
+        }
+
+        /* --- POSTER CARD --- */
+        .poster-card {
+            background: rgba(15, 23, 42, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 20px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            backdrop-filter: blur(12px);
+            position: relative;
+        }
+
+        .poster-card:hover {
+            transform: translateY(-6px);
+            border-color: rgba(0, 240, 255, 0.4);
+            box-shadow: 0 20px 40px -10px rgba(0, 240, 255, 0.15), 0 0 20px rgba(0, 240, 255, 0.1);
+        }
+
+        .poster-img-wrap {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 3 / 4;
+            background: #090d16;
+            overflow: hidden;
+            cursor: pointer;
+        }
+
+        .poster-img-wrap img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.4s ease;
+        }
+
+        .poster-card:hover .poster-img-wrap img {
+            transform: scale(1.03);
+        }
+
+        .overlay-inspect-btn {
+            position: absolute;
+            inset: 0;
+            background: rgba(7, 10, 19, 0.6);
+            backdrop-filter: blur(4px);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            opacity: 0;
+            transition: opacity 0.25s ease;
+            color: #ffffff;
+            font-weight: 700;
+            font-size: 0.95rem;
+        }
+
+        .poster-img-wrap:hover .overlay-inspect-btn {
+            opacity: 1;
+        }
+
+        .zoom-icon-circle {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: var(--cyan-glow);
+            color: #070a13;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 20px rgba(0, 240, 255, 0.6);
+        }
+
+        .poster-info {
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            flex: 1;
+        }
+
+        .poster-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .subtopic-badge {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.76rem;
+            font-weight: 700;
+            color: var(--cyan-glow);
+            background: rgba(0, 240, 255, 0.1);
+            padding: 4px 10px;
+            border-radius: 6px;
+            border: 1px solid rgba(0, 240, 255, 0.25);
+        }
+
+        .lang-badge {
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: #c084fc;
+            background: rgba(192, 132, 252, 0.1);
+            padding: 4px 8px;
+            border-radius: 6px;
+            border: 1px solid rgba(192, 132, 252, 0.3);
+        }
+
+        .poster-title {
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: #ffffff;
+            line-height: 1.4;
+        }
+
+        .poster-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: auto;
+            padding-top: 12px;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .action-btn {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            padding: 9px 12px;
+            border-radius: 10px;
+            font-size: 0.82rem;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+
+        .btn-view {
+            background: rgba(0, 240, 255, 0.12);
+            color: var(--cyan-glow);
+            border: 1px solid rgba(0, 240, 255, 0.3);
+        }
+
+        .btn-view:hover {
+            background: var(--cyan-glow);
+            color: #070a13;
+            box-shadow: 0 0 15px rgba(0, 240, 255, 0.4);
+        }
+
+        .btn-dl {
+            background: rgba(255, 255, 255, 0.06);
+            color: #e2e8f0;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+        }
+
+        .btn-dl:hover {
+            background: rgba(255, 255, 255, 0.14);
+            color: #ffffff;
+        }
+
+        /* --- LIGHTBOX MODAL --- */
+        .lightbox-modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(4, 7, 15, 0.92);
+            backdrop-filter: blur(16px);
+            z-index: 10000;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            padding: 30px;
+        }
+
+        .lightbox-modal.active {
+            display: flex;
+        }
+
+        .lightbox-box {
+            position: relative;
+            max-width: 900px;
+            max-height: 94vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .lightbox-img {
+            max-width: 100%;
+            max-height: 85vh;
+            border-radius: 16px;
+            box-shadow: 0 0 50px rgba(0, 240, 255, 0.25), 0 25px 50px -12px rgba(0, 0, 0, 0.8);
+            border: 1px solid rgba(0, 240, 255, 0.3);
+            object-fit: contain;
+        }
+
+        .lightbox-close-btn {
+            position: absolute;
+            top: -20px;
+            right: -20px;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: rgba(15, 23, 42, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #ffffff;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .lightbox-close-btn:hover {
+            background: #ef4444;
+            border-color: #ef4444;
+            transform: scale(1.1);
+        }
+
+        .lightbox-footer-bar {
+            margin-top: 14px;
+            display: flex;
+            gap: 16px;
+        }
+
+        /* --- FOOTER --- */
+        .global-footer {
+            margin-top: auto;
+            background: rgba(10, 15, 29, 0.95);
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            padding: 30px 40px;
+            text-align: center;
+            color: #64748b;
+            font-size: 0.86rem;
+        }
+
+        @media (max-width: 768px) {
+            .global-navbar {
+                padding: 14px 20px;
+                flex-direction: column;
+                gap: 12px;
+            }
+            .poster-hero h1 {
+                font-size: 2.1rem;
+            }
+            .posters-container {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- NAVBAR -->
+    <nav class="global-navbar">
+        <a href="index.html" class="brand-logo">
+            <svg width="22" height="26" viewBox="0 0 22 26" fill="none">
+                <path d="M2 2H20M2 24H20M3.5 2C3.5 2 5 10.5 11 13C5 15.5 3.5 24 3.5 24M18.5 2C18.5 2 17 10.5 11 13C17 15.5 18.5 24 18.5 24"
+                    stroke="#00f0ff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+            ChemLearn AI
+        </a>
+        <div class="center-nav-links">
+            <a href="index.html">Home</a>
+            <a href="lessons.html">Lessons</a>
+            <a href="quizzes.html">Quizzes</a>
+            <a href="experiment.html">Experiment</a>
+            <a href="posters.html" class="active">Posters</a>
+            <a href="dashboard.html">Dashboard</a>
+        </div>
+        <div class="right-auth-links">
+            <button class="lang-switch-btn" onclick="toggleLanguage()">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="2" y1="12" x2="22" y2="12"></line>
+                    <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+                </svg>
+                <span id="currentLangLabel">BM (Bahasa Melayu)</span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- HERO -->
+    <section class="poster-hero">
+        <div class="chapter-tag">
+            <span>🧪 Form 4 KSSM Chemistry</span>
+            <span>•</span>
+            <span>Chapter 6 Visual Library</span>
+        </div>
+        <h1 id="heroTitle">Asid, Bes dan Garam — Visual Infografik</h1>
+        <p id="heroDesc">
+            Koleksi poster infografik saintifik premium berdefinisi tinggi untuk UASA & SPM. Direka khas mengikut silibus Kimia KSSM Tingkatan 4 dengan visualisasi 3D, persamaan seimbang, rumus, dan tip peperiksaan.
+        </p>
+    </section>
+
+    <!-- SUBTOPIC FILTER PILLS -->
+    <div class="filter-container">
+        <button class="subtopic-pill active" onclick="filterSubtopic('all', this)">Semua (All)</button>
+        <button class="subtopic-pill" onclick="filterSubtopic('6.1', this)">6.1 Peranan Air</button>
+        <button class="subtopic-pill" onclick="filterSubtopic('6.2', this)">6.2 Nilai pH</button>
+        <button class="subtopic-pill" onclick="filterSubtopic('6.3', this)">6.3 Kekuatan Asid & Alkali</button>
+        <button class="subtopic-pill" onclick="filterSubtopic('6.4', this)">6.4 Sifat Kimia</button>
+        <button class="subtopic-pill" onclick="filterSubtopic('6.5', this)">6.5 Kepekatan Larutan</button>
+        <button class="subtopic-pill" onclick="filterSubtopic('6.6', this)">6.6 Larutan Piawai</button>
+        <button class="subtopic-pill" onclick="filterSubtopic('6.7', this)">6.7 Peneutralan</button>
+        <button class="subtopic-pill" onclick="filterSubtopic('6.8', this)">6.8 Garam & Hablur</button>
+        <button class="subtopic-pill" onclick="filterSubtopic('6.9', this)">6.9 Penyediaan Garam</button>
+        <button class="subtopic-pill" onclick="filterSubtopic('6.10', this)">6.10 Tindakan Haba</button>
+        <button class="subtopic-pill" onclick="filterSubtopic('6.11', this)">6.11 Analisis Kualitatif</button>
+    </div>
+
+    <!-- POSTER SECTION -->
+    <main class="posters-grid-section">
+        <div class="grid-header">
+            <h2>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#00f0ff" stroke-width="2.5">
+                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                    <line x1="3" y1="9" x2="21" y2="9"></line>
+                    <line x1="9" y1="21" x2="9" y2="9"></line>
+                </svg>
+                <span id="gridTitle">Poster Pembelajaran Bab 6</span>
+            </h2>
+            <div class="view-mode-toggle">
+                <button class="mode-btn active" id="btnModeAll" onclick="setLangFilter('all')">All</button>
+                <button class="mode-btn" id="btnModeBM" onclick="setLangFilter('bm')">BM</button>
+                <button class="mode-btn" id="btnModeEN" onclick="setLangFilter('en')">EN</button>
+            </div>
+        </div>
+
+        <div class="posters-container" id="postersGrid">
+            <!-- Dynamically populated -->
+        </div>
+    </main>
+
+    <!-- LIGHTBOX MODAL -->
+    <div class="lightbox-modal" id="lightboxModal" onclick="closeLightbox()">
+        <div class="lightbox-box" onclick="event.stopPropagation()">
+            <button class="lightbox-close-btn" onclick="closeLightbox()">&times;</button>
+            <img src="" alt="Poster" class="lightbox-img" id="lightboxImg">
+            <div class="lightbox-footer-bar">
+                <a href="#" class="action-btn btn-view" id="lightboxDlBtn" download>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="7 10 12 15 17 10"></polyline>
+                        <line x1="12" y1="15" x2="12" y2="3"></line>
+                    </svg>
+                    Muat Turun Resolusi Penuh (Download Full HD)
+                </a>
+                <button class="action-btn btn-dl" onclick="window.print()">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="6 9 6 2 18 2 18 9"></polyline>
+                        <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
+                        <rect x="6" y="14" width="12" height="8"></rect>
+                    </svg>
+                    Cetak / Print A4
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- FOOTER -->
+    <footer class="global-footer">
+        <p>© 2026 ChemLearn AI • Form 4 KSSM Chemistry • Chapter 6 Acids, Bases and Salts. All visual infographics designed for Malaysian SPM revision.</p>
+    </footer>
+
+    <!-- SCRIPT -->
+    <script>
+        const POSTER_DATABASE = [
+            // 6.1
+            {
+                subtopic: '6.1',
+                lang: 'bm',
+                title: '6.1 Peranan Air dalam Menunjukkan Keasidan & Kealkalian',
+                desc: 'Ion H⁺ dan OH⁻ terhidrasi, pengionan HCl(ak) dan NaOH(ak), serta kekonduksian elektrik zarah bebas bergerak.',
+                image: 'images/posters/chapter6/chapter6_6.1_bm.png',
+                available: true
+            },
+            {
+                subtopic: '6.1',
+                lang: 'en',
+                title: '6.1 Role of Water in Showing Acidity & Alkalinity',
+                desc: 'Hydrated H⁺ and OH⁻ ions, ionization of HCl(aq) and NaOH(aq), and electrical conductivity via mobile ions.',
+                image: 'images/posters/chapter6/chapter6_6.1_en.png',
+                available: true
+            },
+            // 6.2
+            {
+                subtopic: '6.2',
+                lang: 'bm',
+                title: '6.2 Nilai pH & Pengukuran Keasidan',
+                desc: 'Skala pH 0–14, penunjuk semesta, pH meter digital, dan hubungan antara penurunan pH dengan peningkatan keasidan.',
+                image: 'images/posters/chapter6/chapter6_6.2_bm.png',
+                available: true
+            },
+            {
+                subtopic: '6.2',
+                lang: 'en',
+                title: '6.2 pH Value & Acidity Measurement',
+                desc: '0–14 pH scale, universal indicator, digital pH meter, and correlation between lower pH and higher acidity.',
+                image: 'images/posters/chapter6/chapter6_6.2_en.png',
+                available: true
+            },
+            // 6.3
+            {
+                subtopic: '6.3',
+                lang: 'bm',
+                title: '6.3 Kekuatan Asid & Alkali (Darjah Pengionan)',
+                desc: 'Perbandingan asid kuat vs lemah, alkali kuat vs lemah, serta amaran kritikal: KUAT ≠ PEKAT, LEMAH ≠ CAIR.',
+                image: 'images/posters/chapter6/chapter6_6.3_bm.png',
+                available: true
+            },
+            {
+                subtopic: '6.3',
+                lang: 'en',
+                title: '6.3 Strength of Acids & Alkalis (Degree of Ionisation)',
+                desc: 'Comparison of strong vs weak acids and alkalis, plus the core rule: STRONG ≠ CONCENTRATED, WEAK ≠ DILUTE.',
+                image: 'images/posters/chapter6/chapter6_6.3_en.png',
+                available: true
+            },
+            // 6.4
+            {
+                subtopic: '6.4',
+                lang: 'bm',
+                title: '6.4 Sifat-Sifat Kimia Asid & Alkali',
+                desc: 'Tindak balas asid dengan logam, karbonat logam, oksida logam (bes), peneutralan alkali, dan garam ammonium.',
+                image: 'images/posters/chapter6/chapter6_6.4_bm.png',
+                available: true
+            },
+            {
+                subtopic: '6.4',
+                lang: 'en',
+                title: '6.4 Chemical Properties of Acids & Alkalis',
+                desc: 'Reactions with reactive metals, metal carbonates, metal oxides, acid-alkali neutralisation, and ammonium salts.',
+                image: 'images/posters/chapter6/chapter6_6.4_en.png',
+                available: true
+            },
+            // 6.5
+            {
+                subtopic: '6.5',
+                lang: 'bm',
+                title: '6.5 Kepekatan Larutan Akueus & Kiraan Mol',
+                desc: 'Rumus C = n/V, n = m/Mᵣ, pertukaran 1000 cm³ = 1 dm³, dan rajah alir penyelesaian masalah stoikiometri.',
+                image: 'images/posters/chapter6/chapter6_6.5_bm.png',
+                available: true
+            },
+            {
+                subtopic: '6.5',
+                lang: 'en',
+                title: '6.5 Concentration of Aqueous Solutions & Moles',
+                desc: 'Formula C = n/V, n = m/Mᵣ, unit conversion 1000 cm³ = 1 dm³, and step-by-step concentration calculation flows.',
+                image: 'images/posters/chapter6/chapter6_6.5_en.png',
+                available: true
+            },
+            // 6.6
+            {
+                subtopic: '6.6',
+                lang: 'bm',
+                title: '6.6 Penyediaan Larutan Piawai',
+                desc: 'Aliran kerja makmal: timbang, larut, pindah kelalang volumetrik, bilas, bacaan meniskus jitu, dan goncang seragam.',
+                image: 'images/posters/chapter6/chapter6_6.6_bm.png',
+                available: true
+            },
+            {
+                subtopic: '6.6',
+                lang: 'en',
+                title: '6.6 Preparation of Standard Solutions',
+                desc: 'Laboratory workflow: weigh, dissolve, transfer to volumetric flask, rinse, precise meniscus level, and invert.',
+                image: 'images/posters/chapter6/chapter6_6.6_en.png',
+                available: true
+            },
+            // 6.7
+            {
+                subtopic: '6.7',
+                lang: 'bm',
+                title: '6.7 Peneutralan & Titrasi Asid-Bes',
+                desc: 'Susunan radas buret & kelalang kon, perubahan warna fenolftalein, titik kesetaraan, dan rumus (MaVa)/(MbVb) = a/b.',
+                image: 'images/posters/chapter6/chapter6_6.7_bm.png',
+                available: true
+            },
+            {
+                subtopic: '6.7',
+                lang: 'en',
+                title: '6.7 Neutralisation & Acid-Base Titration',
+                desc: 'Burette and conical flask titration setup, phenolphthalein colour change, equivalence point, and titration stoichiometry.',
+                image: 'images/posters/chapter6/chapter6_6.7_bm.png',
+                available: true
+            },
+            // 6.8
+            {
+                subtopic: '6.8',
+                lang: 'bm',
+                title: '6.8 Garam, Hablur & Kegunaan Harian',
+                desc: 'Kisi hablur garam ion, perbezaan garam terhidrat CuSO₄·5H₂O vs kontang, serta kegunaan makanan, perubatan & industri.',
+                image: '',
+                available: false
+            },
+            {
+                subtopic: '6.8',
+                lang: 'en',
+                title: '6.8 Salts, Crystals & Everyday Applications',
+                desc: 'Ionic crystal lattices, hydrated CuSO₄·5H₂O vs anhydrous salts, and real-world industrial and medical applications.',
+                image: '',
+                available: false
+            },
+            // 6.9
+            {
+                subtopic: '6.9',
+                lang: 'bm',
+                title: '6.9 Kaedah Penyediaan Garam',
+                desc: 'Pokok keputusan: Garam terlarut (tindak balas asid + logam/bes/karbonat berlebihan atau titrasi) vs Garam tak terlarut (pemendakan).',
+                image: '',
+                available: false
+            },
+            {
+                subtopic: '6.9',
+                lang: 'en',
+                title: '6.9 Preparation of Soluble & Insoluble Salts',
+                desc: 'Decision matrix: Soluble salts (excess solid method or titration) vs Insoluble salts (double decomposition precipitation).',
+                image: '',
+                available: false
+            },
+            // 6.10
+            {
+                subtopic: '6.10',
+                lang: 'bm',
+                title: '6.10 Tindakan Haba ke atas Garam',
+                desc: 'Penguraian terma karbonat (CuCO₃ → CuO + CO₂), hidroksida logam, dan kehilangan air penghabluran CuSO₄·5H₂O.',
+                image: '',
+                available: false
+            },
+            {
+                subtopic: '6.10',
+                lang: 'en',
+                title: '6.10 Action of Heat on Salts',
+                desc: 'Thermal decomposition of metal carbonates, metal hydroxides, gas evolution tests, and reversible hydrated salt heating.',
+                image: '',
+                available: false
+            },
+            // 6.11
+            {
+                subtopic: '6.11',
+                lang: 'bm',
+                title: '6.11 Analisis Kualitatif Garam (Kimia Detektif)',
+                desc: 'Aliran pengecaman kation & anion: Ujian CO₃²⁻, SO₄²⁻, Cl⁻, kation NH₄⁺, reagen NaOH, NH₃(ak), dan pemendakan khas.',
+                image: '',
+                available: false
+            },
+            {
+                subtopic: '6.11',
+                lang: 'en',
+                title: '6.11 Qualitative Analysis of Salts (Detective Flow)',
+                desc: 'Identification schemes for cations and anions: tests for CO₃²⁻, SO₄²⁻, halides, NH₄⁺, confirmatory tests and observations.',
+                image: '',
+                available: false
+            }
+        ];
+
+        let currentSubtopic = 'all';
+        let currentLangFilter = 'all';
+        let currentAppLang = 'bm';
+
+        function renderPosters() {
+            const container = document.getElementById('postersGrid');
+            container.innerHTML = '';
+
+            const filtered = POSTER_DATABASE.filter(item => {
+                const matchSubtopic = (currentSubtopic === 'all' || item.subtopic === currentSubtopic);
+                const matchLang = (currentLangFilter === 'all' || item.lang === currentLangFilter);
+                return matchSubtopic && matchLang;
+            });
+
+            if (filtered.length === 0) {
+                container.innerHTML = `
+                    <div style="grid-column: 1/-1; text-align: center; padding: 60px 20px; color: #64748b;">
+                        <p style="font-size: 1.1rem; font-weight: 600;">Tiada poster ditemui untuk kriteria ini.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            filtered.forEach(poster => {
+                const card = document.createElement('div');
+                card.className = 'poster-card';
+
+                const langText = poster.lang === 'bm' ? 'Bahasa Melayu' : 'English';
+                const isGenerated = poster.available && poster.image !== '';
+
+                card.innerHTML = `
+                    <div class="poster-img-wrap" onclick="${isGenerated ? `openLightbox('${poster.image}', '${poster.title}')` : ''}">
+                        ${isGenerated 
+                            ? `<img src="${poster.image}" alt="${poster.title}" loading="lazy">
+                               <div class="overlay-inspect-btn">
+                                   <div class="zoom-icon-circle">
+                                       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                           <circle cx="11" cy="11" r="8"></circle>
+                                           <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                                           <line x1="11" y1="8" x2="11" y2="14"></line>
+                                           <line x1="8" y1="11" x2="14" y2="11"></line>
+                                       </svg>
+                                   </div>
+                                   <span>Klik untuk Periksa (Zoom HD)</span>
+                               </div>`
+                            : `<div style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:100%; padding:24px; text-align:center; background:rgba(15,23,42,0.9);">
+                                   <div style="width:60px; height:60px; border-radius:50%; background:rgba(0,240,255,0.1); border:1px solid rgba(0,240,255,0.3); display:flex; align-items:center; justify-content:center; margin-bottom:14px;">
+                                       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#00f0ff" stroke-width="2">
+                                           <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                                       </svg>
+                                   </div>
+                                   <span style="color:#00f0ff; font-weight:700; font-size:0.9rem; margin-bottom:6px;">Giliran Penjanaan AI Seterusnya</span>
+                                   <span style="color:#94a3b8; font-size:0.78rem; line-height:1.4;">Nota silibus & spesifikasi prompt sedia dipaparkan. Menunggu tetapan semula kuota API.</span>
+                               </div>`
+                        }
+                    </div>
+                    <div class="poster-info">
+                        <div class="poster-meta">
+                            <span class="subtopic-badge">BAB ${poster.subtopic}</span>
+                            <span class="lang-badge">${langText}</span>
+                        </div>
+                        <h3 class="poster-title">${poster.title}</h3>
+                        <p style="color:#94a3b8; font-size:0.84rem; line-height:1.5;">${poster.desc}</p>
+                        <div class="poster-actions">
+                            ${isGenerated 
+                                ? `<button class="action-btn btn-view" onclick="openLightbox('${poster.image}', '${poster.title}')">
+                                       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                           <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                           <circle cx="12" cy="12" r="3"></circle>
+                                       </svg>
+                                       Lihat Penuh
+                                   </button>
+                                   <a href="${poster.image}" download class="action-btn btn-dl">
+                                       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                           <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                           <polyline points="7 10 12 15 17 10"></polyline>
+                                           <line x1="12" y1="15" x2="12" y2="3"></line>
+                                       </svg>
+                                       Muat Turun
+                                   </a>`
+                                : `<button class="action-btn btn-dl" style="opacity:0.6; cursor:default;">
+                                       Sedia Dijana
+                                   </button>`
+                            }
+                        </div>
+                    </div>
+                `;
+
+                container.appendChild(card);
+            });
+        }
+
+        function filterSubtopic(subtopic, btn) {
+            currentSubtopic = subtopic;
+            document.querySelectorAll('.subtopic-pill').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            renderPosters();
+        }
+
+        function setLangFilter(lang) {
+            currentLangFilter = lang;
+            document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+            if (lang === 'all') document.getElementById('btnModeAll').classList.add('active');
+            if (lang === 'bm') document.getElementById('btnModeBM').classList.add('active');
+            if (lang === 'en') document.getElementById('btnModeEN').classList.add('active');
+            renderPosters();
+        }
+
+        function toggleLanguage() {
+            if (currentAppLang === 'bm') {
+                currentAppLang = 'en';
+                document.getElementById('currentLangLabel').innerText = 'EN (English)';
+                document.getElementById('heroTitle').innerText = 'Acids, Bases & Salts — Visual Infographics';
+                document.getElementById('heroDesc').innerText = 'Premium high-resolution scientific infographic posters for UASA & SPM revision. Meticulously engineered according to the Form 4 KSSM syllabus with 3D molecular renders, balanced equations, formulas, and exam tips.';
+                document.getElementById('gridTitle').innerText = 'Chapter 6 Learning Posters';
+                setLangFilter('en');
+            } else {
+                currentAppLang = 'bm';
+                document.getElementById('currentLangLabel').innerText = 'BM (Bahasa Melayu)';
+                document.getElementById('heroTitle').innerText = 'Asid, Bes dan Garam — Visual Infografik';
+                document.getElementById('heroDesc').innerText = 'Koleksi poster infografik saintifik premium berdefinisi tinggi untuk UASA & SPM. Direka khas mengikut silibus Kimia KSSM Tingkatan 4 dengan visualisasi 3D, persamaan seimbang, rumus, dan tip peperiksaan.';
+                document.getElementById('gridTitle').innerText = 'Poster Pembelajaran Bab 6';
+                setLangFilter('bm');
+            }
+        }
+
+        function openLightbox(imgSrc, title) {
+            const modal = document.getElementById('lightboxModal');
+            const img = document.getElementById('lightboxImg');
+            const dlBtn = document.getElementById('lightboxDlBtn');
+
+            img.src = imgSrc;
+            dlBtn.href = imgSrc;
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeLightbox() {
+            const modal = document.getElementById('lightboxModal');
+            modal.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeLightbox();
+        });
+
+        // Initialize
+        renderPosters();
+    </script>
+</body>
+
+</html>
