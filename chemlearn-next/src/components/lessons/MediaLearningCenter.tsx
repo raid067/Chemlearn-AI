@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useMemo, useSyncExternalStore } from 'react';
 import Image from 'next/image';
 import { parseVideoUrl } from '@/lib/video';
-import { Plus, Link2, Trash2, X } from 'lucide-react';
+import { Trash2 } from 'lucide-react';
 
 interface MediaLesson {
   id: string;
@@ -160,16 +160,11 @@ type TopicFilter = 'all' | 'alloys' | 'glass' | 'ceramics' | 'composites';
 export default function MediaLearningCenter() {
   const [activeFilter, setActiveFilter] = useState<TopicFilter>('all');
   const [activeVideo, setActiveVideo] = useState<{ url: string; title: string } | null>(null);
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [newTitle, setNewTitle] = useState('');
-  const [newUrl, setNewUrl] = useState('');
-  const [newTopic, setNewTopic] = useState<'alloys' | 'glass' | 'ceramics' | 'composites'>('alloys');
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         setActiveVideo(null);
-        setIsAddModalOpen(false);
       }
     };
     window.addEventListener('keydown', handleKeyDown);
@@ -198,42 +193,6 @@ export default function MediaLearningCenter() {
       return [];
     }
   }, [storedCustomJson]);
-
-  const handleAddVideo = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newTitle.trim() || !newUrl.trim()) return;
-
-    const topicConfig = {
-      alloys: { label: '8.1 Alloys', color: 'text-purple-600', grad: 'from-purple-900 to-indigo-700' },
-      glass: { label: '8.2 Glass', color: 'text-emerald-600', grad: 'from-emerald-900 to-teal-700' },
-      ceramics: { label: '8.3 Ceramics', color: 'text-amber-600', grad: 'from-amber-900 to-orange-700' },
-      composites: { label: '8.4 Composites', color: 'text-blue-600', grad: 'from-blue-900 to-indigo-700' },
-    };
-
-    const newLesson: MediaLesson = {
-      id: 'custom-' + Date.now(),
-      title: newTitle.trim(),
-      topicId: newTopic,
-      topicLabel: topicConfig[newTopic].label,
-      topicTagColor: topicConfig[newTopic].color,
-      duration: 'Link',
-      videoUrl: newUrl.trim(),
-      thumbnail: '/calloys1.png',
-      gradientFallback: topicConfig[newTopic].grad,
-    };
-
-    const updated = [newLesson, ...customLessons];
-    try {
-      localStorage.setItem('chemlearn_custom_media_lessons', JSON.stringify(updated));
-      window.dispatchEvent(new Event('storage'));
-    } catch {
-      // Ignore storage errors
-    }
-
-    setNewTitle('');
-    setNewUrl('');
-    setIsAddModalOpen(false);
-  };
 
   const handleDeleteCustom = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -319,116 +278,19 @@ export default function MediaLearningCenter() {
         </div>
       </div>
 
-      {/* Section Sub-heading */}
-      <div className="flex items-center justify-between gap-3 mb-6 flex-wrap">
-        <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg bg-purple-100 flex items-center justify-center text-purple-700">
-            <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
-              <polygon points="5 3 19 12 5 21 5 3" />
-            </svg>
-          </div>
-          <h2 className="text-xl font-bold text-slate-900 tracking-tight">
-            Media Learning Center
-          </h2>
+      {/* Section Sub-heading (Centered) */}
+      <div className="flex items-center justify-center gap-3 mb-8 text-center">
+        <div className="w-8 h-8 rounded-lg bg-purple-100 flex items-center justify-center text-purple-700">
+          <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
+            <polygon points="5 3 19 12 5 21 5 3" />
+          </svg>
         </div>
-
-        {/* Put Video Link trigger button */}
-        <button
-          onClick={() => setIsAddModalOpen(true)}
-          className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-white bg-purple-700 hover:bg-purple-800 shadow-sm transition-all hover:-translate-y-0.5 cursor-pointer"
-        >
-          <Plus className="w-4 h-4" />
-          Put Video Link
-        </button>
+        <h2 className="text-2xl font-extrabold text-slate-900 tracking-tight">
+          Media Learning Center
+        </h2>
       </div>
 
-      {/* Put Video Link Modal */}
-      {isAddModalOpen && (
-        <div 
-          className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-xs flex items-center justify-center p-4"
-          onClick={() => setIsAddModalOpen(false)}
-        >
-          <div 
-            className="w-full max-w-md bg-white rounded-2xl p-6 shadow-2xl border border-slate-200"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
-                <Link2 className="w-5 h-5 text-purple-700" />
-                Put Video Link in Lesson
-              </h3>
-              <button 
-                onClick={() => setIsAddModalOpen(false)}
-                className="p-1 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
 
-            <form onSubmit={handleAddVideo} className="space-y-4">
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">
-                  Video Title
-                </label>
-                <input
-                  type="text"
-                  value={newTitle}
-                  onChange={(e) => setNewTitle(e.target.value)}
-                  placeholder="e.g. SPM Alloys & Steel Walkthrough"
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-purple-600"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">
-                  Video URL (YouTube, Vimeo, MP4)
-                </label>
-                <input
-                  type="url"
-                  value={newUrl}
-                  onChange={(e) => setNewUrl(e.target.value)}
-                  placeholder="https://www.youtube.com/watch?v=... or MP4 URL"
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-purple-600"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">
-                  Chapter Topic
-                </label>
-                <select
-                  value={newTopic}
-                  onChange={(e) => setNewTopic(e.target.value as 'alloys' | 'glass' | 'ceramics' | 'composites')}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-purple-600 bg-white"
-                >
-                  <option value="alloys">🧪 8.1 Alloys</option>
-                  <option value="glass">🧪 8.2 Glass</option>
-                  <option value="ceramics">🏺 8.3 Ceramics</option>
-                  <option value="composites">🧱 8.4 Composites</option>
-                </select>
-              </div>
-
-              <div className="flex justify-end gap-2 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setIsAddModalOpen(false)}
-                  className="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-5 py-2 rounded-xl text-xs font-bold text-white bg-purple-700 hover:bg-purple-800 transition-colors shadow-sm"
-                >
-                  Add Video
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
 
       {/* 3-Column Video Card Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

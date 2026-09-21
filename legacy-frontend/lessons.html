@@ -378,26 +378,36 @@
 
         /* --- INTERACTIVE MEDIA LEARNING CENTER --- */
         .media-learning-center {
-            max-width: 1200px;
+            max-width: 1240px;
             width: 100%;
             margin: 40px auto 80px auto;
             padding: 0 24px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
 
         .media-center-title {
-            font-size: 1.4rem;
+            font-size: 1.5rem;
             font-weight: 800;
             color: #0f172a;
-            margin-bottom: 24px;
+            margin-bottom: 32px;
             display: flex;
             align-items: center;
-            gap: 8px;
+            justify-content: center;
+            text-align: center;
+            gap: 10px;
+            width: 100%;
         }
 
         .media-grid {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 24px;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 360px));
+            justify-content: center;
+            gap: 28px;
+            width: 100%;
+            max-width: 1180px;
+            margin: 0 auto;
         }
 
         .media-preview-card {
@@ -409,20 +419,30 @@
             display: flex;
             flex-direction: column;
             transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            box-shadow: 0 4px 16px rgba(15, 23, 42, 0.05);
         }
 
-        /* Core structure for thumbnail image containers */
+        .media-preview-card:hover {
+            transform: translateY(-4px);
+            border-color: #cbd5e1;
+            box-shadow: 0 14px 28px -4px rgba(15, 23, 42, 0.12);
+        }
+
+        /* Core structure for thumbnail image containers (16:9 HD Display) */
         .media-thumbnail-wrapper {
             position: relative;
             width: 100%;
             padding-bottom: 56.25%;
             /* 16:9 Aspect Ratio */
-            border-radius: 10px;
+            border-radius: 12px;
             overflow: hidden;
             margin-bottom: 12px;
             background-size: cover !important;
             background-position: center !important;
             background-repeat: no-repeat !important;
+            image-rendering: -webkit-optimize-contrast;
+            image-rendering: crisp-edges;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
         }
 
         /* --- VIDEO THUMBNAIL PICTURE ASSIGNMENTS --- */
@@ -474,7 +494,7 @@
             background: url('ccomposites3.png') center/cover no-repeat, linear-gradient(135deg, #1e3a8a, #2563eb);
         }
 
-        /* Subtle grid overlay line effect to maintain the tech look over pictures */
+        /* High-definition smooth gradient overlay for visual clarity & contrast */
         .media-thumbnail-wrapper::before {
             content: '';
             position: absolute;
@@ -482,10 +502,9 @@
             left: 0;
             right: 0;
             bottom: 0;
-            opacity: 0.1;
-            background-image: radial-gradient(#ffffff 1px, transparent 1px);
-            background-size: 12px 12px;
+            background: linear-gradient(180deg, rgba(0, 0, 0, 0) 55%, rgba(0, 0, 0, 0.4) 100%);
             z-index: 1;
+            pointer-events: none;
         }
 
         /* Glassmorphic Play Buttons */
@@ -912,18 +931,6 @@
             <button class="pill-btn" data-target="composites" onclick="filterLessons('composites', this)">🧱 8.4
                 Composites</button>
         </div>
-
-        <!-- Put Video Link Bar -->
-        <div
-            style="max-width: 620px; margin: 24px auto 0 auto; display: flex; gap: 8px; padding: 6px; background: white; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.06); border: 1px solid #e2e8f0;">
-            <input type="url" id="customVideoInput"
-                placeholder="Put YouTube or MP4 video link here (e.g. https://www.youtube.com/watch?v=...)..."
-                style="flex: 1; border: none; padding: 10px 16px; border-radius: 12px; font-size: 0.88rem; outline: none; color: #1e293b;">
-            <button type="button" onclick="playCustomVideo()"
-                style="background: var(--accent-purple, #6d28d9); color: white; border: none; padding: 10px 20px; border-radius: 12px; font-weight: 700; font-size: 0.85rem; cursor: pointer; display: flex; align-items: center; gap: 6px; white-space: nowrap;">
-                ▶ Play Video Link
-            </button>
-        </div>
     </section>
 
     <div class="media-learning-center" id="mediaCenter">
@@ -1282,15 +1289,6 @@
             if (containerDom) {
                 containerDom.style.display = 'flex';
             }
-        }
-
-        function playCustomVideo() {
-            const input = document.getElementById('customVideoInput');
-            if (!input || !input.value.trim()) {
-                alert('Please enter a video link first!');
-                return;
-            }
-            playLessonVideo(input.value.trim(), 'Custom Video Link');
         }
 
         function closeLessonVideo() {
