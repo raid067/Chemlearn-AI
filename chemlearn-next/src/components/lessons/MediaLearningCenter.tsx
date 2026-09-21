@@ -29,28 +29,6 @@ const MEDIA_LESSONS: MediaLesson[] = [
     thumbnail: '/images/lessons/calloys1.png',
     gradientFallback: 'from-purple-900 to-indigo-700',
   },
-  {
-    id: 'alloy-2',
-    title: 'Importance of Alloys',
-    topicId: 'alloys',
-    topicLabel: '8.1 Alloys',
-    topicTagColor: 'text-purple-600',
-    duration: '02:34',
-    videoUrl: '8.1.1.mp4',
-    thumbnail: '/images/lessons/calloys2.png',
-    gradientFallback: 'from-purple-900 to-indigo-700',
-  },
-  {
-    id: 'alloy-3',
-    title: 'Sains di Sebalik Aloi',
-    topicId: 'alloys',
-    topicLabel: '8.1 Alloys',
-    topicTagColor: 'text-purple-600',
-    duration: '01:44',
-    videoUrl: '8.1.2.mp4',
-    thumbnail: '/images/lessons/calloys3.png',
-    gradientFallback: 'from-purple-900 to-indigo-700',
-  },
   // 8.2 Glass
   {
     id: 'glass-1',
@@ -59,30 +37,8 @@ const MEDIA_LESSONS: MediaLesson[] = [
     topicLabel: '8.2 Glass',
     topicTagColor: 'text-emerald-600',
     duration: '01:46',
-    videoUrl: 'song8.2.mov',
+    videoUrl: 'song8.2.mp4',
     thumbnail: '/images/lessons/cglass1.png',
-    gradientFallback: 'from-emerald-900 to-teal-700',
-  },
-  {
-    id: 'glass-2',
-    title: 'Understanding Glass Materials',
-    topicId: 'glass',
-    topicLabel: '8.2 Glass',
-    topicTagColor: 'text-emerald-600',
-    duration: '18:34',
-    videoUrl: '8.2.1.mp4',
-    thumbnail: '/images/lessons/cglass2.png',
-    gradientFallback: 'from-emerald-900 to-teal-700',
-  },
-  {
-    id: 'glass-3',
-    title: 'Bahan Buatan Dalam Industri (Kaca)',
-    topicId: 'glass',
-    topicLabel: '8.2 Glass',
-    topicTagColor: 'text-emerald-600',
-    duration: '04:52',
-    videoUrl: '8.2.2.mp4',
-    thumbnail: '/images/lessons/cglass3.png',
     gradientFallback: 'from-emerald-900 to-teal-700',
   },
   // 8.3 Ceramics
@@ -97,28 +53,6 @@ const MEDIA_LESSONS: MediaLesson[] = [
     thumbnail: '/images/lessons/cceramics1.png',
     gradientFallback: 'from-amber-900 to-orange-700',
   },
-  {
-    id: 'ceramics-2',
-    title: 'Composition Ceramics and Its Uses',
-    topicId: 'ceramics',
-    topicLabel: '8.3 Ceramics',
-    topicTagColor: 'text-amber-600',
-    duration: '06:15',
-    videoUrl: '8.3.1.mp4',
-    thumbnail: '/images/lessons/cceramics2.png',
-    gradientFallback: 'from-amber-900 to-orange-700',
-  },
-  {
-    id: 'ceramics-3',
-    title: 'Bahan Buatan Dalam Industri (Seramik)',
-    topicId: 'ceramics',
-    topicLabel: '8.3 Ceramics',
-    topicTagColor: 'text-amber-600',
-    duration: '05:05',
-    videoUrl: '8.3.2.mp4',
-    thumbnail: '/images/lessons/cceramics3.png',
-    gradientFallback: 'from-amber-900 to-orange-700',
-  },
   // 8.4 Composites
   {
     id: 'composites-1',
@@ -129,28 +63,6 @@ const MEDIA_LESSONS: MediaLesson[] = [
     duration: '06:21',
     videoUrl: 'song8.4.mp4',
     thumbnail: '/images/lessons/ccomposites1.png',
-    gradientFallback: 'from-blue-900 to-indigo-700',
-  },
-  {
-    id: 'composites-2',
-    title: 'Composite Materials & Its Importance',
-    topicId: 'composites',
-    topicLabel: '8.4 Composites',
-    topicTagColor: 'text-blue-600',
-    duration: '04:40',
-    videoUrl: '8.4.1.mp4',
-    thumbnail: '/images/lessons/ccomposites2.png',
-    gradientFallback: 'from-blue-900 to-indigo-700',
-  },
-  {
-    id: 'composites-3',
-    title: 'Bahan Buatan Dalam Industri (Bahan Komposit)',
-    topicId: 'composites',
-    topicLabel: '8.4 Composites',
-    topicTagColor: 'text-blue-600',
-    duration: '05:55',
-    videoUrl: '8.4.2.mp4',
-    thumbnail: '/images/lessons/ccomposites3.png',
     gradientFallback: 'from-blue-900 to-indigo-700',
   },
 ];
@@ -205,7 +117,7 @@ export default function MediaLearningCenter() {
     }
   };
 
-  const allLessons = [...customLessons, ...MEDIA_LESSONS];
+  const allLessons = MEDIA_LESSONS;
   const filteredLessons = activeFilter === 'all'
     ? allLessons
     : allLessons.filter((item) => item.topicId === activeFilter);
@@ -292,8 +204,8 @@ export default function MediaLearningCenter() {
 
 
 
-      {/* 3-Column Video Card Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {/* 4-Column Video Card Grid (1 for each subtopic) */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {filteredLessons.map((lesson) => (
           <div
             key={lesson.id}
