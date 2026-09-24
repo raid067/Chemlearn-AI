@@ -1,7 +1,6 @@
 'use client';
 
-import React from 'react';
-import { AlertTriangle, Lightbulb, BookOpen, ChevronRight, ShieldAlert } from 'lucide-react';
+import { AlertTriangle, Lightbulb, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
 import { AtomicLatticeSimulator } from '@/components/experiments/chapter-8/AtomicLatticeSimulator';
 import { HardnessDropTest } from '@/components/experiments/chapter-8/HardnessDropTest';

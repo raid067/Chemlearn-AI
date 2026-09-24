@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
-import { ShieldCheck, Calendar, Info } from 'lucide-react';
+import { useState } from 'react';
+import { ShieldCheck, Calendar } from 'lucide-react';
 
 export function RustRaceTest() {
   const [days, setDays] = useState<number>(0);

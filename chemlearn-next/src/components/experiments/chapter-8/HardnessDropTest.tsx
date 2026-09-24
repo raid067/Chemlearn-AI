@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
-import { ArrowDown, RotateCcw, Play, CheckCircle2 } from 'lucide-react';
+import { useState } from 'react';
+import { RotateCcw, Play, CheckCircle2 } from 'lucide-react';
 
 export function HardnessDropTest() {
   const [metal, setMetal] = useState<'copper' | 'bronze'>('copper');
