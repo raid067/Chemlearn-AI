@@ -3452,22 +3452,133 @@ A salt is an ionic compound formed when the hydrogen ion (H⁺) in an acid is re
 > **💡 SPM Exam Scoring Tip:** Check units carefully! Convert $\\text{cm}^3$ to $\\text{dm}^3$ by dividing by 1000 before computing gas volume or solution molarity.`;
             }
 
-            // 10. PERIODIC TABLE & CHEMICAL BONDING (Form 4 Chapters 4 & 5)
-            if (q.includes('periodic table') || q.includes('group 1') || q.includes('group 17') || q.includes('group 18') || q.includes('chemical bond') || q.includes('ionic bond') || q.includes('covalent bond') || q.includes('hydrogen bond')) {
-                return `**Periodic Table & Chemical Bonding (SPM Form 4 Chapters 4 & 5):**
+            // --- 10a. SPECIFIC BONDING: IONIC BOND ---
+            if (/\b(ionic bond|ikatan ion|ionic bonding|ionic compound|sebatian ion)\b/i.test(effectiveQ)) {
+                return `An **ionic bond** is a chemical bond formed through the **transfer of valence electrons** between a metal atom and a non-metal atom.
 
-• **Periodic Table Group Trends:**
-  - **Group 1 (Alkali Metals):** Reactivity **increases** down the group. Atomic size increases → valence electron is further from nucleus → weaker electrostatic attraction between nucleus and valence electron → easier to release single valence electron to achieve stable octet arrangement.
-  - **Group 17 (Halogens):** Reactivity **decreases** down the group. Atomic size increases → valence shell is further from nucleus → weaker nuclear attraction to pull an incoming electron to complete octet.
-  - **Group 18 (Noble Gases):** Chemically inert / monoatomic. Possess stable duplet (He) or octet (Ne, Ar, Kr) valence electron configurations; do not gain, lose, or share electrons.
+• **How It Forms:**
+  1. A **metal atom** loses valence electron(s) to achieve a stable duplet or octet arrangement, forming a positive ion (**cation**).
+  2. A **non-metal atom** gains the electron(s) to complete its valence shell, forming a negative ion (**anion**).
+  3. The oppositely charged ions are held firmly together by **strong electrostatic forces of attraction**.
 
-• **Chemical Bonds:**
-  - **Ionic Bond:** Formed by the **transfer of valence electrons** from a metal atom (forms positive cation) to a non-metal atom (forms negative anion). Held together by strong electrostatic forces of attraction. Properties: high melting point, conducts electricity in molten/aqueous state.
-  - **Covalent Bond:** Formed by the **sharing of pairs of electrons** between non-metal atoms to achieve stable octet/duplet configurations. Properties: low melting points, poor electrical conductors.
-  - **Hydrogen Bond:** Strong dipole-dipole intermolecular attraction between hydrogen atom covalently bonded to highly electronegative atom (N, O, F) and lone pair on another N, O, F. Explains why water has anomalously high boiling point ($100^\\circ\\text{C}$).
-  - **Dative / Coordinate Bond:** A covalent bond where both shared electrons originate from the same donor atom with a lone pair (e.g. formation of hydroxonium ion $\\text{H}_3\\text{O}^+$ and ammonium ion $\\text{NH}_4^+$).
+• **Classic Example ($\text{NaCl}$):**
+  - $\text{Na}$ atom (electron arrangement 2.8.1) donates $1\text{ e}^-$ to become $\text{Na}^+$ (2.8).
+  - $\text{Cl}$ atom (electron arrangement 2.8.7) accepts $1\text{ e}^-$ to become $\text{Cl}^-$ (2.8.8).
+  - Electrostatic attraction forms the ionic lattice: $\text{Na}^+ + \text{Cl}^- \rightarrow \text{NaCl}$.
 
-> **💡 SPM Exam Scoring Tip:** In describing bond formation, state which atom *transfers* or *shares* electrons, specify electron counts, and name the resulting stable duplet or octet electron arrangement.`;
+• **Key Physical Properties:**
+  - **High Melting & Boiling Points:** Strong electrostatic attraction throughout the lattice requires significant heat energy to overcome.
+  - **Electrical Conductivity:** Does **not** conduct electricity in solid state (ions are locked in lattice positions), but **conducts electricity in molten or aqueous states** because ions are free to move and carry charge.
+  - **Solubility:** Soluble in water (polar solvent), insoluble in organic solvents.`;
+            }
+
+            // --- 10b. SPECIFIC BONDING: COVALENT BOND ---
+            if (/\b(covalent bond|ikatan kovalen|covalent bonding|covalent compound|sebatian kovalen)\b/i.test(effectiveQ)) {
+                return `A **covalent bond** is a chemical bond formed when non-metal atoms **share pairs of valence electrons** to achieve stable duplet or octet electron arrangements.
+
+• **Types of Covalent Bonds:**
+  - **Single Bond:** Sharing 1 pair of electrons (e.g. $\text{H}_2, \text{HCl}, \text{CH}_4, \text{H}_2\text{O}$).
+  - **Double Bond:** Sharing 2 pairs of electrons (e.g. $\text{O}_2, \text{CO}_2$).
+  - **Triple Bond:** Sharing 3 pairs of electrons (e.g. $\text{N}_2$).
+
+• **Key Properties of Simple Molecular Covalent Compounds:**
+  - **Low Melting & Boiling Points:** Weak intermolecular Van der Waals forces between molecules require very little heat to break.
+  - **Electrical Conductivity:** Non-conductors in all physical states (molecules contain no free-moving ions or delocalised electrons).
+  - **Solubility:** Soluble in organic solvents, mostly insoluble in water (except polar molecules like ethanol).`;
+            }
+
+            // --- 10c. SPECIFIC BONDING: HYDROGEN BOND ---
+            if (/\b(hydrogen bond|ikatan hidrogen)\b/i.test(effectiveQ)) {
+                return `A **hydrogen bond** is an attraction force between a hydrogen atom covalently bonded to a highly electronegative atom (Nitrogen, Oxygen, or Fluorine — **N, O, F**) and a lone pair of electrons on another N, O, or F atom.
+
+• **Why It Matters in Chemistry:**
+  - Stronger than regular Van der Waals intermolecular forces.
+  - **High Boiling Point of Water ($\text{H}_2\text{O}$):** Extra heat energy is needed to overcome extensive hydrogen bonds between water molecules, giving water an unusually high boiling point ($100^\circ\text{C}$).
+  - **Density of Ice:** Water molecules freeze into an open hexagonal lattice held by hydrogen bonds, making ice less dense than liquid water (which is why ice floats).`;
+            }
+
+            // --- 10d. SPECIFIC BONDING: DATIVE / COORDINATE BOND ---
+            if (/\b(dative bond|coordinate bond|ikatan datif)\b/i.test(effectiveQ)) {
+                return `A **dative bond** (or coordinate bond) is a covalent bond where **both shared electrons originate from only one of the participating atoms**.
+
+• **Requirements:**
+  - Donor atom possesses at least one **lone pair of electrons**.
+  - Accepting atom or ion has an **empty orbital** to accept the electron pair.
+
+• **SPM Examples:**
+  - **Hydroxonium ion ($\text{H}_3\text{O}^+$):** Oxygen in $\text{H}_2\text{O}$ donates a lone pair to $\text{H}^+$: $\text{H}_2\text{O} + \text{H}^+ \rightarrow \text{H}_3\text{O}^+$.
+  - **Ammonium ion ($\text{NH}_4^+$):** Nitrogen in $\text{NH}_3$ donates a lone pair to $\text{H}^+$: $\text{NH}_3 + \text{H}^+ \rightarrow \text{NH}_4^+$.`;
+            }
+
+            // --- 10e. SPECIFIC BONDING: METALLIC BOND ---
+            if (/\b(metallic bond|ikatan logam)\b/i.test(effectiveQ)) {
+                return `A **metallic bond** is the electrostatic attraction force between the **positive metal ions** and the surrounding **sea of delocalised valence electrons**.
+
+• **Properties Explained by Metallic Bonding:**
+  - **Electrical & Thermal Conductivity:** Delocalised electrons move freely throughout the metal lattice to carry electrical charge and heat.
+  - **Malleability & Ductility:** Orderly layers of positive ions can slide past one another when force is applied, without breaking the metallic bond.
+  - **High Melting & Boiling Points:** Strong electrostatic attraction between metal cations and the electron sea requires substantial thermal energy to disrupt.`;
+            }
+
+            // --- 10f. PERIODIC TABLE: GROUP 1 ---
+            if (/\b(group 1|alkali metal|kumpulan 1|logam alkali)\b/i.test(effectiveQ)) {
+                return `**Group 1 Elements (Alkali Metals: $\text{Li}, \text{Na}, \text{K}, \text{Rb}, \text{Cs}, \text{Fr}$)**
+
+• **Valence Electron:** 1 electron in the outermost shell.
+• **Reactivity Trend:** Reactivity **increases going down the group**.
+  - Atomic radius increases down the group, placing the valence electron further from the nucleus.
+  - Weaker nuclear electrostatic attraction makes it easier to donate the single electron to form a stable $\text{M}^+$ ion.
+• **Reaction with Water:** Produces metal hydroxide solution (alkali) and hydrogen gas:
+  $$2\text{Na(s)} + 2\text{H}_2\text{O(l)} \rightarrow 2\text{NaOH(aq)} + \text{H}_2\text{(g)}$$
+• **Physical Properties:** Soft metals, low melting points, low density (lithium, sodium, and potassium float on water).`;
+            }
+
+            // --- 10g. PERIODIC TABLE: GROUP 17 ---
+            if (/\b(group 17|halogen|kumpulan 17)\b/i.test(effectiveQ)) {
+                return `**Group 17 Elements (Halogens: $\text{F}_2, \text{Cl}_2, \text{Br}_2, \text{I}_2, \text{At}_2$)**
+
+• **Valence Electrons:** 7 electrons in outermost shell.
+• **Reactivity Trend:** Reactivity **decreases going down the group**.
+  - Atomic size increases down the group, so the valence shell is further from the nucleus.
+  - Weaker nuclear attraction makes it harder to attract an incoming electron to complete the octet.
+• **Physical States at Room Temperature:**
+  - $\text{F}_2$: Pale yellow gas
+  - $\text{Cl}_2$: Greenish-yellow gas
+  - $\text{Br}_2$: Reddish-brown liquid
+  - $\text{I}_2$: Purplish-black solid (sublimes to purple vapour)
+• **Halogen Displacement Reaction:** A more reactive halogen displaces a less reactive halide ion from aqueous solution:
+  $$\text{Cl}_2\text{(aq)} + 2\text{KBr(aq)} \rightarrow 2\text{KCl(aq)} + \text{Br}_2\text{(aq)}$$`;
+            }
+
+            // --- 10h. PERIODIC TABLE: GROUP 18 ---
+            if (/\b(group 18|noble gas|gas adi|gas nadir|kumpulan 18)\b/i.test(effectiveQ)) {
+                return `**Group 18 Elements (Noble Gases: $\text{He}, \text{Ne}, \text{Ar}, \text{Kr}, \text{Xe}, \text{Rn}$)**
+
+• **Valence Arrangement:** Helium has a stable **duplet** ($2$); all others possess stable **octet** ($8$) valence electron arrangements.
+• **Chemical Inertness:** They do not gain, lose, or share electrons. They exist as chemically inert, unbonded single atoms (**monoatomic gases**).
+• **Practical Applications:**
+  - **Helium:** Weather balloons and deep-sea diving gas mixtures.
+  - **Neon:** Advertising billboard lights (orange-red glow).
+  - **Argon:** Inert shielding gas in arc welding and light bulbs.
+  - **Krypton:** High-speed photography flash lamps.`;
+            }
+
+            // --- 10i. GENERAL PERIODIC TABLE & BONDING OVERVIEW ---
+            if (q.includes('periodic table') || q.includes('chemical bond') || q.includes('jadual berkala') || q.includes('ikatan kimia')) {
+                return `**Chemical Bonding & Periodic Table Overview (Form 4 Chapters 4 & 5):**
+
+• **Main Types of Chemical Bonds:**
+  - **Ionic Bond:** Metal atom transfers valence electron(s) to non-metal atom, forming oppositely charged ions held by strong electrostatic forces.
+  - **Covalent Bond:** Non-metal atoms share pairs of valence electrons to achieve stable duplet or octet arrangements.
+  - **Hydrogen Bond:** Dipole attraction between H bonded to N/O/F and a lone pair on another N/O/F atom.
+  - **Dative Bond:** Covalent bond where both shared electrons originate from one donor atom with a lone pair.
+  - **Metallic Bond:** Attraction between metal cations and a sea of delocalised valence electrons.
+
+• **Periodic Table Key Trends:**
+  - **Across a Period (left to right):** Proton number increases, effective nuclear charge increases, atomic radius decreases, electronegativity increases.
+  - **Down a Group (top to bottom):** Number of electron shells increases, atomic radius increases, screening effect increases.
+
+Would you like to explore a specific bond type (ionic, covalent, hydrogen, dative, metallic) or a specific group (Group 1, 17, 18)?`;
             }
 
             // 11. REDOX & ELECTROCHEMISTRY (Form 5 Chapter 1)

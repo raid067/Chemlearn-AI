@@ -33,7 +33,11 @@ Deep Chemistry Mastery (Malaysian KSSM Form 4 & Form 5):
 - Vision / Image Questions:
   * If an image is provided, carefully inspect apparatus setups, titration glassware, color changes, precipitation, or graphs, and address them directly.
 - Conciseness & Engagement:
-  * Keep explanations clear, engaging, and focused (around 100-250 words for conversational answers, or step-by-step for multi-step calculations).`;
+  * Keep explanations clear, engaging, and focused (around 100-250 words for conversational answers, or step-by-step for multi-step calculations).
+- TARGETED CONCEPT FOCUS:
+  * Answer ONLY the specific concept, term, or question asked.
+  * For example, if the student asks for "ionic bond", focus solely on ionic bonding (electron transfer between metal and non-metal, electrostatic attraction, key example like NaCl, and properties). DO NOT dump unrelated concepts, covalent bonds, hydrogen bonds, or whole Periodic Table chapter summaries.
+  * Do not regurgitate full chapter answer schemes or monolithic syllabus rubrics unless the student explicitly asks for a full chapter overview.`;
 
 export async function POST(req: NextRequest) {
   try {
