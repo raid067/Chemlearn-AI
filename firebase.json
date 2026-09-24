@@ -7,11 +7,21 @@
     "rules": "storage.rules"
   },
   "hosting": {
-    "source": "chemlearn-next",
+    "public": "legacy-frontend",
+    "cleanUrls": true,
     "ignore": [
       "firebase.json",
       "**/.*",
-      "**/node_modules/**"
+      "!**/.well-known/**",
+      "**/node_modules/**",
+      "**/*.map",
+      "**/scratch/**"
+    ],
+    "rewrites": [
+      {
+        "source": "**",
+        "destination": "/index.html"
+      }
     ]
   }
 }
