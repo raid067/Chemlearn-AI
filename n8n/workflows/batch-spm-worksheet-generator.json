@@ -1,0 +1,83 @@
+{
+  "name": "Batch SPM Worksheet Generator (Form 4 Ch 6 & 8)",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "generate-worksheet",
+        "options": {}
+      },
+      "id": "1",
+      "name": "Webhook: Worksheet Request",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1.1,
+      "position": [220, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const req = $input.first().json;\nconst data = req.data || {};\nconst chapterNum = Number(data.chapterNumber || 6);\nconst focus = data.targetFocus || (chapterNum === 6 ? 'chapter-6-salts' : 'chapter-8-alloys');\n\nlet worksheet = {};\n\nif (chapterNum === 6 || focus === 'chapter-6-salts') {\n  worksheet = {\n    title: 'SPM Intensive Drill: Form 4 Chapter 6 (Acid, Base and Salt)',\n    chapter: 'Acid, Base and Salt',\n    chapterNumber: 6,\n    questions: [\n      {\n        id: 'spm-ch6-q1',\n        text: 'A student carried out an experiment to prepare copper(II) sulphate salt. Name the suitable acid and metal oxide used as reactants.',\n        type: 'structured',\n        marks: 2,\n        markingScheme: [\n          'Sulphuric acid / H2SO4',\n          'Copper(II) oxide / CuO'\n        ],\n        subtopic: '6.9 Preparation of Soluble Salts'\n      },\n      {\n        id: 'spm-ch6-q2',\n        text: 'Explain why lead(II) sulphate cannot be prepared using the acid + metal oxide reaction in an school laboratory.',\n        type: 'structured',\n        marks: 2,\n        markingScheme: [\n          'Lead(II) sulphate is an insoluble salt',\n          'An insoluble layer of lead(II) sulphate covers the lead oxide reactant, stopping further reaction'\n        ],\n        subtopic: '6.9 Preparation of Salts'\n      },\n      {\n        id: 'spm-ch6-q3',\n        text: '25.0 cm3 of 0.1 mol dm-3 sodium hydroxide solution is neutralised by 20.0 cm3 of sulphuric acid. Calculate the molarity of the sulphuric acid.',\n        type: 'structured',\n        marks: 3,\n        markingScheme: [\n          'Balanced chemical equation: H2SO4 + 2NaOH -> Na2SO4 + 2H2O',\n          'Apply formula: (Ma * 20.0) / (0.1 * 25.0) = 1 / 2',\n          'Ma = 0.0625 mol dm-3'\n        ],\n        subtopic: '6.7 Neutralisation & Titration'\n      }\n    ]\n  };\n} else {\n  worksheet = {\n    title: 'SPM Intensive Drill: Form 4 Chapter 8 (Manufactured Substances in Industry)',\n    chapter: 'Manufactured Substances in Industry',\n    chapterNumber: 8,\n    questions: [\n      {\n        id: 'spm-ch8-q1',\n        text: 'Pure copper is ductile and malleable, while bronze is much harder. In terms of atomic arrangement, explain why bronze is harder than pure copper.',\n        type: 'structured',\n        marks: 4,\n        markingScheme: [\n          'Pure copper atoms are identical in size and arranged in orderly layers',\n          'Layers of copper atoms easily slide over one another when force is applied',\n          'In bronze, foreign tin atoms of different size disrupt the orderly arrangement of copper atoms',\n          'This prevents the layers of atoms from sliding easily over each other'\n        ],\n        subtopic: '8.1 Alloy Structure and Properties'\n      },\n      {\n        id: 'spm-ch8-q2',\n        text: 'Laboratory apparatus such as boiling tubes are made of borosilicate glass instead of soda-lime glass. State two reasons why borosilicate glass is preferred for heating.',\n        type: 'structured',\n        marks: 2,\n        markingScheme: [\n          'Borosilicate glass has a lower thermal expansion coefficient (does not crack easily when heated / high thermal shock resistance)',\n          'Borosilicate glass has higher chemical resistance towards acids and alkalis'\n        ],\n        subtopic: '8.2 Glass and Ceramics'\n      }\n    ]\n  };\n}\n\nreturn [{\n  json: worksheet\n}];"
+      },
+      "id": "2",
+      "name": "Synthesize SPM Structured Questions",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.CHEMLEARN_API_URL }}/api/webhooks/n8n",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "X-ChemLearn-Timestamp",
+              "value": "={{ Date.now().toString() }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"action\": \"worksheet.publish\",\n  \"timestamp\": {{ Date.now() }},\n  \"data\": {\n    \"title\": \"{{ $json.title }}\",\n    \"chapter\": \"{{ $json.chapter }}\",\n    \"chapterNumber\": {{ $json.chapterNumber }},\n    \"questions\": {{ JSON.stringify($json.questions) }}\n  }\n}",
+        "options": {}
+      },
+      "id": "3",
+      "name": "Publish to ChemLearn Quiz Bank",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [700, 300]
+    }
+  ],
+  "connections": {
+    "Webhook: Worksheet Request": {
+      "main": [
+        [
+          {
+            "node": "Synthesize SPM Structured Questions",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Synthesize SPM Structured Questions": {
+      "main": [
+        [
+          {
+            "node": "Publish to ChemLearn Quiz Bank",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

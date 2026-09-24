@@ -31,8 +31,6 @@ export default function RedTeamHistoryClientPage() {
           const headers: Record<string, string> = {};
           if (token) {
             headers['Authorization'] = `Bearer ${token}`;
-          } else {
-            headers['x-redteam-admin-key'] = 'dev-admin-override';
           }
           const res = await fetch('/api/admin/red-team/history', { headers });
           const data = await res.json();

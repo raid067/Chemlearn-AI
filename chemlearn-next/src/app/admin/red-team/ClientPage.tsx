@@ -49,8 +49,6 @@ export default function RedTeamClientPage() {
       };
       if (token) {
         headers['Authorization'] = `Bearer ${token}`;
-      } else {
-        headers['x-redteam-admin-key'] = 'dev-admin-override';
       }
 
       const res = await fetch('/api/admin/red-team/run', {

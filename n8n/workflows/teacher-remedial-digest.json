@@ -1,0 +1,83 @@
+{
+  "name": "Teacher Remedial Diagnostic Digest (Form 4 Ch 6 & 8)",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "quiz-completed",
+        "options": {}
+      },
+      "id": "1",
+      "name": "Webhook: Quiz Completed",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1.1,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const payload = $input.first().json;\nconst studentData = payload.data || {};\nconst score = Number(studentData.score || 0);\nconst chapter = studentData.chapter || '';\nconst chapterNum = Number(studentData.chapterNumber || 0);\nconst incorrectTopics = studentData.incorrectSubtopics || [];\n\nconst needsRemedial = score < 60;\nlet diagnosticInsights = [];\nlet actionSteps = [];\n\nif (chapterNum === 6 || chapter.toLowerCase().includes('salt') || chapter.toLowerCase().includes('acid')) {\n  diagnosticInsights.push('Form 4 Chapter 6 Diagnostic: Acid, Base and Salt.');\n  if (incorrectTopics.some(t => t.toLowerCase().includes('qualitative') || t.toLowerCase().includes('cation'))) {\n    diagnosticInsights.push('Identified gap in Cation/Anion Qualitative Analysis (amphoteric Al3+, Pb2+, Zn2+ behaviors).');\n    actionSteps.push('Review qualitative analysis flowchart with excess NaOH vs NH3 solutions.');\n  }\n  if (incorrectTopics.some(t => t.toLowerCase().includes('preparation') || t.toLowerCase().includes('insoluble'))) {\n    diagnosticInsights.push('Struggled with double decomposition precipitation for insoluble salts (PbSO4, BaSO4, AgCl).');\n    actionSteps.push('Practice precipitation reaction equations and filtration rinse steps.');\n  }\n} else if (chapterNum === 8 || chapter.toLowerCase().includes('manufactured') || chapter.toLowerCase().includes('alloy')) {\n  diagnosticInsights.push('Form 4 Chapter 8 Diagnostic: Manufactured Substances in Industry.');\n  diagnosticInsights.push('Concept check on atomic lattice slip planes and alloy hardness.');\n  actionSteps.push('Draw and compare atomic arrangements of pure copper vs bronze.');\n  actionSteps.push('Memorize the 4 main types of glass and their specific thermal/chemical properties.');\n}\n\nif (actionSteps.length === 0) {\n  actionSteps.push('Review chapter summary notes in ChemLearn AI student dashboard.');\n  actionSteps.push('Retake chapter checkpoint quiz to reinforce conceptual retention.');\n}\n\nreturn [{\n  json: {\n    studentId: studentData.studentId,\n    chapter: chapter || 'SPM Chemistry Form 4',\n    chapterNumber: chapterNum || 6,\n    score,\n    diagnosticSummary: diagnosticInsights.join(' '),\n    actionPlan: actionSteps,\n    recommendedPracticeIds: ['drill-ch6-01', 'drill-ch8-02']\n  }\n}];"
+      },
+      "id": "2",
+      "name": "Analyze Chapter 6 & 8 Gaps",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.CHEMLEARN_API_URL }}/api/webhooks/n8n",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "X-ChemLearn-Timestamp",
+              "value": "={{ Date.now().toString() }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"action\": \"remedial.assign\",\n  \"timestamp\": {{ Date.now() }},\n  \"data\": {\n    \"studentId\": \"{{ $json.studentId }}\",\n    \"chapter\": \"{{ $json.chapter }}\",\n    \"chapterNumber\": {{ $json.chapterNumber }},\n    \"diagnosticSummary\": \"{{ $json.diagnosticSummary }}\",\n    \"actionPlan\": {{ JSON.stringify($json.actionPlan) }},\n    \"recommendedPracticeIds\": {{ JSON.stringify($json.recommendedPracticeIds) }}\n  }\n}",
+        "options": {}
+      },
+      "id": "3",
+      "name": "Dispatch Remedial to ChemLearn",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [700, 300]
+    }
+  ],
+  "connections": {
+    "Webhook: Quiz Completed": {
+      "main": [
+        [
+          {
+            "node": "Analyze Chapter 6 & 8 Gaps",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Analyze Chapter 6 & 8 Gaps": {
+      "main": [
+        [
+          {
+            "node": "Dispatch Remedial to ChemLearn",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

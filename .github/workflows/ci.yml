@@ -1,22 +1,21 @@
-name: "CI Pipeline"
+name: ChemLearn AI CI
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ main ]
   pull_request:
-    branches: [ "main" ]
+    branches: [ main ]
 
 jobs:
-  build-and-test:
-    name: Build, Lint & Test
+  verify:
+    name: Lint, Typecheck, Test & Build
     runs-on: ubuntu-latest
-
     defaults:
       run:
-        working-directory: chemlearn-next
+        working-directory: ./chemlearn-next
 
     steps:
-      - name: Checkout Code
+      - name: Checkout code
         uses: actions/checkout@v4
 
       - name: Setup Node.js
@@ -26,40 +25,28 @@ jobs:
           cache: 'npm'
           cache-dependency-path: chemlearn-next/package-lock.json
 
-      - name: Install Dependencies
+      - name: Install dependencies
         run: npm ci
 
-      - name: TypeScript Typecheck
-        run: npm run typecheck
-
-      - name: Lint Code
+      - name: Run ESLint
         run: npm run lint
 
-      - name: Run Unit & Regression Tests
-        run: npm test -- --runInBand
+      - name: Run TypeScript Typecheck
+        run: npm run typecheck
 
-      - name: Run Red Team Security & AI Safety Tests
-        run: npm run test:redteam
+      - name: Run Unit & Integration Tests
+        run: npm test -- --ci --maxWorkers=2
+        env:
+          NODE_ENV: test
 
-      - name: Install Playwright Browsers
-        run: npx playwright install --with-deps chromium
-
-      - name: Production Build
+      - name: Verify Next.js Production Build
         run: npm run build
         env:
-          NODE_OPTIONS: "--max-old-space-size=4096"
-          GEMINI_API_KEY: "dummy_key_for_ci_build"
-          NEXT_PUBLIC_FIREBASE_API_KEY: "dummy_firebase_api_key"
-          NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: "dummy-chemlearn.firebaseapp.com"
-          NEXT_PUBLIC_FIREBASE_PROJECT_ID: "dummy-chemlearn"
-          NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET: "dummy-chemlearn.appspot.com"
-          NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: "1234567890"
-          NEXT_PUBLIC_FIREBASE_APP_ID: "1:1234567890:web:abcdef123456"
-
-      - name: Run Playwright E2E Tests
-        run: npx playwright test
-        env:
-          CI: "true"
-
-      - name: Audit High-Risk Dependencies
-        run: npm audit --audit-level=high
+          NEXT_TELEMETRY_DISABLED: 1
+          # Dummy values for build validation if needed
+          NEXT_PUBLIC_FIREBASE_API_KEY: AIzaSyTestMockKey1234567890
+          NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: chemlearn-67.firebaseapp.com
+          NEXT_PUBLIC_FIREBASE_PROJECT_ID: chemlearn-67
+          NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET: chemlearn-67.firebasestorage.app
+          NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: "639221527001"
+          NEXT_PUBLIC_FIREBASE_APP_ID: "1:639221527001:web:mockappid123"

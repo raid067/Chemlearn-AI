@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireAuth, AuthError } from '@/lib/server/auth';
-import { isRateLimited } from '@/lib/rate-limit';
+import { isRateLimitedAsync } from '@/lib/rate-limit';
 import { calculateLevel } from '@/lib/server/gamification';
 import { adminDb } from '@/lib/firebase-admin';
 
@@ -12,7 +12,7 @@ export async function GET(req: NextRequest) {
   try {
     const user = await requireAuth(req);
 
-    if (isRateLimited('gamification-fetch', user.uid, 30, 60_000)) {
+    if (await isRateLimitedAsync('gamification-fetch', user.uid, 30, 60_000)) {
       return NextResponse.json(
         { error: 'Too many sync requests. Please wait a moment.' },
         { status: 429 }
@@ -55,6 +55,13 @@ import { parseSecureJson, RequestPayloadError, MAX_BODY_LIMITS } from '@/lib/ser
 export async function POST(req: NextRequest) {
   try {
     const user = await requireAuth(req);
+
+    if (await isRateLimitedAsync('gamification-sync', user.uid, 30, 60_000)) {
+      return NextResponse.json(
+        { error: 'Too many sync requests. Please wait a moment.' },
+        { status: 429 }
+      );
+    }
 
     let body: Record<string, unknown> = {};
     try {

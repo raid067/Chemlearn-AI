@@ -6,15 +6,7 @@ import { TestCategory } from '@/lib/redteam/types';
 export async function POST(req: NextRequest) {
   try {
     // Enforce admin privileges
-    // In local development/test environments, allow bypass ONLY if explicit x-redteam-admin-key header matches
-    const devHeader = req.headers.get('x-redteam-admin-key');
-    const isDev = process.env.NODE_ENV !== 'production';
-
-    if (isDev && devHeader === 'dev-admin-override') {
-      console.warn('[Red Team API] Authorized via development admin override key header.');
-    } else {
-      await requireAdmin(req);
-    }
+    await requireAdmin(req);
 
     const body = await req.json().catch(() => ({}));
     const scanType = (body.scanType as 'quick' | 'standard' | 'full' | 'category') || 'quick';

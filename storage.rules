@@ -8,12 +8,15 @@ service firebase.storage {
     }
 
     // Authenticated user uploads (e.g., student homework images, avatars)
+    // Read: Restricted strictly to the document owner and verified administrators.
+    // Create/Update: Size capped at 5MB, strictly whitelisted to standard image mime types.
+    // Delete: Enabled safely without evaluating null request.resource on delete operations.
     match /users/{userId}/{allPaths=**} {
       allow read: if request.auth != null && (request.auth.uid == userId || request.auth.token.admin == true);
-      allow write: if request.auth != null && request.auth.uid == userId
+      allow create, update: if request.auth != null && request.auth.uid == userId
                     && request.resource.size < 5 * 1024 * 1024
-                    && request.resource.contentType.matches('image/.*')
-                    && request.resource.contentType != 'image/svg+xml';
+                    && request.resource.contentType.matches('image/(jpeg|jpg|png|webp|gif)');
+      allow delete: if request.auth != null && (request.auth.uid == userId || request.auth.token.admin == true);
     }
 
     // Public curriculum assets (read-only for all, write-only for admins)

@@ -1,0 +1,127 @@
+{
+  "name": "Nightly Red Team Sentinel & AI Safety Audit",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 2 * * *"
+            }
+          ]
+        }
+      },
+      "id": "1",
+      "name": "Schedule: Daily 02:00 AM",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [200, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.CHEMLEARN_API_URL }}/api/admin/red-team/run",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer {{ $env.ADMIN_TOKEN }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\n  \"scanType\": \"full\"\n}",
+        "options": {}
+      },
+      "id": "2",
+      "name": "Execute Red Team Scan",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [420, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const response = $input.first().json;\nconst total = response.totalTests || 0;\nconst passed = response.passedTests || 0;\nconst failed = response.failedTests || 0;\nconst passRate = total > 0 ? (passed / total) * 100 : 100;\n\nconst hasCriticalFailure = failed > 0 || passRate < 95;\n\nreturn [{\n  json: {\n    scanDate: new Date().toISOString(),\n    totalTests: total,\n    passedTests: passed,\n    failedTests: failed,\n    passRate: `${passRate.toFixed(1)}%`,\n    status: hasCriticalFailure ? 'ALERT' : 'SECURE',\n    details: response.results || []\n  }\n}];"
+      },
+      "id": "3",
+      "name": "Evaluate Audit Results",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [640, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.CHEMLEARN_API_URL }}/api/webhooks/n8n",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "X-ChemLearn-Timestamp",
+              "value": "={{ Date.now().toString() }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"action\": \"redteam.report\",\n  \"timestamp\": {{ Date.now() }},\n  \"data\": {{ JSON.stringify($json) }}\n}",
+        "options": {}
+      },
+      "id": "4",
+      "name": "Archive Audit in ChemLearn",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [860, 300]
+    }
+  ],
+  "connections": {
+    "Schedule: Daily 02:00 AM": {
+      "main": [
+        [
+          {
+            "node": "Execute Red Team Scan",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute Red Team Scan": {
+      "main": [
+        [
+          {
+            "node": "Evaluate Audit Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Evaluate Audit Results": {
+      "main": [
+        [
+          {
+            "node": "Archive Audit in ChemLearn",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

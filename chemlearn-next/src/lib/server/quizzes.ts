@@ -701,6 +701,11 @@ export async function gradeQuizSubmission(
   const questions = quizData.questions || [];
   const { score, percentage, total, breakdown } = evaluateQuizAnswers(questions, quizData.type, answers);
 
+  // Retrieve assigned teacher IDs to scope access securely
+  const studentSnap = await adminDb.collection('students').doc(uid).get();
+  const studentData = studentSnap.data() || {};
+  const teacherIds = Array.isArray(studentData.teacherIds) ? studentData.teacherIds : [];
+
   // Authoritatively record result in quiz_results via Admin SDK
   const resultRef = adminDb.collection('quiz_results').doc();
   await resultRef.set({
@@ -712,6 +717,7 @@ export async function gradeQuizSubmission(
     topic: quizData.topic,
     timestamp: FieldValue.serverTimestamp(),
     answers,
+    teacherIds,
   });
 
   // Calculate base XP (15 XP for completing + 10 XP bonus for score >= 80%)
@@ -782,6 +788,11 @@ export async function gradeChallengeSubmission(
   const questions = quizData.questions || [];
   const { score, percentage, total, breakdown } = evaluateQuizAnswers(questions, quizData.type, answers);
 
+  // Retrieve assigned teacher IDs to scope access securely
+  const studentSnap = await adminDb.collection('students').doc(uid).get();
+  const studentData = studentSnap.data() || {};
+  const teacherIds = Array.isArray(studentData.teacherIds) ? studentData.teacherIds : [];
+
   // Authoritatively record result in quiz_results via Admin SDK
   const resultRef = adminDb.collection('quiz_results').doc();
   await resultRef.set({
@@ -795,6 +806,7 @@ export async function gradeChallengeSubmission(
     challengeDate: todayStr,
     timestamp: FieldValue.serverTimestamp(),
     answers,
+    teacherIds,
   });
 
   // Award daily challenge bonus XP with deterministic daily event ID (10 XP per day)

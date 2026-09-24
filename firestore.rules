@@ -27,8 +27,8 @@ service cloud.firestore {
           && data.displayName.size() <= 100
           && (!('xp' in data) || (data.xp is int && data.xp == 0))
           && (!('quizScore' in data) || (data.quizScore is int && data.quizScore == 0))
-          && (!('streak' in data) || (data.streak is int && data.streak >= 0 && data.streak <= 100))
-          && (!('level' in data) || (data.level is string && data.level.size() <= 50) || (data.level is int && data.level >= 1 && data.level <= 100))
+          && (!('streak' in data) || (data.streak is int && data.streak >= 0 && data.streak <= 1))
+          && (!('level' in data) || data.level == 'Beginner' || data.level == 1)
           && (!('teacherIds' in data) || (data.teacherIds is list && data.teacherIds.size() == 0));
     }
 
@@ -44,8 +44,8 @@ service cloud.firestore {
           && (!affectedKeys.hasAny(['username']) || (request.resource.data.username is string && request.resource.data.username.size() <= 50))
           && (!affectedKeys.hasAny(['photoUrl']) || (request.resource.data.photoUrl is string && request.resource.data.photoUrl.size() <= 500))
           && (!affectedKeys.hasAny(['lastSeen']) || (request.resource.data.lastSeen is string && request.resource.data.lastSeen.size() <= 50) || request.resource.data.lastSeen is timestamp)
-          && (!affectedKeys.hasAny(['completedPomodoros']) || (request.resource.data.completedPomodoros is int && request.resource.data.completedPomodoros >= 0 && request.resource.data.completedPomodoros <= 100000))
-          && (!affectedKeys.hasAny(['dailyChallengeStreak']) || (request.resource.data.dailyChallengeStreak is int && request.resource.data.dailyChallengeStreak >= 0 && request.resource.data.dailyChallengeStreak <= 10000))
+          && (!affectedKeys.hasAny(['completedPomodoros']) || (request.resource.data.completedPomodoros is int && request.resource.data.completedPomodoros >= 0 && request.resource.data.completedPomodoros <= 500))
+          && (!affectedKeys.hasAny(['dailyChallengeStreak']) || (request.resource.data.dailyChallengeStreak is int && request.resource.data.dailyChallengeStreak >= 0 && request.resource.data.dailyChallengeStreak <= 365))
           && (!affectedKeys.hasAny(['dailyChallengeDate']) || (request.resource.data.dailyChallengeDate is string && request.resource.data.dailyChallengeDate.size() <= 20))
           && (!affectedKeys.hasAny(['role', 'admin', 'teacherIds', 'quizScore', 'xp', 'level', 'streak', 'badges']));
     }
@@ -161,7 +161,7 @@ service cloud.firestore {
                   || (isAuthenticated() && 'teacherIds' in resource.data && request.auth.uid in resource.data.teacherIds);
       allow create: if isOwner(userId) && validStudentCreate();
       allow update: if isOwner(userId) && validStudentUpdate();
-      allow delete: if isOwner(userId) || isAdmin();
+      allow delete: if isAdmin();
     }
 
     // ── Classes Collection ───────────────────────────────────────────────────
@@ -256,7 +256,10 @@ service cloud.firestore {
     // ── Quiz Results ──────────────────────────────────────────────────────────
     match /quiz_results/{resultId} {
       allow read: if isAuthenticated()
-                  && (request.auth.uid == resource.data.uid || isAdmin());
+                  && (request.auth.uid == resource.data.uid
+                      || ('studentId' in resource.data && request.auth.uid == resource.data.studentId)
+                      || ('teacherIds' in resource.data && request.auth.uid in resource.data.teacherIds)
+                      || isAdmin());
       // Authoritative only: Client writes forbidden
       allow write: if false;
     }

@@ -14,13 +14,16 @@ export default function ResourcesPage() {
     <div className="min-h-screen bg-slate-50 pt-20 pb-16 px-4 sm:px-6 lg:px-8">
       <div className="max-w-6xl mx-auto flex flex-col gap-8">
         <header className="text-center">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-100 text-purple-700 font-bold text-xs uppercase tracking-wider mb-2">
+            🏭 Form 4 • Chapter 8 Priority Library
+          </div>
           <h1 className="text-4xl md:text-5xl font-extrabold text-slate-900 mb-3 tracking-tight">
             <span className="bg-gradient-to-r from-purple-700 via-indigo-600 to-purple-800 bg-clip-text text-transparent">
               Chemistry Resources
             </span>
           </h1>
           <p className="text-slate-500 font-medium max-w-2xl mx-auto text-base sm:text-lg">
-            Download structured cheat sheets, comprehensive compound matrix files, and curated chapter worksheets.
+            Download Chapter 8 (Manufactured Substances in Industry) visual cheat sheets, infographics, comics, and study guides in both Bahasa Melayu and English.
           </p>
         </header>
 

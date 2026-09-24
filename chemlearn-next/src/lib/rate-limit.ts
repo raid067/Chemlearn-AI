@@ -1,33 +1,38 @@
 /**
- * Simple in-memory rate limiter for API routes.
- * Uses a sliding window counter per user UID.
+ * Production-Grade Distributed Rate Limiter for ChemLearn AI.
  * 
- * NOTE: This is per-instance. In a serverless environment (Firebase Hosting / Vercel),
- * each cold start gets its own Map. For production at scale, consider
- * Redis or Firestore-based rate limiting. This still provides meaningful
- * protection against rapid-fire abuse within a single instance.
+ * Powered by Upstash Redis and @upstash/ratelimit for distributed, multi-instance
+ * rate limiting across auto-scaling serverless environments (Firebase App Hosting / Vercel).
  * 
- * TODO(production-readiness): Replace this in-memory sliding window limiter with a
- * centralized distributed limiter (e.g. Upstash Redis / Cloud Firestore with TTL)
- * before taking real user traffic. Because Gemini LLM inference incurs direct API
- * costs and quotas, distributed rate limiting is the sole barrier against distributed
- * abuse across auto-scaling serverless container instances.
+ * Includes:
+ * - Distributed sliding-window algorithm backed by Upstash Redis.
+ * - Tiered rate limits (Strict for AI, Moderate for mutations, Relaxed for sync).
+ * - Multi-tenant identification (UID or Client IP extraction).
+ * - Strict fail-closed defense for expensive AI endpoints in production.
+ * - Resilient, isolated in-memory sliding window fallback for local development and test environments.
  */
 
+import type { Redis } from '@upstash/redis';
+import type { Ratelimit } from '@upstash/ratelimit';
+
+// --- In-Memory Fallback Storage ---
 interface RateLimitEntry {
   count: number;
   resetAt: number;
 }
 
-const limiters = new Map<string, Map<string, RateLimitEntry>>();
+const memoryLimiters = new Map<string, Map<string, RateLimitEntry>>();
 
 /**
- * Check if a request should be rate-limited using synchronous in-memory storage.
- * @param key - A unique key for the rate limit bucket (e.g. route name)
- * @param uid - The user's UID
- * @param maxRequests - Maximum requests allowed in the window
- * @param windowMs - Time window in milliseconds
- * @returns true if the request should be BLOCKED, false if allowed
+ * Reset memory limiters (primarily for unit tests).
+ */
+export function resetMemoryLimiters(): void {
+  memoryLimiters.clear();
+}
+
+/**
+ * Synchronous in-memory sliding-window rate limiter.
+ * Used for development fallback and synchronous callers.
  */
 export function isRateLimited(
   key: string,
@@ -35,11 +40,11 @@ export function isRateLimited(
   maxRequests: number = 10,
   windowMs: number = 60_000
 ): boolean {
-  if (!limiters.has(key)) {
-    limiters.set(key, new Map());
+  if (!memoryLimiters.has(key)) {
+    memoryLimiters.set(key, new Map());
   }
 
-  const bucket = limiters.get(key)!;
+  const bucket = memoryLimiters.get(key)!;
   const now = Date.now();
   const entry = bucket.get(uid);
 
@@ -56,6 +61,7 @@ export function isRateLimited(
   return false;
 }
 
+// --- Rate Limit Error Definition ---
 export class RateLimitError extends Error {
   statusCode: number;
   code: string;
@@ -76,26 +82,127 @@ export interface RateLimitOptions {
   failClosedInProduction?: boolean;
 }
 
+// --- Rate Limiting Tiers ---
+export const RATE_LIMIT_TIERS = {
+  STRICT: { maxRequests: 15, windowMs: 60_000, name: 'strict-ai' },       // Gemini inference
+  MODERATE: { maxRequests: 30, windowMs: 60_000, name: 'moderate-mut' },  // Quizzes, Challenges, Classes
+  RELAXED: { maxRequests: 60, windowMs: 60_000, name: 'relaxed-sync' },   // State sync, Leaderboard reads
+} as const;
+
+// --- Client IP Extraction Helper ---
 /**
- * Distributed rate limiter supporting Upstash Redis REST API when configured.
- * In production, sensitive AI endpoints can enforce fail-closed behavior (503 RATE_LIMIT_UNAVAILABLE)
- * if Redis is unreachable, preventing unmetered LLM resource consumption.
- * In development or testing, automatically falls back to in-memory sliding window limiter.
- * @returns true if the request should be BLOCKED, false if allowed
+ * Safely extracts client IP address from request headers with multi-proxy support.
+ */
+export function getClientIp(req: Request | { headers: Headers }): string {
+  try {
+    const forwarded = req.headers.get('x-forwarded-for');
+    if (forwarded) {
+      const firstIp = forwarded.split(',')[0].trim();
+      if (firstIp) return firstIp;
+    }
+
+    const realIp = req.headers.get('x-real-ip');
+    if (realIp && realIp.trim()) {
+      return realIp.trim();
+    }
+
+    const cfConnectingIp = req.headers.get('cf-connecting-ip');
+    if (cfConnectingIp && cfConnectingIp.trim()) {
+      return cfConnectingIp.trim();
+    }
+  } catch {
+    // Non-fatal header parsing error
+  }
+
+  return '127.0.0.1';
+}
+
+// --- Upstash Redis & Ratelimit Singletons ---
+let redisClient: Redis | null = null;
+const ratelimitInstances = new Map<string, Ratelimit>();
+
+export function getRedisClient(): Redis | null {
+  const url = process.env.UPSTASH_REDIS_REST_URL;
+  const token = process.env.UPSTASH_REDIS_REST_TOKEN;
+
+  if (!url || !token) {
+    return null;
+  }
+
+  if (!redisClient) {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { Redis: UpstashRedis } = require('@upstash/redis');
+    redisClient = new UpstashRedis({
+      url,
+      token,
+    });
+  }
+  return redisClient;
+}
+
+/**
+ * Resets the cached Redis client and ratelimit instances.
+ * Useful for switching environment variables during tests.
+ */
+export function resetRedisClient(): void {
+  redisClient = null;
+  ratelimitInstances.clear();
+}
+
+/**
+ * Helper to obtain or instantiate an Upstash Ratelimit instance with sliding window.
+ */
+function getUpstashRatelimit(key: string, maxRequests: number, windowMs: number): Ratelimit | null {
+  const redis = getRedisClient();
+  if (!redis) return null;
+
+  const instanceKey = `${key}:${maxRequests}:${windowMs}`;
+  let instance = ratelimitInstances.get(instanceKey);
+
+  if (!instance) {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { Ratelimit: UpstashRatelimit } = require('@upstash/ratelimit');
+    // Format windowMs to a human-readable duration accepted by Upstash (e.g. '60000 ms')
+    const windowFormatted = `${windowMs} ms` as `${number} ms`;
+    instance = new UpstashRatelimit({
+      redis,
+      limiter: UpstashRatelimit.slidingWindow(maxRequests, windowFormatted),
+      prefix: `@chemlearn:ratelimit:${key}`,
+      analytics: false,
+    });
+    ratelimitInstances.set(instanceKey, instance as Ratelimit);
+  }
+
+  return instance || null;
+}
+
+/**
+ * Distributed rate limiter supporting Upstash Redis when configured.
+ * 
+ * - In production: Sensitive endpoints can enforce fail-closed behavior (503 RATE_LIMIT_UNAVAILABLE)
+ *   if Redis is unconfigured or unreachable, eliminating unmetered LLM resource draining.
+ * - In dev/test: Gracefully falls back to isolated in-memory sliding-window limiter.
+ * 
+ * @param key - The rate limit bucket identifier (e.g. 'ai-chat', 'quiz-submit')
+ * @param identifier - Unique identifier: user UID or client IP
+ * @param maxRequests - Maximum requests allowed per window
+ * @param windowMs - Time window in milliseconds (default: 60,000 ms)
+ * @param options - Fail-closed options for production security
+ * @returns true if the request is RATE LIMITED (blocked), false if allowed
  */
 export async function isRateLimitedAsync(
   key: string,
-  uid: string,
+  identifier: string,
   maxRequests: number = 10,
   windowMs: number = 60_000,
   options: RateLimitOptions = {}
 ): Promise<boolean> {
   const isProduction = process.env.NODE_ENV === 'production';
-  const upstashUrl = process.env.UPSTASH_REDIS_REST_URL;
-  const upstashToken = process.env.UPSTASH_REDIS_REST_TOKEN;
+  const url = process.env.UPSTASH_REDIS_REST_URL;
+  const token = process.env.UPSTASH_REDIS_REST_TOKEN;
 
-  // Fail-closed guard: in production, sensitive operations must reject if rate limiting is absent
-  if (isProduction && options.failClosedInProduction && (!upstashUrl || !upstashToken)) {
+  // Fail-closed guard: in production, sensitive operations must reject if rate limiting credentials are missing
+  if (isProduction && options.failClosedInProduction && (!url || !token)) {
     throw new RateLimitError(
       'Rate limiting service is unconfigured or unavailable in production. Rejecting request to protect AI infrastructure.',
       503,
@@ -103,54 +210,33 @@ export async function isRateLimitedAsync(
     );
   }
 
-  if (!upstashUrl || !upstashToken) {
-    return isRateLimited(key, uid, maxRequests, windowMs);
+  // If Upstash credentials are not provided (e.g. local dev / test), use in-memory fallback
+  if (!url || !token) {
+    return isRateLimited(key, identifier, maxRequests, windowMs);
   }
 
   try {
-    const redisKey = `ratelimit:${key}:${uid}`;
-    const response = await fetch(`${upstashUrl}/pipeline`, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${upstashToken}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify([
-        ['INCR', redisKey],
-        ['PTTL', redisKey],
-      ]),
-      cache: 'no-store',
-    });
-
-    if (!response.ok) {
+    const ratelimit = getUpstashRatelimit(key, maxRequests, windowMs);
+    if (!ratelimit) {
       if (isProduction && options.failClosedInProduction) {
         throw new RateLimitError(
-          'Rate limiting service error in production. Rejecting request to protect AI infrastructure.',
+          'Failed to initialize distributed rate limiter in production.',
           503,
           'RATE_LIMIT_UNAVAILABLE'
         );
       }
-      console.warn('[rate-limit] Upstash Redis request failed, using in-memory limiter');
-      return isRateLimited(key, uid, maxRequests, windowMs);
+      return isRateLimited(key, identifier, maxRequests, windowMs);
     }
 
-    const data = (await response.json()) as Array<{ result: number }>;
-    const currentCount = Number(data[0]?.result) || 1;
-    const pttl = Number(data[1]?.result);
+    const result = await ratelimit.limit(identifier);
 
-    // If key had no TTL (PTTL returns -1), set its expiration to windowMs
-    if (pttl === -1 || pttl === -2) {
-      await fetch(`${upstashUrl}/pexpire/${encodeURIComponent(redisKey)}/${windowMs}`, {
-        headers: { Authorization: `Bearer ${upstashToken}` },
-        cache: 'no-store',
-      }).catch(() => {});
-    }
-
-    return currentCount > maxRequests;
-  } catch (err) {
+    // Upstash Ratelimit returns success: false if request exceeds limit
+    return !result.success;
+  } catch (err: unknown) {
     if (err instanceof RateLimitError) {
       throw err;
     }
+
     if (isProduction && options.failClosedInProduction) {
       throw new RateLimitError(
         'Rate limiting service exception in production. Rejecting request to protect AI infrastructure.',
@@ -158,8 +244,9 @@ export async function isRateLimitedAsync(
         'RATE_LIMIT_UNAVAILABLE'
       );
     }
+
     console.warn('[rate-limit] Distributed limiter exception, using in-memory fallback:', err);
-    return isRateLimited(key, uid, maxRequests, windowMs);
+    return isRateLimited(key, identifier, maxRequests, windowMs);
   }
 }
 
